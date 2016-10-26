@@ -1,8 +1,7 @@
-# RISC-V Project Template
+# Craft2 Chip
 
-This is a starter template for your custom RISC-V project. It will allow you
-to leverage the Chisel HDL and RocketChip SoC generator to produce a
-RISC-V SoC with MMIO-mapped peripherals, DMA, and custom accelerators.
+This repo contains the infrastructure for designing, testing, and building the
+craft2 chip.
 
 ## Getting started
 
@@ -10,8 +9,8 @@ RISC-V SoC with MMIO-mapped peripherals, DMA, and custom accelerators.
 
 After cloning this repo, you will need to initialize all of the submodules
 
-    git clone https://github.com/ucb-bar/project-template.git
-    cd project-template
+    git clone git@github.com:ucb-art/craft2-chip.git
+    cd craft2-chip
     git submodule update --init --recursive
 
 ### Building the tools
@@ -22,20 +21,23 @@ instructions and run them on your design. There are detailed instructions at
 https://github.com/riscv/riscv-tools. But to get a basic installation, just
 the following steps are necessary.
 
-    # You may want to add the following two lines to your shell profile
-    export RISCV=/path/to/install/dir
-    export PATH=$RISCV/bin:$PATH
-
-    cd riscv-tools
+    # setup your environment (do this every time you need to use the tools)
+    source enter.bash
+    
+    # build the tools
+    mkdir install
+    source /opt/rh/devtoolset-2/enable
+    cd rocket-chip/riscv-tools
     ./build.sh
 
 ### Compiling and running the Verilator simulation
 
-To compile the example design, run make in the "verisim" directory.
+To compile the craft2 design, run make in the "verisim" directory.
 This will elaborate the DefaultExampleConfig in the example project.
 It will produce an executable called simulator-example-DefaultExampleConfig.
 You can then use this executable to run any compatible RV64 code. For instance,
-to run one of the riscv-tools assembly tests.
+to run one of the riscv-tools assembly tests. Note that there's no output upon
+successful completion. 
 
     ./simulator-example-DefaultExampleConfig $RISCV/riscv64-unknown-elf/share/riscv-tests/isa/rv64ui-p-simple
 
@@ -47,15 +49,14 @@ build an alternate configuration.
 
 ## Submodules and Subdirectories
 
-The submodules and subdirectories for the project template are organized as
-follows.
+The submodules and subdirectories for craft2-chip are organized as follows.
 
  * rocket-chip - contains code for the RocketChip generator and Chisel HDL
  * testchipip - contains the serial adapter and associated verilog and C++ code
  * verisim - directory in which Verilator simulations are compiled and run
  * vsim - directory in which Synopsys VCS simulations are compiled and run
  * bootrom - sources for the first-stage bootloader included in the Boot ROM
- * src/main/scala - scala source files for your project go here
+ * src/main/scala - scala source files specific to craft
 
 ## Creating your own project
 
