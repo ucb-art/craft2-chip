@@ -10,5 +10,5 @@ class ExampleTopWithTest(q: Parameters) extends ExampleTop(q)
     new ExampleTopWithTestModule(p, this, new ExampleTopBundle(p)))
 }
 
-class ExampleTopWithPWMModule(p: Parameters, l: ExampleTopWithTest, b: ExampledTopBundle)
+class ExampleTopWithTestModule(p: Parameters, l: ExampleTopWithTest, b: ExampleTopBundle)
   extends ExampleTopModule(p, l, b) with PeripheryTestModule
