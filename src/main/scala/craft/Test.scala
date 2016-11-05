@@ -5,21 +5,25 @@ import chisel3.util._
 import cde.{Parameters, Field}
 import uncore.tilelink._
 import junctions._
+import diplomacy._
 import fft._
+import rocketchip._
+import dsptools.numbers._
+import dsptools.numbers.implicits._
 
 // FFT with stream interface converted to AXI connected to MMIO manager
 class Test(implicit p: Parameters) extends Module {
-  val io = new Bundle {
+  val io = IO(new Bundle {
     val stream = new StreamIO(512)
     val axi = new NastiIO().flip
-  }
+  })
 
   val fft_config = new FFTConfig(n = 4, p = 4)
-  val fft = Module(new DirectFFT(genIn = DspComplex(getReal, getReal), config = fft_config))
+  val fft = Module(new DirectFFT(genIn = DspComplex(DspReal(0.0), DspReal(0.0)), config = fft_config))
   
   fft.io <> io.stream
-  fft.io.in.sync := io.stream.in.last 
-  io.stream.out.last := fft.io.out.sync
+  fft.io.in.sync := io.stream.in.bits.last 
+  io.stream.out.bits.last := fft.io.out.sync
 
   val stream2axi = new NastiIOStreamIOConverter(512)
 
