@@ -2,6 +2,6 @@ organization := "edu.berkeley.cs"
 
 version := "1.0"
 
-name := "testchip-example"
+name := "craft2-chip"
 
 scalaVersion := "2.11.7"
