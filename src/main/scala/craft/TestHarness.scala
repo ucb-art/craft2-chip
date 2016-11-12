@@ -6,7 +6,7 @@ import diplomacy.LazyModule
 
 class TestHarness(q: Parameters) extends example.TestHarness()(q) {
   override def buildTop(p: Parameters) =
-    LazyModule(new ExampleTopWithTest(p))
+    LazyModule(new ExampleTopWithCraft2DSP(p))
 }
 
 object Generator extends GeneratorApp {

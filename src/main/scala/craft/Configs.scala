@@ -6,14 +6,15 @@ import uncore.tilelink.ClientUncachedTileLinkIO
 import rocketchip.PeripheryUtils
 import chisel3._
 
-class WithTest extends Config(
+class WithCraft2DSP extends Config(
   (pname, site, here) => pname match {
-    case BuildTest => (port: ClientUncachedTileLinkIO, p: Parameters) => {
-      val test = Module(new Test()(p))
-      test.io.axi <> PeripheryUtils.convertTLtoAXI(port)
+    case BuildCraft2DSP => (port: ClientUncachedTileLinkIO, p: Parameters) => {
+      val craft = Module(new Craft2DSP()(p))
+      craft.io.axi <> PeripheryUtils.convertTLtoAXI(port)
+      ()
     }
     case _ => throw new CDEMatchError
   })
 
 
-class TestConfig extends Config(new WithTest ++ new example.DefaultExampleConfig)
+class Craft2Config extends Config(new WithCraft2DSP ++ new example.DefaultExampleConfig)

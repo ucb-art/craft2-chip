@@ -24,6 +24,7 @@ long_name = $(PROJECT).$(MODEL).$(CONFIG)
 
 sim_vsrcs = \
 	$(build_dir)/$(long_name).v \
+	$(sim_dir)/BlackBoxFloat.v \
 	$(base_dir)/testchipip/vsrc/SimSerial.v
 
 sim_csrcs = \
@@ -39,7 +40,7 @@ model_header_debug = $(model_dir_debug)/V$(MODEL).h
 $(sim): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name)
 	$(VERILATOR) $(VERILATOR_FLAGS) -Mdir $(build_dir)/$(long_name) \
-	-o $(sim_dir)/$@ $< $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
+	-o $(sim_dir)/$@ $< $(sim_dir)/BlackBoxFloat.v $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header)"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name) -f V$(MODEL).mk
 
@@ -47,6 +48,6 @@ $(sim): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 $(sim_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name).debug
 	$(VERILATOR) $(VERILATOR_FLAGS) -Mdir $(build_dir)/$(long_name).debug --trace \
-	-o $(sim_dir)/$@ $< $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
+	-o $(sim_dir)/$@ $< $(sim_dir)/BlackBoxFloat.v $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header_debug)"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name).debug -f V$(MODEL).mk

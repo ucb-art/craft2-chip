@@ -4,11 +4,11 @@ import chisel3._
 import example._
 import cde.Parameters
 
-class ExampleTopWithTest(q: Parameters) extends ExampleTop(q)
-    with PeripheryTest {
+class ExampleTopWithCraft2DSP(q: Parameters) extends ExampleTop(q)
+    with PeripheryCraft2DSP {
   override lazy val module = Module(
-    new ExampleTopWithTestModule(p, this, new ExampleTopBundle(p)))
+    new ExampleTopWithCraft2DSPModule(p, this, new ExampleTopBundle(p)))
 }
 
-class ExampleTopWithTestModule(p: Parameters, l: ExampleTopWithTest, b: ExampleTopBundle)
-  extends ExampleTopModule(p, l, b) with PeripheryTestModule
+class ExampleTopWithCraft2DSPModule(p: Parameters, l: ExampleTopWithCraft2DSP, b: ExampleTopBundle)
+  extends ExampleTopModule(p, l, b) with PeripheryCraft2DSPModule
