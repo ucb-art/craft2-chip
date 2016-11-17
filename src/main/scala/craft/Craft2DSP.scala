@@ -55,6 +55,7 @@ class Craft2DSP(implicit p: Parameters) extends Module {
   io.axi.b.bits := NastiWriteResponseChannel(id = aw.bits.id)
 
   when (io.axi.b.fire()) {
+    printf("%d index written\n", write_index)
     for (i <- 0 until nfft * 2) {
       val wire = DspReal(0.0).fromBits(w.bits.data)
       if (i % 2 == 0)

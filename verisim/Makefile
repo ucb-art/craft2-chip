@@ -49,5 +49,5 @@ $(sim_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name).debug
 	$(VERILATOR) $(VERILATOR_FLAGS) -Mdir $(build_dir)/$(long_name).debug --trace \
 	-o $(sim_dir)/$@ $< $(sim_dir)/BlackBoxFloat.v $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
-	-CFLAGS "-I$(build_dir) -include $(model_header_debug)"
+	-CFLAGS "-I$(build_dir) -include $(model_header_debug) -DVM_TRACE=1"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name).debug -f V$(MODEL).mk
