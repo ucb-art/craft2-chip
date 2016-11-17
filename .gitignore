@@ -4,3 +4,4 @@ target
 *.stamp
 /install
 lib/
+.ivy2
