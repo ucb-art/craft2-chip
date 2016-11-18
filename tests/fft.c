@@ -15,7 +15,8 @@ static inline unsigned long read_reg(unsigned long addr)
 void run_fft(double *bufin, double *bufout, int n) {
     int i;
     for (i=0; i < 2 * n; i++) {
-        write_reg(FFT_BASE + i * 8, bufin[i]);
+        long in = *(unsigned long *)&(bufin[i]);
+        write_reg(FFT_BASE + i * 8, in);
     }
     for (i=0; i < 2 * n; i++) {
         i[bufout] = read_reg(FFT_BASE + i * 8);
@@ -25,12 +26,12 @@ void run_fft(double *bufin, double *bufout, int n) {
 int main(void)
 {
     int i;
-    double in[8] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    double in[8] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     double out[8];
 
     run_fft(in, out, 4);
 
-    for (i=0; i < 2 * 4; i++) {
+    /* for (i=0; i < 2 * 4; i++) {
         printf("%f\t", out[i]);
-    }
+    } */
 }

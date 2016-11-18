@@ -44,7 +44,7 @@ class Craft2DSP(implicit p: Parameters) extends Module {
     data = MuxLookup(read_index, UInt(0),
       (0 until 2*nfft).map (i => {
         if (i % 2 == 0)
-          i.U     -> fft.io.out.bits(i / 2).real.toBits
+          i.U -> fft.io.out.bits(i / 2).real.toBits
         else
           i.U -> fft.io.out.bits(i / 2).imaginary.toBits
       })))

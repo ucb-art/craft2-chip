@@ -37,7 +37,7 @@ $(dspframework_stamp): $(call lookup_scala_srcs, $(base_dir)/dsp-framework)
 
 -include $(base_dir)/Makefrag.pkgs
 
-$(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh
+$(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(EXTRA_PACKAGES) > $@
 
 $(FIRRTL_JAR): $(call lookup_scala_srcs, $(ROCKETCHIP_DIR)/firrtl/src/main/scala)
