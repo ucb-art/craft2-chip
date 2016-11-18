@@ -3,3 +3,5 @@ generated-src/
 verilator/
 DVEfiles/
 *.log
+*.vcd
+*.vpd
