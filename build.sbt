@@ -17,9 +17,10 @@ val defaultVersions = Map(
   "chisel3" -> "3.1-SNAPSHOT",
   "chisel-iotesters" -> "1.2-SNAPSHOT",
   "pfb" -> "1.0",
-  "sam" -> "1.0"
+  "sam" -> "1.0",
+  "builtin-debugger" -> "0"
   )
 
-libraryDependencies ++= Seq("dspblocks", "chisel3", "chisel-iotesters", "pfb").map {
+libraryDependencies ++= Seq("dspblocks", "chisel3", "chisel-iotesters", "sam", "builtin-debugger", "pfb").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) }
 
