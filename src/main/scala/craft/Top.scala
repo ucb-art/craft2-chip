@@ -4,6 +4,8 @@ import chisel3._
 import example._
 import cde.Parameters
 
+// import chisel3.core.ExplicitCompileOptions.NotStrict
+
 class ExampleTopWithCraft2DSP(q: Parameters) extends ExampleTop(q)
     with PeripheryCraft2DSP {
   override lazy val module = Module(

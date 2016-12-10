@@ -1,57 +1,40 @@
-lib_dir=$(base_dir)/lib
-ivy_dir ?= $(base_dir)/.ivy2
+base_dir ?= $(abspath .)
+sim_dir  ?= $(base_dir)
+lib_dir = $(base_dir)/lib
+framework_dir = $(base_dir)/dsp-framework
+ivy_dir = $(base_dir)/.ivy2
+ROCKETCHIP_DIR=$(framework_dir)/rocket-chip
+TESTCHIPIP_DIR=$(framework_dir)/testchipip
 
-ROCKETCHIP_DIR=$(base_dir)/rocket-chip
-EXTRA_PACKAGES=fft pfb testchipip riscv-dma2 #sam
+SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx2G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
-rocketchip_stamp=$(base_dir)/lib/rocketchip.stamp
-dspframework_stamp=$(base_dir)/lib/dsp-framework.stamp
-SBT ?= java -Xmx2G -Xss8M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
-extra_stamps = $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(EXTRA_PACKAGES))))
+CRAFT_PACKAGES = pfb riscv-dma2
+extra_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
+all_stamps := $(extra_stamps) $(all_stamps)
 
-lookup_scala_srcs = $(shell find $(1)/ -iname "*.scala" 2> /dev/null)
-
-libs: $(rocketchip_stamp) $(extra_stamps)
-
-
-FIRRTL_JAR ?= $(base_dir)/dsp-framework/firrtl/utils/bin/firrtl.jar
+FIRRTL_JAR ?= $(ROCKETCHIP_DIR)/firrtl/utils/bin/firrtl.jar
 FIRRTL ?= java -Xmx2G -Xss8M -cp $(FIRRTL_JAR) firrtl.Driver
 
-$(rocketchip_stamp): $(call lookup_scala_srcs, $(ROCKETCHIP_DIR)) $(dspframework_stamp)
-	rm -rf $(ROCKETCHIP_DIR)/chisel3 && ln -s ${base_dir}/dsp-framework/chisel3 $(ROCKETCHIP_DIR)/chisel3
-	cd $(ROCKETCHIP_DIR) && $(SBT) pack
-	mkdir -p $(lib_dir)
-	cp $(ROCKETCHIP_DIR)/target/pack/lib/*.jar $(lib_dir)
-	touch $(rocketchip_stamp)
+CHISEL_ARGS ?= 
+build_dir ?= $(sim_dir)/generated-src
+PROJECT ?= pfb
+MODEL ?= DspBareTop
+CFG_PROJECT ?= $(PROJECT)
+CONFIG ?= DspConfig
 
-$(dspframework_stamp): $(call lookup_scala_srcs, $(base_dir)/dsp-framework)
-	cd $(base_dir)/dsp-framework/firrtl             && $(SBT) publish-local && $(SBT) assembly
-	cd $(base_dir)/dsp-framework/firrtl-interpreter && $(SBT) publish-local
-	cd $(base_dir)/dsp-framework/chisel3            && $(SBT) publish-local
-	cd $(base_dir)/dsp-framework/chisel-testers     && $(SBT) publish-local
-	cd $(base_dir)/dsp-framework/dsptools           && $(SBT) publish-local
-	mkdir -p ${lib_dir}
-	find ${ivy_dir}/local -type f -name "*.jar" | xargs cp -t ${lib_dir}
-	find ${ivy_dir}/cache -type f -name "spire*.jar" | xargs cp -t ${lib_dir}
-	touch $(dspframework_stamp)
+
+$(base_dir)/Makefrag.pkgs: $(framework_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
+	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
 
 -include $(base_dir)/Makefrag.pkgs
+-include $(framework_dir)/Makefrag
 
-$(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
-	bash $(base_dir)/generate-pkg-mk.sh $(EXTRA_PACKAGES) > $@
-
-$(FIRRTL_JAR): $(call lookup_scala_srcs, $(ROCKETCHIP_DIR)/firrtl/src/main/scala)
-	$(MAKE) -C $(ROCKETCHIP_DIR)/firrtl SBT="$(SBT)" root_dir=$(ROCKETCHIP_DIR)/firrtl build-scala
-	mkdir -p $(ROCKETCHIP_DIR)/chisel3/lib
-	cp $(ROCKETCHIP_DIR)/firrtl/utils/bin/firrtl.jar $(ROCKETCHIP_DIR)/chisel3/lib/firrtl.jar
-
-build_dir=$(sim_dir)/generated-src
-
-CHISEL_ARGS ?=
-
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(rocketchip_stamp) $(extra_stamps) $(call lookup_scala_srcs,$(base_dir)/src/main/scala)
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(all_stamps)
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
 	$(FIRRTL) -i $< -o $@ -X verilog
+
+
+verilog: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
