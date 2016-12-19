@@ -33,7 +33,7 @@ class PWMBase extends Module {
 class PWMTL(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
     val pwmout = Output(Bool())
-    val tl = new ClientUncachedTileLinkIO().flip
+    val tl = new ClientUncachedTileLinkIO()
   })
 
   // How many clock cycles in a PWM cycle?
