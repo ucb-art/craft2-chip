@@ -1,9 +1,3 @@
-[submodule "rocket-chip"]
-	path = rocket-chip
-	url = git@github.com:ucb-art/rocket-chip.git
-[submodule "testchipip"]
-	path = testchipip
-	url = git@github.com:ucb-bar/testchipip.git
 [submodule "fft"]
 	path = fft
 	url = git@github.com:ucb-art/fft.git

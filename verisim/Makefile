@@ -1,5 +1,6 @@
 base_dir=$(abspath ..)
 sim_dir=$(abspath .)
+framework_dir=$(base_dir)/dsp-framework
 
 PROJECT ?= example
 MODEL ?= TestHarness
@@ -25,11 +26,11 @@ long_name = $(PROJECT).$(MODEL).$(CONFIG)
 sim_vsrcs = \
 	$(build_dir)/$(long_name).v \
 	$(sim_dir)/BlackBoxFloat.v \
-	$(base_dir)/testchipip/vsrc/SimSerial.v
+	$(framework_dir)/testchipip/vsrc/SimSerial.v
 
 sim_csrcs = \
-	$(base_dir)/testchipip/csrc/SimSerial.cc \
-	$(base_dir)/testchipip/csrc/verilator-harness.cc
+	$(framework_dir)/testchipip/csrc/SimSerial.cc \
+	$(framework_dir)/testchipip/csrc/verilator-harness.cc
 
 model_dir = $(build_dir)/$(long_name)
 model_dir_debug = $(build_dir)/$(long_name).debug
@@ -43,7 +44,6 @@ $(sim): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	-o $(sim_dir)/$@ $< $(sim_dir)/BlackBoxFloat.v $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header)"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name) -f V$(MODEL).mk
-
 
 $(sim_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name).debug
