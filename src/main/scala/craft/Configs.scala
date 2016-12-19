@@ -22,6 +22,7 @@ class WithCraft2DSP extends Config(
       chain.io.axi <> PeripheryUtils.convertTLtoAXI(port)
       ()
     }
+    case SAMKey => SAMConfig(10, 10)
     case _ => throw new CDEMatchError
   })
 
@@ -37,7 +38,6 @@ object ChainBuilder {
             }
           ),
           baseAddr = 0,
-          samConfig = SAMConfig(subpackets=10, bufferDepth=10, baseAddr=0),
           logicAnalyzerSamples = 128,
           patternGeneratorSamples = 128
         )
