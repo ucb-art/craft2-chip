@@ -2,9 +2,9 @@ base_dir=$(abspath ..)
 sim_dir=$(abspath .)
 framework_dir=$(base_dir)/dsp-framework
 
-PROJECT ?= example
+PROJECT ?= craft
 MODEL ?= TestHarness
-CONFIG ?= DefaultExampleConfig
+CONFIG ?= Craft2Config
 CFG_PROJECT ?= $(PROJECT)
 TB ?= TestDriver
 
@@ -26,11 +26,11 @@ long_name = $(PROJECT).$(MODEL).$(CONFIG)
 sim_vsrcs = \
 	$(build_dir)/$(long_name).v \
 	$(sim_dir)/BlackBoxFloat.v \
-	$(framework_dir)/testchipip/vsrc/SimSerial.v
+	$(TESTCHIPIP_DIR)/vsrc/SimSerial.v
 
 sim_csrcs = \
-	$(framework_dir)/testchipip/csrc/SimSerial.cc \
-	$(framework_dir)/testchipip/csrc/verilator-harness.cc
+	$(TESTCHIPIP_DIR)/csrc/SimSerial.cc \
+	$(TESTCHIPIP_DIR)/csrc/verilator-harness.cc
 
 model_dir = $(build_dir)/$(long_name)
 model_dir_debug = $(build_dir)/$(long_name).debug
