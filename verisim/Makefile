@@ -1,5 +1,6 @@
 base_dir=$(abspath ..)
 sim_dir=$(abspath .)
+framework_dir=$(base_dir)/dsp-framework
 
 PROJECT ?= craft
 MODEL ?= TestHarness
@@ -43,7 +44,6 @@ $(sim): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	-o $(sim_dir)/$@ $< $(sim_dir)/BlackBoxFloat.v $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header)"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name) -f V$(MODEL).mk
-
 
 $(sim_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name).debug

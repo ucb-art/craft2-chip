@@ -37,7 +37,7 @@ object ChainBuilder {
             }
           ),
           baseAddr = 0,
-          samConfig = SAMConfig(),
+          samConfig = SAMConfig(subpackets=10, bufferDepth=10, baseAddr=0),
           logicAnalyzerSamples = 128,
           patternGeneratorSamples = 128
         )

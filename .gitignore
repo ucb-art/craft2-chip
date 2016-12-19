@@ -3,5 +3,5 @@ target
 *.jar
 *.stamp
 /install
-lib/
+lib
 /.ivy2

@@ -57,7 +57,7 @@ class DspChain(
 
   val patternGenerator = Module( new PatternGenerator(maxDataWidth, 1, patternGeneratorSamples) )
 
-  val sam = Module( new SAM(lastDataWidth, samConfig) )
+  val sam = Module( new SAM() )
 
   val scrbuilder = new SCRBuilder(name)
 
