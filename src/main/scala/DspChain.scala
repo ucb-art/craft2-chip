@@ -13,7 +13,6 @@ import uncore.converters._
 case class DspChainParameters (
   blocks: Seq[Parameters => DspBlock],
   baseAddr: Int,
-  samConfig: SAMConfig,
   logicAnalyzerSamples: Int,
   patternGeneratorSamples: Int,
   patternGeneratorTrigger: Boolean = true
@@ -25,7 +24,6 @@ trait HasDspChainParameters {
   implicit val p: Parameters
   val blocks = p(DspChainKey).blocks
   val baseAddr = p(DspChainKey).baseAddr
-  val samConfig = p(DspChainKey).samConfig
   val logicAnalyzerSamples = p(DspChainKey).logicAnalyzerSamples
   val patternGeneratorSamples = p(DspChainKey).patternGeneratorSamples
   val patternGeneratorTrigger = p(DspChainKey).patternGeneratorTrigger
