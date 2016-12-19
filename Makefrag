@@ -12,6 +12,8 @@ CRAFT_PACKAGES = pfb riscv-dma2 sam builtin-debugger
 extra_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
 all_stamps := $(extra_stamps) $(all_stamps)
 
+libs: $(all_stamps)
+
 FIRRTL_JAR ?= $(ROCKETCHIP_DIR)/firrtl/utils/bin/firrtl.jar
 FIRRTL ?= java -Xmx2G -Xss8M -cp $(FIRRTL_JAR) firrtl.Driver
 
@@ -23,7 +25,7 @@ CFG_PROJECT ?= $(PROJECT)
 CONFIG ?= DspConfig
 
 
-$(base_dir)/Makefrag.pkgs: $(framework_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
+$(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
 
 -include $(base_dir)/Makefrag.pkgs
@@ -35,6 +37,5 @@ $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
 	$(FIRRTL) -i $< -o $@ -X verilog
-
 
 verilog: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
