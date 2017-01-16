@@ -14,14 +14,15 @@ import dsptools.numbers.implicits._
 trait PeripheryCraft2DSP extends LazyModule {
   val pDevices: ResourceManager[AddrMapEntry]
 
-  pDevices.add(AddrMapEntry("craft2", MemSize(4096, MemAttr(AddrMapProt.RW))))
+  pDevices.add(AddrMapEntry("craft2_control", MemSize(4096, MemAttr(AddrMapProt.RW))))
+  pDevices.add(AddrMapEntry("craft2_data", MemSize(4096, MemAttr(AddrMapProt.RW))))
 }
 
-case object BuildCraft2DSP extends Field[(ClientUncachedTileLinkIO, Parameters) => Unit]
+case object BuildCraft2DSP extends Field[(ClientUncachedTileLinkIO, ClientUncachedTileLinkIO, Parameters) => Unit]
 
 trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
   implicit val p: Parameters
   val pBus: TileLinkRecursiveInterconnect
 
-  p(BuildCraft2DSP)(pBus.port("craft2"), outerMMIOParams)
+  p(BuildCraft2DSP)(pBus.port("craft2_control"), pBus.port("craft2_data"), outerMMIOParams)
 }

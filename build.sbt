@@ -13,7 +13,7 @@ resolvers ++= Seq(
 
 // Provide a managed dependency on X if -DXVersion="" is supplied on the command line.
 val defaultVersions = Map(
-  "dspblocks" -> "1.0",
+  "rocket-dsp-utils" -> "1.0",
   "chisel3" -> "3.1-SNAPSHOT",
   "chisel-iotesters" -> "1.2-SNAPSHOT",
   "pfb" -> "1.0",
@@ -21,6 +21,6 @@ val defaultVersions = Map(
   "builtin-debugger" -> "0"
   )
 
-libraryDependencies ++= Seq("dspblocks", "chisel3", "chisel-iotesters", "sam", "builtin-debugger", "pfb").map {
+libraryDependencies ++= Seq("rocket-dsp-utils", "chisel3", "chisel-iotesters", "sam", "builtin-debugger", "pfb").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) }
 

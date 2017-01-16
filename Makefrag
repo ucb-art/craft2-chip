@@ -9,10 +9,13 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx2G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
 CRAFT_PACKAGES = pfb riscv-dma2 sam builtin-debugger
-extra_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
-all_stamps := $(extra_stamps) $(all_stamps)
+craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
+-include $(base_dir)/Makefrag.pkgs
+-include $(framework_dir)/Makefrag
+top_all_stamps := $(all_stamps) $(craft_stamps) 
 
-libs: $(all_stamps)
+.PHONY: libs
+libs: $(top_all_stamps)
 
 FIRRTL_JAR ?= $(ROCKETCHIP_DIR)/firrtl/utils/bin/firrtl.jar
 FIRRTL ?= java -Xmx2G -Xss8M -cp $(FIRRTL_JAR) firrtl.Driver
@@ -28,10 +31,8 @@ CONFIG ?= DspConfig
 $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
 
--include $(base_dir)/Makefrag.pkgs
--include $(framework_dir)/Makefrag
 
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(all_stamps)
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) libs
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
