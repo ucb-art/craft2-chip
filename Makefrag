@@ -8,7 +8,7 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx2G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
-CRAFT_PACKAGES = pfb riscv-dma2 sam builtin-debugger
+CRAFT_PACKAGES = fft pfb riscv-dma2 builtin-debugger
 craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
 -include $(base_dir)/Makefrag.pkgs
 -include $(framework_dir)/Makefrag
@@ -22,10 +22,11 @@ FIRRTL ?= java -Xmx2G -Xss8M -cp $(FIRRTL_JAR) firrtl.Driver
 
 CHISEL_ARGS ?= 
 build_dir ?= $(sim_dir)/generated-src
-PROJECT ?= pfb
-MODEL ?= DspBareTop
+PROJECT ?= craft
+MODEL ?= TestHarness
+#TestHarness
 CFG_PROJECT ?= $(PROJECT)
-CONFIG ?= DspConfig
+CONFIG ?= Craft2Config
 
 
 $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag

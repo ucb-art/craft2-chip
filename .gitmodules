@@ -13,6 +13,3 @@
 [submodule "builtin-debugger"]
 	path = builtin-debugger
 	url = https://github.com/ucb-art/builtin-debugger.git
-[submodule "sam"]
-	path = sam
-	url = https://github.com/ucb-art/sam.git

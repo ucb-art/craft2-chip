@@ -7,9 +7,16 @@ import testchipip._
 import chisel3._
 import cde.Parameters
 
+import dspblocks._
+import dspjunctions._
+
 class TestHarness(implicit val p: Parameters) extends Module {
+  val firstBlockId = "pfb"
+  val firstBlockWidth = p(GenKey(firstBlockId)).genIn.getWidth * p(GenKey(firstBlockId)).lanesIn
+
   val io = IO(new Bundle {
     val success = Output(Bool())
+    val stream_in = Flipped(ValidWithSync(UInt( firstBlockWidth.W )))
   })
 
   def buildTop(p: Parameters): ExampleTop = LazyModule(new ExampleTop(p))
