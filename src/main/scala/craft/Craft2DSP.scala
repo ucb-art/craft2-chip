@@ -10,6 +10,7 @@ import diplomacy._
 import rocketchip._
 import dsptools.numbers._
 import dsptools.numbers.implicits._
+import dspjunctions._
 
 trait PeripheryCraft2DSP extends LazyModule {
   val pDevices: ResourceManager[AddrMapEntry]
@@ -18,11 +19,13 @@ trait PeripheryCraft2DSP extends LazyModule {
   pDevices.add(AddrMapEntry("craft2_data", MemSize(4096, MemAttr(AddrMapProt.RW))))
 }
 
-case object BuildCraft2DSP extends Field[(ClientUncachedTileLinkIO, ClientUncachedTileLinkIO, Parameters) => Unit]
+case object BuildCraft2DSP extends Field[(ClientUncachedTileLinkIO, ClientUncachedTileLinkIO, ValidWithSync[UInt], Parameters) => Unit]
 
 trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
   implicit val p: Parameters
   val pBus: TileLinkRecursiveInterconnect
+  def io: CraftTopBundle
 
-  p(BuildCraft2DSP)(pBus.port("craft2_control"), pBus.port("craft2_data"), outerMMIOParams)
+  p(BuildCraft2DSP)(pBus.port("craft2_control"), pBus.port("craft2_data"), io.stream_in, outerMMIOParams)
+
 }
