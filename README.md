@@ -2,7 +2,7 @@
 
 This repo contains the infrastructure for designing, testing, and building the craft2 chip.
 
-## Overview 
+## Overview
 
 TODO
 
@@ -16,7 +16,7 @@ After cloning this repo, you will need to initialize all of the submodules.
     cd craft2-chip
     git submodule update --init --recursive
 
-This can take a long time. 
+This can take a long time.
 To avoid cloning the riscv-tools (in case you already have them built), use the following commands instead.
 This assumes you are in a bash shell.
 
@@ -43,12 +43,36 @@ the following steps are necessary.
 
     # setup your environment (do this every time you need to use the tools)
     source enter.bash
-    
+
     # build the tools
     mkdir install
     source /opt/rh/devtoolset-2/enable
     cd rocket-chip/riscv-tools
     ./build.sh
+
+### Choosing Fixed or Floating Point
+
+This project can generate the craft2 design using fixed or floating point.
+You can switch between the two in `src/main/scala/craft/Config.scala`.
+The relevant lines are:
+
+```
+object ChainBuilder {
+  // def getReal(): DspReal = DspReal()
+  def getReal(): FixedPoint = FixedPoint(32.W, 16.BP)
+...
+    case DspChainKey("craft-afb") => DspChainParameters(
+      blocks = Seq(
+        (implicit p => new LazyPFBBlock[DspComplex[FixedPoint]], "pfb"),
+        (implicit p => new LazyFFTBlock[FixedPoint],             "fft")
+      ),
+      dataBaseAddr = 0x2000,
+      ctrlBaseAddr = 0x3000
+    )
+```
+
+Uncommenting/commenting the desired `getReal()` switches between `FixedPoint` and `DspReal` (floating point).
+Then you also need to change the types of the blocks in `DspChainKey`: `LazyPFBBlock[DspComplex[XXX]]` and `LazyFFTBlock[XXX]` should have `XXX` consistent with whichever `getReal()` you chose.
 
 ### Compiling Verilog
 
@@ -62,7 +86,7 @@ This will elaborate the DefaultExampleConfig in the example project.
 It will produce an executable called simulator-example-DefaultExampleConfig.
 You can then use this executable to run any compatible RV64 code. For instance,
 to run one of the riscv-tools assembly tests. Note that there's no output upon
-successful completion. 
+successful completion.
 
     ./simulator-example-DefaultExampleConfig $RISCV/riscv64-unknown-elf/share/riscv-tests/isa/rv64ui-p-simple
 
@@ -74,7 +98,7 @@ build an alternate configuration.
 
 ### Working inside the Cadence VCAD Chamber
 
-Setup in the Chamber has some differences. 
+Setup in the Chamber has some differences.
 First, set up everything as below.
 
     source /projects/craft_p1/tools/setup.sh
