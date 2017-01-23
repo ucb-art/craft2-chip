@@ -5,3 +5,4 @@ target
 /install
 lib
 /.ivy2
+generated-src/
