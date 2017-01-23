@@ -34,7 +34,8 @@ class WithCraft2DSP extends Config(
   })
 
 object ChainBuilder {
-  def getReal(): DspReal = DspReal()
+  // def getReal(): DspReal = DspReal()
+  def getReal(): FixedPoint = FixedPoint(32.W, 16.BP)
   def afbChain(fftConfig: FFTConfig = FFTConfig(), pfbConfig: PFBConfig = PFBConfig(), lanes: Int = 8): Config = {
     new Config(
       (pname, site, here) => pname match {
@@ -55,8 +56,8 @@ object ChainBuilder {
         case DspChainId => "craft-afb"
         case DspChainKey("craft-afb") => DspChainParameters(
           blocks = Seq(
-            (implicit p => new LazyPFBBlock[DspComplex[DspReal]], "pfb"),
-            (implicit p => new LazyFFTBlock[DspReal],             "fft")
+            (implicit p => new LazyPFBBlock[DspComplex[FixedPoint]], "pfb"),
+            (implicit p => new LazyFFTBlock[FixedPoint],             "fft")
           ),
           dataBaseAddr = 0x2000,
           ctrlBaseAddr = 0x3000
