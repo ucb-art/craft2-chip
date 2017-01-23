@@ -80,11 +80,13 @@ First, set up everything as below.
     source /projects/craft_p1/tools/setup.sh
     git clone /projects/craft_p1/git/craft2-chip.git
     cd craft2-chip
-    git_submodule_update
+    init_user_sbt  # Optional, if you do not have a ~/.sbt directory.
+    init_project_ivy2 # This command copies a .ivy2 cache to the project directory; only needed once per project
+    git_submodule_init
     cd dsp-framework
-    git_submodule_update
+    git_submodule_init
     cd rocket-chip
-    git_submodule_update
+    git_submodule_init
     cd ../..
 
 Compile the dependencies.
