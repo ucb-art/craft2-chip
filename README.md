@@ -76,6 +76,9 @@ object ChainBuilder {
 Uncommenting/commenting the desired `getReal()` switches between `FixedPoint` and `DspReal` (floating point).
 Then you also need to change the types of the blocks in `DspChainKey`: `LazyPFBBlock[DspComplex[XXX]]` and `LazyFFTBlock[XXX]` should have `XXX` consistent with whichever `getReal()` you chose.
 
+Note that for `FixedPoint`, you should select a width and binary point.
+The example shown here has width 32 and binary point 16.
+
 ### Compiling Verilog
 
 To compile just the Verilog (without running any tests), type `make verilog` in the top-level directory.
