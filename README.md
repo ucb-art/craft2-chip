@@ -69,6 +69,8 @@ object ChainBuilder {
       dataBaseAddr = 0x2000,
       ctrlBaseAddr = 0x3000
     )
+...
+}
 ```
 
 Uncommenting/commenting the desired `getReal()` switches between `FixedPoint` and `DspReal` (floating point).
