@@ -34,8 +34,8 @@ class WithCraft2DSP extends Config(
   })
 
 object ChainBuilder {
-  // def getReal(): DspReal = DspReal()
-  def getReal(): FixedPoint = FixedPoint(32.W, 16.BP)
+  type T = FixedPoint
+  def getGenType(): T = FixedPoint(32.W, 16.BP)
   def afbChain(fftConfig: FFTConfig = FFTConfig(), pfbConfig: PFBConfig = PFBConfig(), lanes: Int = 8): Config = {
     new Config(
       (pname, site, here) => pname match {
@@ -43,12 +43,12 @@ object ChainBuilder {
         case FFTKey => fftConfig.copy(lanes = site(GenKey(site(DspBlockId))).lanesIn)
         case PFBKey => pfbConfig
         case GenKey("fft") => site(GenKey("pfb")) /*new GenParameters {
-          def genIn [V <: Data] = getReal().asInstanceOf[V]
+          def genIn [V <: Data] = getGenType().asInstanceOf[V]
           val lanesIn = lanes
           override val lanesOut = lanes
         }*/
         case GenKey("pfb") => new GenParameters { // site(GenKey("fft"))
-          def genIn [V <: Data] = DspComplex(getReal(), getReal()).asInstanceOf[V]
+          def genIn [V <: Data] = DspComplex(getGenType(), getGenType()).asInstanceOf[V]
           val lanesIn = lanes
           override val lanesOut = lanes
         }
@@ -56,8 +56,8 @@ object ChainBuilder {
         case DspChainId => "craft-afb"
         case DspChainKey("craft-afb") => DspChainParameters(
           blocks = Seq(
-            (implicit p => new LazyPFBBlock[DspComplex[FixedPoint]], "pfb"),
-            (implicit p => new LazyFFTBlock[FixedPoint],             "fft")
+            (implicit p => new LazyPFBBlock[DspComplex[T]], "pfb"),
+            (implicit p => new LazyFFTBlock[T],             "fft")
           ),
           dataBaseAddr = 0x2000,
           ctrlBaseAddr = 0x3000
@@ -73,9 +73,9 @@ object ChainBuilder {
         case PFBKey => PFBConfig()
         case DspBlockId => "pfb"
         case GenKey("pfb") => new GenParameters {
-          def getReal(): DspReal = DspReal(0.0).cloneType
-          def genIn [T <: Data] = getReal().asInstanceOf[T]
-          override def genOut[T <: Data] = getReal().asInstanceOf[T]
+          def getGenType(): T = DspReal(0.0).cloneType
+          def genIn [T <: Data] = getGenType().asInstanceOf[T]
+          override def genOut[T <: Data] = getGenType().asInstanceOf[T]
           val lanesIn = 8
           override val lanesOut = 8
         }
