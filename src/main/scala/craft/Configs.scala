@@ -73,7 +73,7 @@ object ChainBuilder {
         case PFBKey => PFBConfig()
         case DspBlockId => "pfb"
         case GenKey("pfb") => new GenParameters {
-          def getGenType(): T = DspReal(0.0).cloneType
+          //def getGenType(): T = DspReal(0.0).cloneType
           def genIn [T <: Data] = getGenType().asInstanceOf[T]
           override def genOut[T <: Data] = getGenType().asInstanceOf[T]
           val lanesIn = 8
