@@ -9,8 +9,10 @@ import dspblocks._
 import dspjunctions._
 import _root_.junctions._
 import rocketchip.PeripheryUtils
+import rocketchip.HwachaConfig
 import testchipip.WithSerialAdapter
 import uncore.tilelink.ClientUncachedTileLinkIO
+import uncore.converters.TileLinkWidthAdapter
 import coreplex.WithL2Cache
 import dma._
 
@@ -25,8 +27,9 @@ class WithCraft2DSP extends Config(
     case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, streamIn: ValidWithSync[UInt], p: Parameters) => {
       implicit val q = p
       val chain = Module(new DspChain)
-      chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(control_port)
-      chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(data_port)
+      // add width adapter because Hwacha needs 128-bit TL
+      chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(control_port, chain.ctrlXbarParams))
+      chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(data_port, chain.dataXbarParams))
       chain.io.stream_in := streamIn
       ()
     }
@@ -95,10 +98,12 @@ object ChainBuilder {
 
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
-  // new WithCraft ++
   new WithDma ++
-  new WithL2Cache ++
   new WithSerialAdapter ++
+  new HwachaConfig ++
+  // new WithNL2AcquireXacts(4) ++
+  // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
+  // new WithL2Cache ++ // defined in HwachaConfig
   new rocketchip.BaseConfig)
 
 
