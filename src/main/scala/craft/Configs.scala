@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.experimental._
 import scala.collection.mutable.{LinkedHashSet, ListBuffer}
 import cde.{Parameters, Config, Dump, Knob, CDEMatchError, Field}
+import diplomacy.LazyModule
 import dsptools._
 import dsptools.numbers._
 import dsptools.numbers.implicits._
@@ -36,7 +37,10 @@ class WithCraft2DSP extends Config(
   (pname, site, here) => pname match {
     case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, streamIn: ValidWithSync[UInt], dsp_clock: Clock, p: Parameters) => {
       implicit val q = p
-      val chain = Module(new DspChain(override_clock=Some(dsp_clock))(p))
+      val dataBaseAddr = 0x2000
+      val ctrlBaseAddr = 0x3000
+      val lazyChain = LazyModule(new LazyDspChain(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
+      val chain = Module(lazyChain.module)
       // add width adapter because Hwacha needs 128-bit TL
       chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(control_port, chain.ctrlXbarParams)))
       chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(data_port, chain.dataXbarParams)))
@@ -63,8 +67,10 @@ object ChainBuilder {
             (implicit p => new LazyPFBBlock[DspComplex[T]], id + ":pfb"),
             (implicit p => new LazyFFTBlock[T],             id + ":fft")
           ),
-          dataBaseAddr = 0x2000,
-          ctrlBaseAddr = 0x3000
+          logicAnalyzerSamples = 256,
+          logicAnalyzerUseCombinationalTrigger = true,
+          patternGeneratorSamples = 256,
+          patternGeneratorUseCombinationalTrigger = true
         )
         case _ => throw new CDEMatchError
       }
