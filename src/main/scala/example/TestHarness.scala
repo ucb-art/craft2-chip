@@ -17,6 +17,7 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val success = Output(Bool())
     val stream_in = Flipped(ValidWithSync(UInt( firstBlockWidth.W )))
+    val dsp_clock = Flipped(Bool())
   })
 
   def buildTop(p: Parameters): ExampleTop = LazyModule(new ExampleTop(p))
