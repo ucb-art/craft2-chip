@@ -10,6 +10,3 @@
 [submodule "riscv-dma2"]
 	path = riscv-dma2
 	url = https://github.com/zhemao/riscv-dma2.git
-[submodule "builtin-debugger"]
-	path = builtin-debugger
-	url = https://github.com/ucb-art/builtin-debugger.git
