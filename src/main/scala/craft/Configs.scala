@@ -2,20 +2,29 @@ package craft
 
 import chisel3._
 import chisel3.experimental._
-import cde.{Parameters, Config, CDEMatchError}
+import scala.collection.mutable.{LinkedHashSet, ListBuffer}
+import cde.{Parameters, Config, Dump, Knob, CDEMatchError, Field}
 import dsptools._
 import dsptools.numbers._
 import dsptools.numbers.implicits._
 import dspblocks._
 import dspjunctions._
 import _root_.junctions._
-import rocketchip.PeripheryUtils
-import rocketchip.HwachaConfig
-import testchipip.WithSerialAdapter
-import uncore.tilelink.ClientUncachedTileLinkIO
-import uncore.converters.TileLinkWidthAdapter
-import coreplex.WithL2Cache
+import rocketchip._
+import testchipip._
+import uncore.tilelink._
+import uncore.converters._
+import uncore.agents._
+import uncore.devices._
+import coreplex._
+import hwacha._
 import dma._
+import scala.math.max
+import util._
+
+import rocket._
+import groundtest._
+import rocketchip.DefaultTestSuites._
 
 import fft._
 import pfb._
@@ -25,12 +34,12 @@ import chisel3.core.ExplicitCompileOptions.NotStrict
 
 class WithCraft2DSP extends Config(
   (pname, site, here) => pname match {
-    case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, streamIn: ValidWithSync[UInt], p: Parameters) => {
+    case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, streamIn: ValidWithSync[UInt], dsp_clock: Clock, p: Parameters) => {
       implicit val q = p
-      val chain = Module(new DspChain()(p))
+      val chain = Module(new DspChain(override_clock=Some(dsp_clock))(p))
       // add width adapter because Hwacha needs 128-bit TL
-      chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(control_port, chain.ctrlXbarParams))
-      chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(data_port, chain.dataXbarParams))
+      chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(control_port, chain.ctrlXbarParams)))
+      chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(data_port, chain.dataXbarParams)))
       chain.io.stream_in := streamIn
       ()
     }
@@ -67,13 +76,51 @@ object ChainBuilder {
 
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
-  new WithDma ++
   new WithSerialAdapter ++
-  new HwachaConfig ++
+  new WithL2Capacity(65536) ++ 
+  new WithHwachaAndDma ++ 
+  new HwachaConfig ++ // also inserts L2 Cache
+  new WithDma ++
   // new WithNL2AcquireXacts(4) ++
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
-  // new WithL2Cache ++ // defined in HwachaConfig
   new rocketchip.BaseConfig)
+
+class WithHwachaAndDma extends Config (
+  (pname, site, here) => pname match {
+    case BuildRoCC => {
+      import HwachaTestSuites._
+      TestGeneration.addSuites(rv64uv.map(_("p")))
+      TestGeneration.addSuites(rv64uv.map(_("vp")))
+      // no excep or vm in v4 yet
+      //TestGeneration.addSuites((if(site(UseVM)) List("pt","v") else List("pt")).flatMap(env => rv64uv.map(_(env))))
+      TestGeneration.addSuite(rv64sv("p"))
+      TestGeneration.addSuite(hwachaBmarks)
+      TestGeneration.addVariable("SRC_EXTENSION", "$(base_dir)/hwacha/$(src_path)/*.scala")
+      TestGeneration.addVariable("DISASM_EXTENSION", "--extension=hwacha")
+      Seq(
+        RoccParameters( // From hwacha/src/main/scala/configs.scala
+          opcodes = OpcodeSet.custom0 | OpcodeSet.custom1,
+          generator = (p: Parameters) => {
+            Module(new Hwacha()(p.alterPartial({
+            case FetchWidth => 1
+            case CoreInstBits => 64
+            })))
+            },
+          nMemChannels = site(HwachaNLanes),
+          nPTWPorts = 2 + site(HwachaNLanes), // icache + vru + vmus
+          useFPU = true),
+        RoccParameters( // From dma/src/main/scala/Configs.scala
+          opcodes = OpcodeSet.custom2,
+          generator = (p: Parameters) => Module(new CopyAccelerator()(p)),
+          nMemChannels = site(NDmaTrackers),
+          nPTWPorts = 1))
+    }
+    case RoccMaxTaggedMemXacts => max(
+      max(site(HwachaNVLTEntries), site(HwachaNSMUEntries)),
+      3 * site(NDmaTrackerMemXacts))
+    case _ => throw new CDEMatchError
+  }
+)
 
 
 class Craft2Config extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)

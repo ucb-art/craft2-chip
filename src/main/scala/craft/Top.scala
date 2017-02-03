@@ -19,6 +19,7 @@ class CraftTopBundle(p: Parameters) extends ExampleTopBundle(p) {
   val firstBlockId = p(DspChainKey(p(DspChainId))).blocks.head._2
   val firstBlockWidth = p(GenKey(firstBlockId)).genIn.getWidth * p(GenKey(firstBlockId)).lanesIn
   val stream_in = Flipped(ValidWithSync(UInt( firstBlockWidth.W )))
+  val dsp_clock = Flipped(Bool())
 }
 
 class ExampleTopWithCraft2DSPModule(p: Parameters, l: ExampleTopWithCraft2DSP, b: CraftTopBundle)
