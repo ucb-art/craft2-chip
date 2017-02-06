@@ -83,11 +83,11 @@ object ChainBuilder {
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  new WithL2Capacity(65536) ++ 
+  new WithL2Capacity(8192) ++ 
   new WithHwachaAndDma ++ 
   new HwachaConfig ++ // also inserts L2 Cache
   new WithDma ++
-  // new WithNL2AcquireXacts(4) ++
+  new WithNL2AcquireXacts(4) ++
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
