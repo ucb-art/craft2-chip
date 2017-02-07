@@ -88,6 +88,7 @@ class Craft2BaseConfig extends Config(
   new HwachaConfig ++ // also inserts L2 Cache
   new WithDma ++
   new WithNL2AcquireXacts(4) ++
+  new WithNBanksPerMemChannel(16) ++ 
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
@@ -124,6 +125,7 @@ class WithHwachaAndDma extends Config (
     case RoccMaxTaggedMemXacts => max(
       max(site(HwachaNVLTEntries), site(HwachaNSMUEntries)),
       3 * site(NDmaTrackerMemXacts))
+    case HwachaNLanes => 2
     case _ => throw new CDEMatchError
   }
 )
