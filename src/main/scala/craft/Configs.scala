@@ -75,8 +75,8 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
-    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType()) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig, () => getGenType())
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++
+    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
 }
 
