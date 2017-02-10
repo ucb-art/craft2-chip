@@ -75,8 +75,8 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
-    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType()) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig, () => getGenType())
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => getGenType()) ++
+    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
 }
 
@@ -88,12 +88,13 @@ class Craft2BaseConfig extends Config(
   new HwachaConfig ++ // also inserts L2 Cache
   new WithDma ++
   new WithNL2AcquireXacts(4) ++
-  new WithNBanksPerMemChannel(16) ++ 
+  new WithNBanksPerMemChannel(16) ++ // how many mem channels do we get?
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
 class WithHwachaAndDma extends Config (
   (pname, site, here) => pname match {
+    case HwachaNLanes => 4
     case BuildRoCC => {
       import HwachaTestSuites._
       TestGeneration.addSuites(rv64uv.map(_("p")))
@@ -125,7 +126,6 @@ class WithHwachaAndDma extends Config (
     case RoccMaxTaggedMemXacts => max(
       max(site(HwachaNVLTEntries), site(HwachaNSMUEntries)),
       3 * site(NDmaTrackerMemXacts))
-    case HwachaNLanes => 2
     case _ => throw new CDEMatchError
   }
 )
