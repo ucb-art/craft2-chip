@@ -35,16 +35,16 @@ $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
 
 
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) libs
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).DspGenerator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
-$(build_dir)/$(PROJECT).$$(MODEL).(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
 	$(FIRRTL) -i $< -o $@ -X verilog -firw $(MODEL) -frsq -c:$(MODEL):-o:$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).conf
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
 	cd $(build_dir) && $(MEM_GEN) -conf $(PROJECT).$(MODEL).$(CONFIG).conf -v $(PROJECT).$(MODEL).$(CONFIG).mems.v -report $(PROJECT).$(MODEL).$(CONFIG).mems.rpt
 
-firrtl: libs $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
+firrtl: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
 verilog: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
 mems: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v
