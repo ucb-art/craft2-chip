@@ -11,7 +11,8 @@ import dspblocks._
 import dspjunctions._
 
 class TestHarness(implicit val p: Parameters) extends Module {
-  val firstBlockId = "pfb"
+  // only works for single-chain design for now...
+  val firstBlockId = p(DspChainKey(p(DspChainId))).asInstanceOf[DspChainParameters].blocks(0)._2
   val firstBlockWidth = p(GenKey(firstBlockId)).genIn.getWidth * p(GenKey(firstBlockId)).lanesIn
 
   val io = IO(new Bundle {
