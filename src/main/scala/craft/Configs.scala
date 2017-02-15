@@ -2,7 +2,7 @@ package craft
 
 import chisel3._
 import chisel3.experimental._
-import scala.collection.mutable.{LinkedHashSet, ListBuffer}
+import scala.collection.mutable.Map
 import cde.{Parameters, Config, Dump, Knob, CDEMatchError, Field}
 import diplomacy.LazyModule
 import dsptools._
@@ -53,6 +53,8 @@ class WithCraft2DSP extends Config(
 object ChainBuilder {
   type T = FixedPoint
   def getGenType(): T = FixedPoint(32.W, 16.BP)
+  def getGenTypeMid(): T = FixedPoint(34.W, 16.BP)
+  def getGenTypeMid2(): T = FixedPoint(36.W, 16.BP)
   def afbChain(
     id: String = "craft-afb",
     fftConfig: FFTConfig = FFTConfig(),
@@ -62,7 +64,7 @@ object ChainBuilder {
       (pname, site, here) => pname match {
         case SAMKey => SAMConfig(16, 16, 16)
         case DspChainId => id
-        case DspChainKey(id) => DspChainParameters(
+        case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
             (implicit p => new LazyPFBBlock[DspComplex[T]], id + ":pfb"),
             (implicit p => new LazyFFTBlock[T],             id + ":fft")
@@ -75,8 +77,8 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++
-    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++ 
+    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType(), Some( () => getGenTypeMid() ))
   }
 }
 
