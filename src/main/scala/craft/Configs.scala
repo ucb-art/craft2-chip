@@ -39,7 +39,7 @@ class WithCraft2DSP extends Config(
       implicit val q = p
       val dataBaseAddr = 0x2000
       val ctrlBaseAddr = 0x3000
-      val lazyChain = LazyModule(new LazyDspChain(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
+      val lazyChain = LazyModule(new DspChain(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
       val chain = Module(lazyChain.module)
       // add width adapter because Hwacha needs 128-bit TL
       chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(control_port, chain.ctrlXbarParams)))
@@ -66,8 +66,8 @@ object ChainBuilder {
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
-            (implicit p => new LazyPFBBlock[DspComplex[T]], id + ":pfb"),
-            (implicit p => new LazyFFTBlock[T],             id + ":fft")
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb"),
+            (implicit p => new FFTBlock[T],             id + ":fft")
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,
@@ -77,7 +77,8 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++ 
+    ConfigBuilder.nastiTLParams(id) ++
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++
     FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType(), Some( () => getGenTypeMid() ))
   }
 }
@@ -85,8 +86,8 @@ object ChainBuilder {
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  new WithL2Capacity(8192) ++ 
-  new WithHwachaAndDma ++ 
+  new WithL2Capacity(8192) ++
+  new WithHwachaAndDma ++
   new HwachaConfig ++ // also inserts L2 Cache
   new WithDma ++
   new WithNL2AcquireXacts(4) ++

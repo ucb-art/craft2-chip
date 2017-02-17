@@ -24,7 +24,7 @@ include $(sim_dir)/Makefrag-verilator
 long_name = $(PROJECT).$(MODEL).$(CONFIG)
 
 sim_vsrcs = \
-	$(build_dir)/$(long_name).v \
+	#$(build_dir)/$(long_name).v \
 	$(sim_dir)/BlackBoxFloat.v \
 	$(TESTCHIPIP_DIR)/vsrc/SimSerial.v \
 	$(ROCKETCHIP_DIR)/vsrc/AsyncResetReg.v

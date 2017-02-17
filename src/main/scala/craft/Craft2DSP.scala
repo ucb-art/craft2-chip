@@ -26,6 +26,10 @@ trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
   val pBus: TileLinkRecursiveInterconnect
   def io: CraftTopBundle
 
-  p(BuildCraft2DSP)(pBus.port("craft2_control"), pBus.port("craft2_data"), io.stream_in, io.dsp_clock.asClock, outerMMIOParams)
+  val dspChainParams = p.alterPartial {
+    case TLId => p(dspblocks.DspChainId)
+  }
+
+  p(BuildCraft2DSP)(pBus.port("craft2_control"), pBus.port("craft2_data"), io.stream_in, io.dsp_clock.asClock, dspChainParams)
 
 }
