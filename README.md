@@ -18,13 +18,19 @@ After cloning this repo, you will need to initialize all of the submodules.
 
 This can take a long time.
 To avoid cloning the riscv-tools (in case you already have them built), use the following commands instead.
-This assumes you are in a bash shell.
 
     git clone git@github.com:ucb-art/craft2-chip.git
     cd craft2-chip
     git submodule update --init
     cd dsp-framework
     ./update.bash
+
+Also, Hwacha is currently private, so if you don't have access to Hwacha, run the following commands instead of the last one above.
+This assumes you're in bash (use the setenv command if you're in csh).
+
+    ./update.bash no_hwacha
+    export ROCKETCHIP_ADDONS=
+
 
 ### Compiling the dependencies
 
@@ -44,7 +50,7 @@ the following steps are necessary.
     # setup your environment (do this every time you need to use the tools)
     source enter.bash
 
-    # build the tools
+    # build the tools (on the BWRC servers)
     mkdir install
     source /opt/rh/devtoolset-2/enable
     cd rocket-chip/riscv-tools
@@ -53,28 +59,16 @@ the following steps are necessary.
 ### Choosing Fixed or Floating Point
 
 This project can generate the craft2 design using fixed or floating point.
-You can switch between the two in `src/main/scala/craft/Config.scala`.
+You can switch between the two in `src/main/scala/craft/Configs.scala`.
 The relevant lines are:
 
 ```
 object ChainBuilder {
-  // def getReal(): DspReal = DspReal()
-  def getReal(): FixedPoint = FixedPoint(32.W, 16.BP)
-...
-    case DspChainKey("craft-afb") => DspChainParameters(
-      blocks = Seq(
-        (implicit p => new LazyPFBBlock[DspComplex[FixedPoint]], "pfb"),
-        (implicit p => new LazyFFTBlock[FixedPoint],             "fft")
-      ),
-      dataBaseAddr = 0x2000,
-      ctrlBaseAddr = 0x3000
-    )
-...
-}
+  type T = FixedPoint
+  def getGenType(): T = FixedPoint(32.W, 16.BP)
 ```
 
-Uncommenting/commenting the desired `getReal()` switches between `FixedPoint` and `DspReal` (floating point).
-Then you also need to change the types of the blocks in `DspChainKey`: `LazyPFBBlock[DspComplex[XXX]]` and `LazyFFTBlock[XXX]` should have `XXX` consistent with whichever `getReal()` you chose.
+Change T to DspReal, and the next line to T = DspReal().
 
 Note that for `FixedPoint`, you should select a width and binary point.
 The example shown here has width 32 and binary point 16.
@@ -83,6 +77,9 @@ The example shown here has width 32 and binary point 16.
 
 To compile just the Verilog (without running any tests), type `make verilog` in the top-level directory.
 Results are placed in the generated-src directory.
+By default, memories are black-boxed.
+Sourcing `sourceme.sh` in bash and running `make libs` will create -mems.v file that maps the black box memories to TSMC memories,
+and it runs the TSMC memory compiler for you.
 
 ### Compiling and running the Verilator simulation
 
@@ -117,16 +114,10 @@ First, set up everything as below.
     cd rocket-chip
     git_submodule_init
     cd ../..
-
-Compile the dependencies.
-A temporary bug requires you to delete existing lib directories in submodules.
-
-    rm -rf fft/lib
-    rm -rf pfb/lib
     make libs
 
 There's no need to build the RISC-V tools, as we've already installed them in the Chamber.
-Sourcing the setup.sh file puts them into your path.
+Sourcing the setup.sh file in the tools directory puts them into your path.
 
 ## Submodules and Subdirectories
 
