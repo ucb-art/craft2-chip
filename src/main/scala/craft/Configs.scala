@@ -53,8 +53,6 @@ class WithCraft2DSP extends Config(
 object ChainBuilder {
   type T = FixedPoint
   def getGenType(): T = FixedPoint(32.W, 16.BP)
-  def getGenTypeMid(): T = FixedPoint(34.W, 16.BP)
-  def getGenTypeMid2(): T = FixedPoint(36.W, 16.BP)
   def afbChain(
     id: String = "craft-afb",
     fftConfig: FFTConfig = FFTConfig(),
@@ -79,7 +77,7 @@ object ChainBuilder {
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
     PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++
-    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType(), Some( () => getGenTypeMid() ))
+    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
 }
 
