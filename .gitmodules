@@ -16,3 +16,6 @@
 [submodule "filter"]
 	path = filter
 	url = https://github.com/ucb-art/filter.git
+[submodule "rssi"]
+	path = rssi
+	url = https://github.com/ucb-art/rssi.git
