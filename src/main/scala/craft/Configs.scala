@@ -62,7 +62,7 @@ object ChainBuilder {
     lanes: Int = 8): Config = {
     new Config(
       (pname, site, here) => pname match {
-        case SAMKey => SAMConfig(16, 16, 16)
+        case DefaultSAMKey => SAMConfig(16, 16)
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
