@@ -255,9 +255,9 @@ def write_sram_verilog(mem_name,mems,outfile):
     for i in range(0,m): readportstr[i] = 'out%d'%(i/mw)
     clocks = m*[".CLK(R0_clk)"] # usually R0_clk = W0_clk, but this could be bad if user expects differently as W0_clk is disconnected
     enables = m*[".REB(~R0_en), .WEB(~W0_en)"]
-    addrs = m*[".AA(W0_addr), .AB(R0_addr)"]
+    addrs = m*[".AA(W0_addr), .AB(R0_addr)"] # AA = write, AB = read
     if md > 1:
-      addrs = m*[".WA(W0_addr[%d:0]), .RA(R0_addr[%d:0])" % (sram_addr_width-1,sram_addr_width-1)]
+      addrs = m*[".AA(W0_addr[%d:0]), .AB(R0_addr[%d:0])" % (sram_addr_width-1,sram_addr_width-1)]
       for i in range(0,m):
         readportstr[i] = 'out%d'%(i/mw)
         if addr_diff == 1:
@@ -289,7 +289,7 @@ def write_sram_verilog(mem_name,mems,outfile):
   for i in range(0,m):
     sram_text.append('')
     if i%mw == 0: sram_text[i] += '  wire [%d:0] out%d;\n\n' % (mem['width']*mw-1,i/mw)
-    sram_text[i] += '  %s sram%s\n' % (sram_name,i)
+    sram_text[i] += '  %s sram%s\n' % (sram_name.upper(),i)
     sram_text[i] += '  (\n'
     sram_text[i] += '    %s,\n' % clocks[i]
     sram_text[i] += '    %s,\n' % enables[i]
