@@ -7,7 +7,7 @@ import cde.{Parameters, Config, Dump, Knob, CDEMatchError, Field}
 import diplomacy.LazyModule
 import dsptools._
 import dsptools.numbers._
-import dsptools.numbers.implicits._
+import dsptools.numbers.implicits.{ConvertableToDspComplex=>_,_}
 import dspblocks._
 import dspjunctions._
 import _root_.junctions._
@@ -51,6 +51,7 @@ class WithCraft2DSP extends Config(
   })
 
 object ChainBuilder {
+  implicit val convertableTo = pfb.ConvertableToDspComplex
   type T = FixedPoint
   def getGenType(): T = FixedPoint(32.W, 16.BP)
   def afbChain(
