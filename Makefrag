@@ -8,7 +8,7 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx2G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
-CRAFT_PACKAGES = fft pfb riscv-dma2
+CRAFT_PACKAGES = fft pfb tuner filter riscv-dma2
 craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
 -include $(base_dir)/Makefrag.pkgs
 -include $(framework_dir)/Makefrag
