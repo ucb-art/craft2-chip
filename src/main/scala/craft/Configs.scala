@@ -53,6 +53,7 @@ class WithCraft2DSP extends Config(
 object ChainBuilder {
   implicit val convertableTo = pfb.ConvertableToDspComplex
   type T = FixedPoint
+  def doubleToGen(x: Double): DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 32.W, 16.BP), FixedPoint.fromDouble(0.0, 32.W, 16.BP))
   def getGenType(): T = FixedPoint(32.W, 16.BP)
   def afbChain(
     id: String = "craft-afb",
@@ -77,7 +78,7 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
     FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
 }
@@ -85,9 +86,9 @@ object ChainBuilder {
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  new WithL2Capacity(8192) ++
-  new WithHwachaAndDma ++
-  new HwachaConfig ++ // also inserts L2 Cache
+  //new WithL2Capacity(8192) ++
+  //new WithHwachaAndDma ++
+  //new HwachaConfig ++ // also inserts L2 Cache
   new WithDma ++
   new WithNL2AcquireXacts(4) ++
   new WithNBanksPerMemChannel(16) ++ // how many mem channels do we get?
