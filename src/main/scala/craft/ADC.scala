@@ -102,21 +102,24 @@ class ADCIO extends Bundle {
   val CLKOUT_DES  = Output(Clock())
 }
 
-class ADC extends BlackBox {
+class TISARADC extends BlackBox {
   val io = IO(new ADCIO)
 }
 
 class DeserIO extends Bundle {
   val in           = Input(Vec(8, UInt(9.W)))
   val out          = Output(Vec(32, UInt(9.W)))
-  val clk_in       = Input(Clock())
+  val clk          = Input(Clock())
+  val reset        = Input(Bool())
   // clock that follows data to fifo
-  val clk_out_data = Output(Clock())
+  val clkout_data = Output(Clock())
   // clock that goes to rest of the dsp chain
-  val clk_out_chip = Output(Clock())
+  val clkout_dsp = Output(Clock())
+  // set the phase during reset
+  val phi_init = Input(UInt(2.W))
 }
 
-class Deser extends BlackBox {
+class des72to288 extends BlackBox {
   val io = IO(new DeserIO)
 }
 

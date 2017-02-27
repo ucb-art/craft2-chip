@@ -47,7 +47,7 @@ trait ADCModule {
   def scrfile: SCRFile
   def clock: Clock // module's implicit clock
 
-  val adc = Module(new ADC)
+  val adc = Module(new TISARADC)
 
   attach(io.VDDHADC, adc.io.VDDHADC)
   attach(io.VDDADC,  adc.io.VDDADC)
@@ -161,9 +161,11 @@ trait ADCModule {
     adc.io.ADCOUT6,
     adc.io.ADCOUT7)
 
-  val deser = Module(new Deser)
+  val deser = Module(new des72to288)
   deser.io.in := adcout
-  deser.io.clk_in := adc.io.CLKOUT_DES
+  deser.io.clk := adc.io.CLKOUT_DES
+  // [stevo]: wouldn't do anything, since it's only used on reset
+  deser.io.phi_init := 0.U
   
   val adc_src = Wire(Decoupled(deser.io.out))
   adc_src.bits  := deser.io.out
@@ -171,16 +173,19 @@ trait ADCModule {
 
   val fifo_out = _root_.util.AsyncDecoupledCrossing(
     // from
-    adc.io.CLKOUT_DES,
-    false.B, // TODO ?????
-    adc_src,
+    from_clock = adc.io.CLKOUT_DES,
+    from_reset = false.B, // TODO ????? neeed to make sure the async regs are reset correctly
+    from_source = adc_src,
     // to
-    clock,
-    false.B) // TODO ?????
+    to_clock = clock,
+    to_reset = false.B, // TODO
+    depth = 8, // FIFO depth
+    sync = 3  // how many synchronizing regs to place
+  )
   
   fifo_out.ready := true.B
 
-  io.adc_clk_out := deser.io.clk_out_chip
+  io.adc_clk_out := deser.io.clkout_dsp
 
   lazy val cal = Module(new ADCCal)
   cal.io.in := fifo_out.bits
