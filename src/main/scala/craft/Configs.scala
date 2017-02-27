@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 package craft
 
 import chisel3._
@@ -35,16 +37,17 @@ import chisel3.core.ExplicitCompileOptions.NotStrict
 
 class WithCraft2DSP extends Config(
   (pname, site, here) => pname match {
-    case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, streamIn: ValidWithSync[UInt], dsp_clock: Clock, p: Parameters) => {
+    case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, p: Parameters) => {
       implicit val q = p
       val dataBaseAddr = 0x2000
       val ctrlBaseAddr = 0x3000
-      val lazyChain = LazyModule(new DspChain(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
+      val dsp_clock = Wire(Clock())
+      val lazyChain = LazyModule(new DspChainWithADC(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
       val chain = Module(lazyChain.module)
+      dsp_clock := chain.io.adc_clk_out
       // add width adapter because Hwacha needs 128-bit TL
       chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(control_port, chain.ctrlXbarParams)))
       chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(data_port, chain.dataXbarParams)))
-      chain.io.stream_in := streamIn
       ()
     }
     case _ => throw new CDEMatchError
@@ -52,6 +55,7 @@ class WithCraft2DSP extends Config(
 
 object ChainBuilder {
   type T = FixedPoint
+  def doubleToGen(x: Double): DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 32.W, 16.BP), FixedPoint.fromDouble(0.0, 32.W, 16.BP))
   def getGenType(): T = FixedPoint(32.W, 16.BP)
   def afbChain(
     id: String = "craft-afb",
@@ -76,7 +80,7 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType())) ++
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
     FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
 }
