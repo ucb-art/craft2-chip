@@ -24,14 +24,27 @@ include $(sim_dir)/Makefrag-verilator
 long_name = $(PROJECT).$(MODEL).$(CONFIG)
 
 sim_vsrcs = \
-	$(build_dir)/$(long_name).v \
-	$(sim_dir)/BlackBoxFloat.v \
-	$(TESTCHIPIP_DIR)/vsrc/SimSerial.v \
-	$(ROCKETCHIP_DIR)/vsrc/AsyncResetReg.v
+	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
+	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
+	$(base_dir)/vsrc/TestDriver.v \
+	$(base_dir)/vsrc/SimSerial.v \
+	$(base_dir)/vsrc/des72to288.v \
+	$(base_dir)/vsrc/TISARADC.v \
+	$(base_dir)/vsrc/AsyncResetReg.v
 
 sim_csrcs = \
-	$(TESTCHIPIP_DIR)/csrc/SimSerial.cc \
-	$(TESTCHIPIP_DIR)/csrc/verilator-harness.cc
+	$(base_dir)/csrc/SimSerial.cc \
+	$(base_dir)/csrc/verilator-harness.cc
+
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
+	mkdir -p $(build_dir)
+	cd $(base_dir) && $(SBT) "run-main $(PROJECT).DspGenerator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
+
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
+	$(FIRRTL) -i $< -o $@ -X verilog
+
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
+	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --ff
 
 model_dir = $(build_dir)/$(long_name)
 model_dir_debug = $(build_dir)/$(long_name).debug
