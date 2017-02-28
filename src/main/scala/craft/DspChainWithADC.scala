@@ -38,6 +38,16 @@ trait LazyADC {
   scrbuilder.addControl("ADC_SYNC")
 }
 
+trait LazyCAL {
+  def scrbuilder: SCRBuilder
+
+  scrbuilder.addControl("MODE")
+  scrbuilder.addControl("ADDR")
+  scrbuilder.addControl("CALCOEFF")
+  scrbuilder.addControl("CALOUT")
+}
+
+
 trait HasDspOutputClock {
   val adc_clk_out = Output(Clock())
 }
