@@ -127,15 +127,30 @@ object ChainBuilder {
   }
 }
 
+class WithSRAM(nBanksPerChannel: Int) extends Config(
+  (pname, site, here) => pname match {
+    case NSRAMBanksPerChannel => nBanksPerChannel
+    case NSRAMBlocksPerBank => {
+      val blockBytes = site(TLKey("L2toMC")).dataBits
+      val nBanks = nBanksPerChannel * site(NMemoryChannels)
+      (site(ExtMemSize) / (nBanks * blockBytes)).toInt
+    }
+    case _ => throw new CDEMatchError
+  })
+
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  new WithL2Capacity(8192) ++
-  new WithHwachaAndDma ++
-  new HwachaConfig ++ // also inserts L2 Cache
-  new WithDma ++
+  new WithL2Capacity(512) ++
+  //new WithHwachaAndDma ++
+  //new HwachaConfig ++ // also inserts L2 Cache
+  //new WithDma ++
+  new WithL2Cache ++
+  new WithExtMemSize(8L * 1024L * 1024L) ++
   new WithNL2AcquireXacts(4) ++
-  new WithNBanksPerMemChannel(16) ++ // how many mem channels do we get?
+  new WithNMemoryChannels(8) ++
+  new WithSRAM(4) ++
+  // new WithSRAM(1) ++
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
@@ -176,7 +191,6 @@ class WithHwachaAndDma extends Config (
     case _ => throw new CDEMatchError
   }
 )
-
 
 class Craft2Config extends Config(ChainBuilder.fullChain() ++ new Craft2BaseConfig)
 class Craft2AFBConfig extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)

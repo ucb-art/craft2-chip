@@ -1,21 +1,34 @@
 package craft
 
 import chisel3._
-import example._
+import rocketchip._
 import cde.Parameters
-
-import dspblocks._
-import dspjunctions._
+import testchipip._
 
 // import chisel3.core.ExplicitCompileOptions.NotStrict
 
-class ExampleTopWithCraft2DSP(q: Parameters) extends ExampleTop(q)
-    with PeripheryCraft2DSP {
+class CraftTop(q: Parameters) extends BaseTop(q)
+    with PeripheryBootROM with PeripheryCoreplexLocalInterrupter
+    with PeripherySerial
+    with PeripheryCraft2DSP
+    with PeripherySRAM {
   override lazy val module = Module(
-    new ExampleTopWithCraft2DSPModule(p, this, new CraftTopBundle(p)))
+    new CraftTopModule(p, this, new CraftTopBundle(p)))
 }
 
-class CraftTopBundle(p: Parameters) extends ExampleTopBundle(p) with ADCTopLevelIO
+class CraftTopBundle(p: Parameters) extends BaseTopBundle(p)
+  with PeripheryBootROMBundle
+  with PeripheryCoreplexLocalInterrupterBundle
+  with PeripherySerialBundle
+  with ADCTopLevelIO
+  //with PeripheryCraft2DSPBundle
+  with PeripherySRAMBundle
 
-class ExampleTopWithCraft2DSPModule(p: Parameters, l: ExampleTopWithCraft2DSP, b: CraftTopBundle)
-  extends ExampleTopModule(p, l, b) with PeripheryCraft2DSPModule
+class CraftTopModule(p: Parameters, l: CraftTop, b: CraftTopBundle)
+  extends BaseTopModule(p, l, b)
+  with PeripheryBootROMModule
+  with PeripheryCoreplexLocalInterrupterModule
+  with PeripherySerialModule
+  with PeripheryCraft2DSPModule
+  with PeripherySRAMModule
+  with HardwiredResetVector with DirectConnection with NoDebug
