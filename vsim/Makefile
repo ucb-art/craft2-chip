@@ -33,7 +33,7 @@ $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).DspGenerator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
-	$(FIRRTL) -i $< -o $@ -X verilog
+	$(FIRRTL) -i $< -o $@ -X verilog -firw $(MODEL) -frsq -c:$(MODEL):-o:$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).conf
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
 	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --ff
@@ -71,6 +71,6 @@ $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
 	+define+DEBUG -debug_pp
 
 clean:
-	rm -rf csrc simv-* ucli.key vc_hdrs.h
+	rm -rf csrc simv-* ucli.key vc_hdrs.h generated-src output
 
 .PHONY: clean
