@@ -65,10 +65,10 @@ trait ADCModule {
   attach(io.VDDADC,  adc.io.VDDADC)
   attach(io.VSS,     adc.io.VSS)
   attach(io.ADCBIAS, adc.io.ADCBIAS)
-  attach(io.ADCINP   adc.io.ADCINP)
-  attach(io.ADCINM   adc.io.ADCINM)
-  attach(io.ADCCLKP  adc.io.ADCCLKP)
-  attach(io.ADCCLKM  adc.io.ADCCLKM)
+  attach(io.ADCINP,   adc.io.ADCINP)
+  attach(io.ADCINM,   adc.io.ADCINM)
+  attach(io.ADCCLKP,  adc.io.ADCCLKP)
+  attach(io.ADCCLKM,  adc.io.ADCCLKM)
 
   def wordToByteVec(u: UInt): Vec[UInt] =
     u.asTypeOf(Vec(8, UInt(8.W)))
