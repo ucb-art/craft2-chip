@@ -3,6 +3,6 @@ target
 *.jar
 *.stamp
 /install
-lib
+lib/
 /.ivy2
 generated-src/
