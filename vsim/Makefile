@@ -25,6 +25,8 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/TISARADC.v \
 	$(base_dir)/vsrc/AsyncResetReg.v
 
+sim_csrcs = \
+	$(base_dir)/csrc/SimSerial.cc
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
 	mkdir -p $(build_dir)
@@ -37,8 +39,6 @@ $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MOD
 	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --ff
 
 
-sim_csrcs = \
-	$(base_dir)/csrc/SimSerial.cc
 
 VCS = vcs -full64
 
