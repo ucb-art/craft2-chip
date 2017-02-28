@@ -1,9 +1,9 @@
 base_dir=$(abspath ..)
 sim_dir=$(abspath .)
 
-PROJECT ?= example
+PROJECT ?= craft
 MODEL ?= TestHarness
-CONFIG ?= DefaultExampleConfig
+CONFIG ?= Craft2Config
 CFG_PROJECT ?= $(PROJECT)
 TB ?= TestDriver
 
@@ -18,11 +18,27 @@ include $(base_dir)/Makefrag
 
 sim_vsrcs = \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
-	$(base_dir)/rocket-chip/vsrc/TestDriver.v \
-	$(base_dir)/testchipip/vsrc/SimSerial.v
+	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
+	$(base_dir)/vsrc/TestDriver.v \
+	$(base_dir)/vsrc/SimSerial.v \
+	$(base_dir)/vsrc/des72to288.v \
+	$(base_dir)/vsrc/TISARADC.v \
+	$(base_dir)/vsrc/AsyncResetReg.v
+
+
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
+	mkdir -p $(build_dir)
+	cd $(base_dir) && $(SBT) "run-main $(PROJECT).DspGenerator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
+
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
+	$(FIRRTL) -i $< -o $@ -X verilog
+
+$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
+	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --ff
+
 
 sim_csrcs = \
-	$(base_dir)/testchipip/csrc/SimSerial.cc
+	$(base_dir)/csrc/SimSerial.cc
 
 VCS = vcs -full64
 

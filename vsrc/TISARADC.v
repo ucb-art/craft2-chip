@@ -145,7 +145,6 @@ module TISARADC (
     input [7:0] CLKGCCAL5,
     input [7:0] CLKGCCAL6,
     input [7:0] CLKGCCAL7,
-    input CLKRST,
 
     //Source Follower
     input ADCBIAS
