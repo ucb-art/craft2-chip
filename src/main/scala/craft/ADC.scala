@@ -122,7 +122,7 @@ class des72to288 extends BlackBox {
 
 class ADCCalIO extends Bundle {
   val in  = Input(Vec(32, UInt(9.W)))
-  val out = Output(Vec(32, UInt(9.W)))
+  val out = Output(Vec(32, UInt(8.W)))
 }
 
 class ADCCal extends Module {

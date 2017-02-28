@@ -125,18 +125,95 @@ object ChainBuilder {
     PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
     FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
+
+  ///////////////////////////////////////////////////////////////
+  ////////////            Here be radar configuration parameters
+  ///////////////////////////////////////////////////////////////
+
+
+  // Here be the first tuner
+  def tuner1Config() = TunerConfig(pipelineDepth = 0, lanes = 32, phaseGenerator = "SimpleFixed")
+  def tuner1Input():T = FixedPoint(8.W, 4.BP)
+  def tuner1Mixer():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
+  def tuner1Output():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
+
+  // Here be the first mixer
+  def fir1Config() = FIRConfig(numberOfTaps = 41, lanesIn = 32, lanesOut = 8, processingDelay = 11)
+  def fir1Input():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
+  def fir1Taps():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
+  def fir1Output():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
+
+  // Here be the second tuner
+  def tuner2Config() = TunerConfig(pipelineDepth = 1, lanes = 8, phaseGenerator = "Fixed", mixerTableSize = 32)
+  def tuner2Input():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
+  def tuner2Mixer():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
+  def tuner2Output():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
+
+  // Here be the second mixer
+  def fir2Config() = FIRConfig(numberOfTaps = 23, lanesIn = 8, lanesOut = 4, processingDelay = 7)
+  def fir2Input():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
+  def fir2Taps():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
+  def fir2Output():DspComplex[T] = DspComplex(FixedPoint(12.W, 4.BP), FixedPoint(12.W, 4.BP))
+
+  // Here be the filterbank
+  def pfbConfig() = PFBConfig(windowFunc = sincHamming.apply, numTaps = 12, outputWindowSize = 12, lanes = 4)
+  def pfbInput():DspComplex[T] = DspComplex(FixedPoint(12.W, 4.BP), FixedPoint(12.W, 4.BP))
+  // [stevo]: this looks weird, but it sets the bitwidths of the taps
+  def pfbTaps(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 12.W, 4.BP), FixedPoint.fromDouble(0.0, 12.W, 4.BP))
+  def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(14.W, 4.BP), FixedPoint(14.W, 4.BP))
+
+  // Here be the Fourier transform
+  def fftConfig() = FFTConfig(n = 128, lanes = 4, pipelineDepth = 4)
+  def fftInput():T = FixedPoint(14.W, 4.BP) // gets complexed automatically
+  def fftOutput():T = FixedPoint(18.W, 4.BP) // gets complexed automatically
+
+
+  ///////////////////////////////////////////////////////////////
+  ////////////                                     Here be radar 
+  ///////////////////////////////////////////////////////////////
+
+  def radar(id: String = "craft-radar"): Config = {
+    new Config(
+      (pname, site, here) => pname match {
+        case DefaultSAMKey => SAMConfig(16, 16)
+        case DspChainId => id
+        case DspChainKey(_id) if _id == id => DspChainParameters(
+          blocks = Seq(
+            (implicit p => new TunerBlock[T, T], id + ":tuner1"),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir1"),
+            (implicit p => new TunerBlock[DspComplex[T], T], id + ":tuner2"),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir2"),
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb"),
+            (implicit p => new FFTBlock[T],             id + ":fft")
+          ),
+          logicAnalyzerSamples = 256,
+          logicAnalyzerUseCombinationalTrigger = true,
+          patternGeneratorSamples = 256,
+          patternGeneratorUseCombinationalTrigger = true
+        )
+        case _ => throw new CDEMatchError
+      }
+    ) ++
+    ConfigBuilder.nastiTLParams(id) ++
+    TunerConfigBuilder(id + ":tuner1", tuner1Config(), tuner1Input, tuner1Output, Some(() => tuner1Mixer)) ++
+    FIRConfigBuilder(id + ":fir1", fir1Config(), fir1Input, Some(() => fir1Output), Some(() => fir1Taps)) ++
+    TunerConfigBuilder(id + ":tuner2", tuner2Config(), tuner2Input, tuner2Output, Some(() => tuner2Mixer)) ++
+    FIRConfigBuilder(id + ":fir2", fir2Config(), fir2Input, Some(() => fir2Output), Some(() => fir2Taps)) ++
+    PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbTaps, Some(() => pfbOutput)) ++
+    FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput))
+  }
 }
 
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  new WithL2Capacity(8192) ++
-  new WithHwachaAndDma ++
-  new HwachaConfig ++ // also inserts L2 Cache
-  new WithDma ++
-  new WithNL2AcquireXacts(4) ++
-  new WithNBanksPerMemChannel(16) ++ // how many mem channels do we get?
-  // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
+  //new WithL2Capacity(8192) ++
+  //new WithHwachaAndDma ++
+  //new HwachaConfig ++ // also inserts L2 Cache
+  //new WithDma ++
+  //new WithNL2AcquireXacts(4) ++
+  //new WithNBanksPerMemChannel(16) ++ // how many mem channels do we get?
+  //// new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
 class WithHwachaAndDma extends Config (
@@ -178,5 +255,6 @@ class WithHwachaAndDma extends Config (
 )
 
 
-class Craft2Config extends Config(ChainBuilder.fullChain() ++ new Craft2BaseConfig)
-class Craft2AFBConfig extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)
+class Craft2Config extends Config(ChainBuilder.radar() ++ new Craft2BaseConfig)
+class Craft2DefaultChainConfig extends Config(ChainBuilder.fullChain() ++ new Craft2BaseConfig)
+class Craft2DefaultAFBConfig extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)
