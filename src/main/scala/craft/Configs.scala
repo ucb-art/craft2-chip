@@ -29,6 +29,9 @@ import rocket._
 import groundtest._
 import rocketchip.DefaultTestSuites._
 
+import tuner._
+import ComplexModuleImpl._
+import fir._
 import fft._
 import pfb._
 import sam._
@@ -39,8 +42,8 @@ class WithCraft2DSP extends Config(
   (pname, site, here) => pname match {
     case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, p: Parameters) => {
       implicit val q = p
-      val dataBaseAddr = 0x2000
-      val ctrlBaseAddr = 0x3000
+      val dataBaseAddr = 0x3000
+      val ctrlBaseAddr = 0x2000
       val dsp_clock = Wire(Clock())
       val lazyChain = LazyModule(new DspChainWithADC(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
       val chain = Module(lazyChain.module)
@@ -80,6 +83,44 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
+    PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
+    FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
+  }
+  def fullChain(
+    id: String = "craft-chain",
+    tuner1Config: TunerConfig = TunerConfig(),
+    fir1Config: FIRConfig = FIRConfig(),
+    tuner2Config: TunerConfig = TunerConfig(),
+    fir2Config: FIRConfig = FIRConfig(),
+    fftConfig: FFTConfig = FFTConfig(),
+    pfbConfig: PFBConfig = PFBConfig(),
+    lanes: Int = 8): Config = {
+    new Config(
+      (pname, site, here) => pname match {
+        case DefaultSAMKey => SAMConfig(16, 16)
+        case DspChainId => id
+        case DspChainKey(_id) if _id == id => DspChainParameters(
+          blocks = Seq(
+            (implicit p => new TunerBlock[T, T], id + ":tuner1"),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir1"),
+            (implicit p => new TunerBlock[DspComplex[T], T], id + ":tuner2"),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir2"),
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb"),
+            (implicit p => new FFTBlock[T],             id + ":fft")
+          ),
+          logicAnalyzerSamples = 256,
+          logicAnalyzerUseCombinationalTrigger = true,
+          patternGeneratorSamples = 256,
+          patternGeneratorUseCombinationalTrigger = true
+        )
+        case _ => throw new CDEMatchError
+      }
+    ) ++
+    ConfigBuilder.nastiTLParams(id) ++
+    TunerConfigBuilder(id + ":tuner1", tuner1Config, () => getGenType(), () => DspComplex(getGenType(), getGenType())) ++
+    FIRConfigBuilder(id + ":fir1", fir1Config, () => DspComplex(getGenType(), getGenType()), Some(() => DspComplex(getGenType(), getGenType()))) ++
+    TunerConfigBuilder(id + ":tuner2", tuner2Config, () => DspComplex(getGenType(), getGenType()), () => DspComplex(getGenType(), getGenType())) ++
+    FIRConfigBuilder(id + ":fir2", fir2Config, () => DspComplex(getGenType(), getGenType()), Some(() => DspComplex(getGenType(), getGenType()))) ++
     PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
     FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
@@ -136,4 +177,5 @@ class WithHwachaAndDma extends Config (
 )
 
 
-class Craft2Config extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)
+class Craft2Config extends Config(ChainBuilder.fullChain() ++ new Craft2BaseConfig)
+class Craft2AFBConfig extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)
