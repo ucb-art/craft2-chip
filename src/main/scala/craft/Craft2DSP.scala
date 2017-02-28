@@ -11,6 +11,7 @@ import rocketchip._
 import dsptools.numbers._
 import dsptools.numbers.implicits._
 import dspjunctions._
+import dspblocks._
 
 trait PeripheryCraft2DSP extends LazyModule {
   val pDevices: ResourceManager[AddrMapEntry]
@@ -20,6 +21,14 @@ trait PeripheryCraft2DSP extends LazyModule {
 }
 
 case object BuildCraft2DSP extends Field[(ClientUncachedTileLinkIO, ClientUncachedTileLinkIO, Bundle with ADCTopLevelIO, Parameters) => Unit]
+
+trait PeripheryCraft2DSPBundle {
+  implicit val p: Parameters
+  val firstBlockId = p(DspChainKey(p(DspChainId))).blocks.head._2
+  val firstBlockWidth = p(GenKey(firstBlockId)).genIn.getWidth * p(GenKey(firstBlockId)).lanesIn
+  val stream_in = Flipped(ValidWithSync(UInt( firstBlockWidth.W )))
+  val dsp_clock = Input(Bool())
+}
 
 trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
   implicit val p: Parameters
