@@ -16,6 +16,10 @@ trait ADCTopLevelIO {
   val VSS        = Analog(1.W)
   val ADCBIAS    = Analog(1.W)
   val EXTCLK     = Input(Bool())
+  val ADCINP      = Analog(1.W)
+  val ADCINM      = Analog(1.W)
+  val ADCCLKP     = Analog(1.W)
+  val ADCCLKM     = Analog(1.W)
 }
 
 trait LazyADC {
@@ -51,6 +55,10 @@ trait ADCModule {
   attach(io.VDDADC,  adc.io.VDDADC)
   attach(io.VSS,     adc.io.VSS)
   attach(io.ADCBIAS, adc.io.ADCBIAS)
+  attach(io.ADCINP   adc.io.ADCINP)
+  attach(io.ADCINM   adc.io.ADCINM)
+  attach(io.ADCCLKP  adc.io.ADCCLKP)
+  attach(io.ADCCLKM  adc.io.ADCCLKM)
 
   def wordToByteVec(u: UInt): Vec[UInt] =
     u.asTypeOf(Vec(8, UInt(8.W)))
