@@ -15,7 +15,6 @@ trait ADCTopLevelIO {
   val VDDADC     = Analog(1.W)
   val VSS        = Analog(1.W)
   val ADCBIAS    = Analog(1.W)
-  val CLKRST     = Input(Bool())
   val EXTCLK     = Input(Bool())
 }
 
@@ -30,8 +29,7 @@ trait LazyADC {
   scrbuilder.addControl("VREF1")
   scrbuilder.addControl("VREF2")
   scrbuilder.addControl("IREF")
-  scrbuilder.addControl("CLKGCAL")
-  scrbuilder.addControl("CLKGBIAS")
+  scrbuilder.addControl("CLKGCCAL")
   scrbuilder.addControl("ADC_VALID")
   scrbuilder.addControl("ADC_SYNC")
 }
@@ -54,8 +52,6 @@ trait ADCModule {
   attach(io.VSS,     adc.io.VSS)
   attach(io.ADCBIAS, adc.io.ADCBIAS)
 
-  adc.io.CLKRST := io.CLKRST
-
   def wordToByteVec(u: UInt): Vec[UInt] =
     u.asTypeOf(Vec(8, UInt(8.W)))
   def wordToNibbleVec(u: UInt): Vec[UInt] =
@@ -71,7 +67,7 @@ trait ADCModule {
   val vref1 = wordToByteVec(scrfile.control("VREF1"))
   val vref2 = wordToByteVec(scrfile.control("VREF2"))
   val iref = wordToByteVec(scrfile.control("IREF"))
-  val clkgcal = wordToByteVec(scrfile.control("CLKGCAL"))
+  val clkgccal = wordToByteVec(scrfile.control("CLKGCCAL"))
 
   adc.io.OSP0 := osp(0)
   adc.io.OSP1 := osp(1)
@@ -90,6 +86,15 @@ trait ADCModule {
   adc.io.OSM5 := osm(5)
   adc.io.OSM6 := osm(6)
   adc.io.OSM7 := osm(7)
+
+  adc.io.EXT_CLK0 := io.EXTCLK
+  adc.io.EXT_CLK1 := io.EXTCLK
+  adc.io.EXT_CLK2 := io.EXTCLK
+  adc.io.EXT_CLK3 := io.EXTCLK
+  adc.io.EXT_CLK4 := io.EXTCLK
+  adc.io.EXT_CLK5 := io.EXTCLK
+  adc.io.EXT_CLK6 := io.EXTCLK
+  adc.io.EXT_CLK7 := io.EXTCLK
 
   adc.io.ASCLKD0 := asclkd(0)
   adc.io.ASCLKD1 := asclkd(1)
@@ -140,16 +145,14 @@ trait ADCModule {
   adc.io.IREF1 := iref(1)
   adc.io.IREF2 := iref(2)
 
-  adc.io.CLKGCAL0 := clkgcal(0)
-  adc.io.CLKGCAL1 := clkgcal(1)
-  adc.io.CLKGCAL2 := clkgcal(2)
-  adc.io.CLKGCAL3 := clkgcal(3)
-  adc.io.CLKGCAL4 := clkgcal(4)
-  adc.io.CLKGCAL5 := clkgcal(5)
-  adc.io.CLKGCAL6 := clkgcal(6)
-  adc.io.CLKGCAL7 := clkgcal(7)
-
-  adc.io.CLKGBIAS := scrfile.control("CLKGBIAS")
+  adc.io.CLKGCCAL0 := clkgccal(0)
+  adc.io.CLKGCCAL1 := clkgccal(1)
+  adc.io.CLKGCCAL2 := clkgccal(2)
+  adc.io.CLKGCCAL3 := clkgccal(3)
+  adc.io.CLKGCCAL4 := clkgccal(4)
+  adc.io.CLKGCCAL5 := clkgccal(5)
+  adc.io.CLKGCCAL6 := clkgccal(6)
+  adc.io.CLKGCCAL7 := clkgccal(7)
 
   val adcout = Vec(
     adc.io.ADCOUT0,
@@ -163,7 +166,7 @@ trait ADCModule {
 
   val deser = Module(new des72to288)
   deser.io.in := adcout
-  deser.io.clk := adc.io.CLKOUT_DES
+  deser.io.clk := adc.io.CLKOUT
   // [stevo]: wouldn't do anything, since it's only used on reset
   deser.io.phi_init := 0.U
   
@@ -173,7 +176,7 @@ trait ADCModule {
 
   val fifo_out = _root_.util.AsyncDecoupledCrossing(
     // from
-    from_clock = adc.io.CLKOUT_DES,
+    from_clock = adc.io.CLKOUT,
     from_reset = false.B, // TODO ????? neeed to make sure the async regs are reset correctly
     from_source = adc_src,
     // to

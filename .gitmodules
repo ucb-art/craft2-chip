@@ -19,3 +19,6 @@
 [submodule "rssi"]
 	path = rssi
 	url = https://github.com/ucb-art/rssi.git
+[submodule "vlsi"]
+	path = vlsi
+	url = git@bwrcrepo.eecs.berkeley.edu:craft-chips/vlsi.git
