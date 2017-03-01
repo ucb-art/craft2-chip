@@ -7,7 +7,7 @@ import testchipip._
 
 // import chisel3.core.ExplicitCompileOptions.NotStrict
 
-class CraftTop(q: Parameters) extends BaseTop(q)
+class CraftP1Core(Parameters) extends BaseTop(q)
     with PeripheryBootROM with PeripheryCoreplexLocalInterrupter
     with PeripherySerial
     with PeripheryCraft2DSP

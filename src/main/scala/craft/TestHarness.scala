@@ -41,9 +41,11 @@ object Generator extends GeneratorApp {
   generateFirrtl
 }
 
-class CraftTopPads(implicit val p: Parameters) extends Module{
+class CraftP1Top(implicit val p: Parameters) extends Module{
   val io = IO(new CraftTopBundle(p))
-  val craft = LazyModule(new CraftTop(p)).module
+  val craft = LazyModule(new CraftCore(p)).module
   io <> craft.io
   io.elements.foreach{println(_)}
+  
+  // Pads go here
 }
