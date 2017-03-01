@@ -24,10 +24,7 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val dsp_clock = Reg(init = false.B)
   dsp_clock := !dsp_clock
 
-  val dut = Module(new CraftTopPads)
-  //val dut = LazyModule(new CraftTop(p)).module
-  //dut.io.stream_in := io.stream_in
-  //dut.io.dsp_clock := io.dsp_clock
+  val dut = Module(new CraftP1Top)
 
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
@@ -43,7 +40,7 @@ object Generator extends GeneratorApp {
 
 class CraftP1Top(implicit val p: Parameters) extends Module{
   val io = IO(new CraftTopBundle(p))
-  val craft = LazyModule(new CraftCore(p)).module
+  val craft = LazyModule(new CraftP1Core(p)).module
   io <> craft.io
   io.elements.foreach{println(_)}
   
