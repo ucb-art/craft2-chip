@@ -197,11 +197,11 @@ trait ADCModule {
 
   val fifo_out = _root_.util.AsyncDecoupledCrossing(
     // from
-    from_clock = adc.io.CLKOUT,
+    from_clock = deser.io.clkout_data,
     from_reset = false.B, // TODO ????? neeed to make sure the async regs are reset correctly
     from_source = adc_src,
     // to
-    to_clock = clock,
+    to_clock = deser.io.clkout_dsp,
     to_reset = false.B, // TODO
     depth = 8, // FIFO depth
     sync = 3  // how many synchronizing regs to place
