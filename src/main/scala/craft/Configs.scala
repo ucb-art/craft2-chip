@@ -35,6 +35,7 @@ import fir._
 import fft._
 import pfb._
 import sam._
+import rssi._
 
 import chisel3.core.ExplicitCompileOptions.NotStrict
 
@@ -168,7 +169,9 @@ object ChainBuilder {
   def fftOutput():T = FixedPoint(18.W, 4.BP) // gets complexed automatically
 
   // Here be the receive signal strength indicator
-  //def rssiConfig() = RSSIConfig(numChannels = 4
+  def rssiConfig() = RSSIConfig(numChannels = 4, numTriggers = 4, lanesIn = 4, lanesOut = 1, maxIntegrator2nLength = 4)
+  def rssiInput(): T = FixedPoint(18.W, 4.BP) // gets complexed automatically
+  def rssiThresh(): T = FixedPoint(18.W, 4.BP) // threshold type, should probably match input
 
 
   ///////////////////////////////////////////////////////////////
@@ -187,7 +190,8 @@ object ChainBuilder {
             (implicit p => new TunerBlock[DspComplex[T], T], id + ":tuner2"),
             (implicit p => new FIRBlock[DspComplex[T]], id + ":fir2"),
             (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb"),
-            (implicit p => new FFTBlock[T],             id + ":fft")
+            (implicit p => new FFTBlock[T], id + ":fft"),
+            (implicit p => new RSSIBlock[T], id + ":rssi")
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,
@@ -203,7 +207,8 @@ object ChainBuilder {
     TunerConfigBuilder(id + ":tuner2", tuner2Config(), tuner2Input, tuner2Output, Some(() => tuner2Mixer)) ++
     FIRConfigBuilder(id + ":fir2", fir2Config(), fir2Input, Some(() => fir2Output), Some(() => fir2Taps)) ++
     PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbTaps, Some(() => pfbOutput)) ++
-    FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput))
+    FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput)) ++
+    RSSIConfigBuilder(id + ":rssi", rssiConfig(), rssiInput, rssiThresh)
   }
 }
 
