@@ -24,7 +24,8 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val dsp_clock = Reg(init = false.B)
   dsp_clock := !dsp_clock
 
-  val dut = LazyModule(new CraftTop(p)).module
+  val dut = Module(new CraftTopPads)
+  //val dut = LazyModule(new CraftTop(p)).module
   //dut.io.stream_in := io.stream_in
   //dut.io.dsp_clock := io.dsp_clock
 
@@ -38,4 +39,11 @@ object Generator extends GeneratorApp {
                  names.topModuleClass + "." +
                  names.configs
   generateFirrtl
+}
+
+class CraftTopPads(implicit val p: Parameters) extends Module{
+  val io = IO(new CraftTopBundle(p))
+  val craft = LazyModule(new CraftTop(p)).module
+  io <> craft.io
+  io.elements.foreach{println(_)}
 }
