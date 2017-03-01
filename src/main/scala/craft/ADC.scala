@@ -97,7 +97,8 @@ class ADCIO extends Bundle {
   val ADCOUT5     = Output(UInt(9.W))
   val ADCOUT6     = Output(UInt(9.W))
   val ADCOUT7     = Output(UInt(9.W))
-  val CLKOUT  = Output(Clock())
+  val CLKOUT      = Output(Clock())
+  val CLKRST      = Input(Bool())
 }
 
 class TISARADC extends BlackBox {

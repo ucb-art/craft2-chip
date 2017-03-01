@@ -32,3 +32,4 @@ class CraftTopModule(p: Parameters, l: CraftTop, b: CraftTopBundle)
   with PeripheryCraft2DSPModule
   with PeripherySRAMModule
   with HardwiredResetVector with DirectConnection with NoDebug
+

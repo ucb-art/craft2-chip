@@ -167,6 +167,9 @@ object ChainBuilder {
   def fftInput():T = FixedPoint(14.W, 4.BP) // gets complexed automatically
   def fftOutput():T = FixedPoint(18.W, 4.BP) // gets complexed automatically
 
+  // Here be the receive signal strength indicator
+  //def rssiConfig() = RSSIConfig(numChannels = 4
+
 
   ///////////////////////////////////////////////////////////////
   ////////////                                     Here be radar 

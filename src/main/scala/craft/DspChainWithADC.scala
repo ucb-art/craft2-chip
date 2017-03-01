@@ -20,6 +20,7 @@ trait ADCTopLevelIO {
   val ADCINM      = Analog(1.W)
   val ADCCLKP     = Analog(1.W)
   val ADCCLKM     = Analog(1.W)
+  val CLKRST      = Input(Bool())
 }
 
 trait LazyADC {
@@ -171,6 +172,8 @@ trait ADCModule {
   adc.io.CLKGCCAL5 := clkgccal(5)
   adc.io.CLKGCCAL6 := clkgccal(6)
   adc.io.CLKGCCAL7 := clkgccal(7)
+
+  adc.io.CLKRST := io.CLKRST
 
   val adcout = Vec(
     adc.io.ADCOUT0,
