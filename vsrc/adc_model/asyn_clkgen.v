@@ -27,7 +27,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module asyn_clkgen #(
     parameter ASYN_DEL      = 10.0  //e-12s 

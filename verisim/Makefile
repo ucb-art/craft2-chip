@@ -2,11 +2,15 @@ base_dir=$(abspath ..)
 sim_dir=$(abspath .)
 framework_dir=$(base_dir)/dsp-framework
 
+
+CHISEL_ARGS ?= 
+build_dir ?= $(sim_dir)/generated-src
 PROJECT ?= craft
 MODEL ?= TestHarness
-CONFIG ?= Craft2Config
 CFG_PROJECT ?= $(PROJECT)
+CONFIG ?= Craft2Config
 TB ?= TestDriver
+
 
 sim = simulator-$(PROJECT)-$(CONFIG)
 sim_debug = simulator-$(PROJECT)-$(CONFIG)-debug
@@ -23,15 +27,19 @@ include $(sim_dir)/Makefrag-verilator
 
 long_name = $(PROJECT).$(MODEL).$(CONFIG)
 
+mem_vsrcs = $(shell find $(build_dir)/*/VERILOG/*.v | grep -v pwr)
+
 sim_vsrcs = \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
-	$(base_dir)/vsrc/TestDriver.v \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
-	$(base_dir)/vsrc/TISARADC.v \
 	$(base_dir)/vsrc/AsyncResetReg.v \
+	$(base_dir)/vsrc/TISARADC.v \
+	$(mem_vsrcs)
 
+	#$(base_dir)/vsrc/TestDriver.v \
+	#$(wildcard $(base_dir)/vsrc/adc_model/*) \
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc \
@@ -53,16 +61,23 @@ model_dir_debug = $(build_dir)/$(long_name).debug
 model_header = $(model_dir)/V$(MODEL).h
 model_header_debug = $(model_dir_debug)/V$(MODEL).h
 
+CUSTOM_FLAGS := \
+  +define+CLOCK_PERIOD=$(clock_period) \
+	+define+TSMC_CM_UNIT_DELAY \
+	+define+TSMC_CM_NO_WARNING \
+	+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
+
+
 $(sim): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name)
-	$(VERILATOR) $(VERILATOR_FLAGS) -Mdir $(build_dir)/$(long_name) \
-	-o $(sim_dir)/$@ $< $(sim_vsrcs) $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
+	$(VERILATOR) $(VERILATOR_FLAGS) $(CUSTOM_FLAGS) -Mdir $(build_dir)/$(long_name) \
+	-o $(sim_dir)/$@ $(sim_vsrcs) $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header)"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name) -f V$(MODEL).mk
 
 $(sim_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name).debug
-	$(VERILATOR) $(VERILATOR_FLAGS) -Mdir $(build_dir)/$(long_name).debug --trace \
-	-o $(sim_dir)/$@ $< $(sim_vsrcs) $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
+	$(VERILATOR) $(VERILATOR_FLAGS) $(CUSTOM_FLAGS) -Mdir $(build_dir)/$(long_name).debug --trace \
+	-o $(sim_dir)/$@ $(sim_vsrcs) $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header_debug) -DVM_TRACE=1"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name).debug -f V$(MODEL).mk

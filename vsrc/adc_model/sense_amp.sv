@@ -26,7 +26,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module sense_amp #(
     parameter SENAMP_DEL    = 1.0   //e-12s

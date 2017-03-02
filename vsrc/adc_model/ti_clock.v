@@ -21,7 +21,7 @@
 //                                                                  to designate which clk reset to 1
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module ti_clock #(
     parameter ADC_WAYS      = 8,

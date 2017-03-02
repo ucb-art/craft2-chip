@@ -26,7 +26,7 @@
 //In each, Sub-ADC BIT[0] is the highest bit
 //In TI-ADC, ADC[0] is the first ADC
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 `define ADC_WAYS    8   
 `define ADC_BITS    9
 

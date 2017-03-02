@@ -19,7 +19,7 @@
 //      SIN_DC          (-inf:inf)  0.5         V       real    sinusoid dc offset
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module sin_diff #(
     parameter SIN_PERIOD    = 10.0,

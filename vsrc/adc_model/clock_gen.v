@@ -19,7 +19,7 @@
 //      CLK_DC          (0:1)       0.1                 real    clock duty cycle
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module clock_gen #(
     parameter CLK_PERIOD    = 1000.0,   //e-12s

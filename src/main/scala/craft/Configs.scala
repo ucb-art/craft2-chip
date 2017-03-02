@@ -223,20 +223,25 @@ class WithSRAM(nBanksPerChannel: Int) extends Config(
     case _ => throw new CDEMatchError
   })
 
-class Craft2BaseConfig extends Config(
+
+class Craft2SimpleBaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  //new WithL2Capacity(512) ++
-  //new WithHwachaAndDma ++
-  //new HwachaConfig ++ // also inserts L2 Cache
-  //new WithDma ++
-  //new WithL2Cache ++
-  //new WithExtMemSize(8L * 1024L * 1024L) ++
-  //new WithNL2AcquireXacts(4) ++
-  //new WithNMemoryChannels(8) ++
   new WithSRAM(4) ++
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
+
+class Craft2BaseConfig extends Config(
+  new WithL2Capacity(512) ++
+  new WithHwachaAndDma ++
+  new HwachaConfig ++ // also inserts L2 Cache
+  new WithDma ++
+  new WithL2Cache ++
+  new WithExtMemSize(8L * 1024L * 1024L) ++
+  new WithNL2AcquireXacts(4) ++
+  new WithNMemoryChannels(8) ++
+  new Craft2SimpleBaseConfig)
+
 
 class WithHwachaAndDma extends Config (
   (pname, site, here) => pname match {
@@ -277,5 +282,6 @@ class WithHwachaAndDma extends Config (
 )
 
 class Craft2Config extends Config(ChainBuilder.radar() ++ new Craft2BaseConfig)
+class Craft2SimpleConfig extends Config(ChainBuilder.radar() ++ new Craft2SimpleBaseConfig)
 class Craft2DefaultChainConfig extends Config(ChainBuilder.fullChain() ++ new Craft2BaseConfig)
 class Craft2DefaultAFBConfig extends Config(ChainBuilder.afbChain() ++ new Craft2BaseConfig)
