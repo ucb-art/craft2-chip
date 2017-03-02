@@ -14,14 +14,14 @@ class ADCIO extends Bundle {
   val ADCINM      = Analog(1.W)
   val ADCCLKP     = Analog(1.W)
   val ADCCLKM     = Analog(1.W)
-  val EXT_CLK0     = Input(Bool())
-  val EXT_CLK1     = Input(Bool())
-  val EXT_CLK2     = Input(Bool())
-  val EXT_CLK3     = Input(Bool())
-  val EXT_CLK4     = Input(Bool())
-  val EXT_CLK5     = Input(Bool())
-  val EXT_CLK6     = Input(Bool())
-  val EXT_CLK7     = Input(Bool())
+  val EXTCLK0     = Input(Bool())
+  val EXTCLK1     = Input(Bool())
+  val EXTCLK2     = Input(Bool())
+  val EXTCLK3     = Input(Bool())
+  val EXTCLK4     = Input(Bool())
+  val EXTCLK5     = Input(Bool())
+  val EXTCLK6     = Input(Bool())
+  val EXTCLK7     = Input(Bool())
   val OSP0        = Input(UInt(8.W))
   val OSP1        = Input(UInt(8.W))
   val OSP2        = Input(UInt(8.W))
@@ -97,7 +97,7 @@ class ADCIO extends Bundle {
   val ADCOUT5     = Output(UInt(9.W))
   val ADCOUT6     = Output(UInt(9.W))
   val ADCOUT7     = Output(UInt(9.W))
-  val CLKOUT      = Output(Clock())
+  val CLKOUT_DES      = Output(Clock())
   val CLKRST      = Input(Bool())
 }
 
@@ -119,14 +119,4 @@ class DeserIO extends Bundle {
 
 class des72to288 extends BlackBox {
   val io = IO(new DeserIO)
-}
-
-class ADCCalIO extends Bundle {
-  val in  = Input(Vec(32, UInt(9.W)))
-  val out = Output(Vec(32, UInt(8.W)))
-}
-
-class ADCCal extends Module {
-  val io = IO(new ADCCalIO)
-  io.out := io.in
 }
