@@ -44,8 +44,22 @@ trait LazyCAL {
 
   scrbuilder.addControl("MODE")
   scrbuilder.addControl("ADDR")
-  scrbuilder.addControl("CALCOEFF")
-  scrbuilder.addControl("CALOUT")
+  scrbuilder.addControl("CALCOEFF0")
+  scrbuilder.addControl("CALCOEFF1")
+  scrbuilder.addControl("CALCOEFF2")
+  scrbuilder.addControl("CALCOEFF3")
+  scrbuilder.addControl("CALCOEFF4")
+  scrbuilder.addControl("CALCOEFF5")
+  scrbuilder.addControl("CALCOEFF6")
+  scrbuilder.addControl("CALCOEFF7")
+  scrbuilder.addStatus("CALOUT0")
+  scrbuilder.addStatus("CALOUT1")
+  scrbuilder.addStatus("CALOUT2")
+  scrbuilder.addStatus("CALOUT3")
+  scrbuilder.addStatus("CALOUT4")
+  scrbuilder.addStatus("CALOUT5")
+  scrbuilder.addStatus("CALOUT6")
+  scrbuilder.addStatus("CALOUT7")
 }
 
 
@@ -106,14 +120,14 @@ trait ADCModule {
   adc.io.OSM6 := osm(6)
   adc.io.OSM7 := osm(7)
 
-  adc.io.EXT_CLK0 := io.EXTCLK
-  adc.io.EXT_CLK1 := io.EXTCLK
-  adc.io.EXT_CLK2 := io.EXTCLK
-  adc.io.EXT_CLK3 := io.EXTCLK
-  adc.io.EXT_CLK4 := io.EXTCLK
-  adc.io.EXT_CLK5 := io.EXTCLK
-  adc.io.EXT_CLK6 := io.EXTCLK
-  adc.io.EXT_CLK7 := io.EXTCLK
+  adc.io.EXTCLK0 := io.EXTCLK
+  adc.io.EXTCLK1 := io.EXTCLK
+  adc.io.EXTCLK2 := io.EXTCLK
+  adc.io.EXTCLK3 := io.EXTCLK
+  adc.io.EXTCLK4 := io.EXTCLK
+  adc.io.EXTCLK5 := io.EXTCLK
+  adc.io.EXTCLK6 := io.EXTCLK
+  adc.io.EXTCLK7 := io.EXTCLK
 
   adc.io.ASCLKD0 := asclkd(0)
   adc.io.ASCLKD1 := asclkd(1)
@@ -187,7 +201,7 @@ trait ADCModule {
 
   val deser = Module(new des72to288)
   deser.io.in := adcout
-  deser.io.clk := adc.io.CLKOUT
+  deser.io.clk := adc.io.CLKOUT_DES
   // [stevo]: wouldn't do anything, since it's only used on reset
   deser.io.phi_init := 0.U
   
@@ -211,14 +225,22 @@ trait ADCModule {
 
   io.adc_clk_out := deser.io.clkout_dsp
 
-  lazy val cal = Module(new ADCCal)
-  cal.io.in := fifo_out.bits
+  lazy val numInBits = 9
+  lazy val numOutBits = 9
+  lazy val numSlices = 8
+  lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
+  cal.io.adcdata := fifo_out.bits.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
+
+  cal.io.mode := scrfile.control("MODE")
+  cal.io.addr := scrfile.control("ADDR")
+  cal.io.calcoeff.zipWithIndex.foreach{ case(port, i) => port := scrfile.control(s"CALCOEFF$i") }
+  cal.io.calout.zipWithIndex.foreach{ case(port, i) => scrfile.status(s"CALOUT$i") := port }
 
   // this lazy weirdness is needed because other traits look at streamIn
   // before this code executes
 
-  lazy val streamIn = Wire(ValidWithSync(cal.io.out.asTypeOf(UInt())))
-  streamIn.bits  := cal.io.out.asTypeOf(UInt())
+  lazy val streamIn = Wire(ValidWithSync(cal.io.calout.asTypeOf(UInt())))
+  streamIn.bits  := cal.io.calout.asTypeOf(UInt())
   streamIn.valid := scrfile.control("ADC_VALID")
   streamIn.sync  := scrfile.control("ADC_SYNC")
 
@@ -231,7 +253,7 @@ class DspChainWithADC(
   override_clock: Option[Clock]=None,
   override_reset: Option[Bool]=None)(implicit p: Parameters) extends 
     DspChain(ctrlBaseAddr, dataBaseAddr, override_clock, override_reset) 
-    with LazyADC {
+    with LazyADC with LazyCAL {
   lazy val module: DspChainWithADCModule = new DspChainWithADCModule(this, b, override_clock, override_reset)
 }
 
