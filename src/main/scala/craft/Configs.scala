@@ -232,6 +232,7 @@ class Craft2SimpleBaseConfig extends Config(
   new rocketchip.BaseConfig)
 
 class Craft2BaseConfig extends Config(
+  new Craft2SimpleBaseConfig ++
   new WithL2Capacity(512) ++
   new WithHwachaAndDma ++
   new HwachaConfig ++ // also inserts L2 Cache
@@ -239,8 +240,7 @@ class Craft2BaseConfig extends Config(
   new WithL2Cache ++
   new WithExtMemSize(8L * 1024L * 1024L) ++
   new WithNL2AcquireXacts(4) ++
-  new WithNMemoryChannels(8) ++
-  new Craft2SimpleBaseConfig)
+  new WithNMemoryChannels(8))
 
 
 class WithHwachaAndDma extends Config (
