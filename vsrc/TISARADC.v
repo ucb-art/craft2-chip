@@ -43,8 +43,8 @@ module TISARADC (
     inout VDDADC,
     inout VSS,
     //input
-    input real ADCINP,
-    input real ADCINM,
+    input ADCINP,
+    input ADCINM,
     //""clock will have problem, as this is sinusoid wave!!
     input ADCCLKP,
     input ADCCLKM,
@@ -154,7 +154,7 @@ module TISARADC (
     input CLKRST,
 
     //Source Follower
-    input real ADCBIAS
+    input ADCBIAS
 ); 
 
 
