@@ -27,7 +27,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module sar_logic #(
     parameter ADC_BITS      = 8

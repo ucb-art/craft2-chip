@@ -19,7 +19,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module ref_vol #(
     parameter VCM_VOL       = 0.5,    //V

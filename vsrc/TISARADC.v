@@ -27,6 +27,12 @@
 //In TI-ADC, ADC[0] is the first ADC
 
 `timescale 1ps/1fs
+`default_nettype none
+
+`define PI 3.1415926535897932
+`define NS_TO_FS 1e6
+`define S_TO_FS 1e15
+`define S_TO_PS 1e12
 `define ADC_WAYS    8   
 `define ADC_BITS    9
 
@@ -37,8 +43,8 @@ module TISARADC (
     inout VDDADC,
     inout VSS,
     //input
-    input ADCINP,
-    input ADCINM,
+    input real ADCINP,
+    input real ADCINM,
     //""clock will have problem, as this is sinusoid wave!!
     input ADCCLKP,
     input ADCCLKM,
@@ -92,14 +98,14 @@ module TISARADC (
     input EXTSEL_CLK7,
 
 
-    input EXT_CLK0,
-    input EXT_CLK1,
-    input EXT_CLK2,
-    input EXT_CLK3,
-    input EXT_CLK4,
-    input EXT_CLK5,
-    input EXT_CLK6,
-    input EXT_CLK7,
+    input EXTCLK0,
+    input EXTCLK1,
+    input EXTCLK2,
+    input EXTCLK3,
+    input EXTCLK4,
+    input EXTCLK5,
+    input EXTCLK6,
+    input EXTCLK7,
     
     //ADC REF
     input [7:0] VREF00,
@@ -134,7 +140,7 @@ module TISARADC (
     input [7:0] IREF2,
     
     //CLK outputs
-    output CLKOUT,
+    output CLKOUT_DES,
 
     //ClK Calibration
     input [7:0] CLKGCCAL0,
@@ -145,9 +151,10 @@ module TISARADC (
     input [7:0] CLKGCCAL5,
     input [7:0] CLKGCCAL6,
     input [7:0] CLKGCCAL7,
+    input CLKRST,
 
     //Source Follower
-    input ADCBIAS
+    input real ADCBIAS
 ); 
 
 

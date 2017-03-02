@@ -29,7 +29,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module cap_dac #(
     parameter PAR_CAP     = 0,          //F

@@ -28,7 +28,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module sub_adc #(
     parameter ADC_BITS    = 8,

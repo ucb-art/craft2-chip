@@ -38,7 +38,7 @@
 //In each, Sub-ADC BIT[0] is the highest bit
 //In TI-ADC, ADC[0] is the first ADC
 
-`include "../../verilog-src/verilog_header.vh"
+`include "verilog_header.vh"
 
 module ti_adc #(
     parameter ADC_SR        = 9.6e9,   //sample/s, assuming each sub_adc is 1Gsample/s    
