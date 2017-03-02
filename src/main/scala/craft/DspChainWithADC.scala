@@ -34,7 +34,8 @@ trait LazyADC {
   scrbuilder.addControl("VREF1")
   scrbuilder.addControl("VREF2")
   scrbuilder.addControl("IREF")
-  scrbuilder.addControl("CLKGCCAL")
+  scrbuilder.addControl("CLKGCAL")
+  scrbuilder.addControl("CLKGBIAS")
   scrbuilder.addControl("ADC_VALID")
   scrbuilder.addControl("ADC_SYNC")
 }
@@ -100,7 +101,8 @@ trait ADCModule {
   val vref1 = wordToByteVec(scrfile.control("VREF1"))
   val vref2 = wordToByteVec(scrfile.control("VREF2"))
   val iref = wordToByteVec(scrfile.control("IREF"))
-  val clkgccal = wordToByteVec(scrfile.control("CLKGCCAL"))
+  val clkgcal = wordToByteVec(scrfile.control("CLKGCAL"))
+  val clkgbias = scrfile.control("CLKGBIAS")
 
   adc.io.OSP0 := osp(0)
   adc.io.OSP1 := osp(1)
@@ -178,14 +180,16 @@ trait ADCModule {
   adc.io.IREF1 := iref(1)
   adc.io.IREF2 := iref(2)
 
-  adc.io.CLKGCCAL0 := clkgccal(0)
-  adc.io.CLKGCCAL1 := clkgccal(1)
-  adc.io.CLKGCCAL2 := clkgccal(2)
-  adc.io.CLKGCCAL3 := clkgccal(3)
-  adc.io.CLKGCCAL4 := clkgccal(4)
-  adc.io.CLKGCCAL5 := clkgccal(5)
-  adc.io.CLKGCCAL6 := clkgccal(6)
-  adc.io.CLKGCCAL7 := clkgccal(7)
+  adc.io.CLKGCAL0 := clkgcal(0)
+  adc.io.CLKGCAL1 := clkgcal(1)
+  adc.io.CLKGCAL2 := clkgcal(2)
+  adc.io.CLKGCAL3 := clkgcal(3)
+  adc.io.CLKGCAL4 := clkgcal(4)
+  adc.io.CLKGCAL5 := clkgcal(5)
+  adc.io.CLKGCAL6 := clkgcal(6)
+  adc.io.CLKGCAL7 := clkgcal(7)
+
+  adc.io.CLKGBIAS := clkgbias
 
   adc.io.CLKRST := io.CLKRST
 

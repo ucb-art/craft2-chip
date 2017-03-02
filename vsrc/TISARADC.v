@@ -143,14 +143,15 @@ module TISARADC (
     output CLKOUT_DES,
 
     //ClK Calibration
-    input [7:0] CLKGCCAL0,
-    input [7:0] CLKGCCAL1,
-    input [7:0] CLKGCCAL2,
-    input [7:0] CLKGCCAL3,
-    input [7:0] CLKGCCAL4,
-    input [7:0] CLKGCCAL5,
-    input [7:0] CLKGCCAL6,
-    input [7:0] CLKGCCAL7,
+    input [7:0] CLKGCAL0,
+    input [7:0] CLKGCAL1,
+    input [7:0] CLKGCAL2,
+    input [7:0] CLKGCAL3,
+    input [7:0] CLKGCAL4,
+    input [7:0] CLKGCAL5,
+    input [7:0] CLKGCAL6,
+    input [7:0] CLKGCAL7,
+    input [7:0] CLKGBIAS,
     input CLKRST,
 
     //Source Follower
