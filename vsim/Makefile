@@ -16,6 +16,8 @@ debug: $(simv_debug)
 
 include $(base_dir)/Makefrag
 
+mem_vsrcs = $(shell find $(build_dir)/*/VERILOG/*.v | grep -v pwr)
+
 sim_vsrcs = \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
@@ -23,7 +25,8 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
 	$(base_dir)/vsrc/TISARADC.v \
-	$(base_dir)/vsrc/AsyncResetReg.v
+	$(base_dir)/vsrc/AsyncResetReg.v \
+	$(mem_vsrcs)
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc
@@ -36,8 +39,13 @@ $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$
 	$(FIRRTL) -i $< -o $@ -X verilog -firw $(MODEL) -frsq -c:$(MODEL):-o:$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).conf
 
 $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
-	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --ff
+	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --generate
 
+CUSTOM_FLAGS := \
+  +define+CLOCK_PERIOD=$(clock_period) \
+	+define+TSMC_CM_UNIT_DELAY \
+	+define+TSMC_CM_NO_WARNING \
+	+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
 
 
 VCS = vcs -full64
@@ -59,6 +67,7 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 	+define+RANDOMIZE_GARBAGE_ASSIGN \
 	+define+RANDOMIZE_INVALID_ASSIGN \
 	+libext+.v \
+	$(CUSTOM_FLAGS)
 
 verilog: $(sim_vsrcs)
 
