@@ -227,7 +227,6 @@ class WithSRAM(nBanksPerChannel: Int) extends Config(
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
-  new WithSRAM(4) ++
   // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
@@ -239,6 +238,7 @@ class Craft2DefaultConfig extends Config(
   new WithExtMemSize(8L * 1024L * 1024L) ++
   new WithNL2AcquireXacts(4) ++
   new WithNMemoryChannels(8) ++
+  new WithSRAM(4) ++
   new Craft2BaseConfig)
 
 class WithHwachaAndDma extends Config (
@@ -282,6 +282,7 @@ class WithHwachaAndDma extends Config (
 class WithSimpleOptions extends Config(
   new WithL2Capacity(512) ++
   new WithL2Cache ++
+  new WithSRAM(1) ++
   new WithExtMemSize(8 * 1024L * 1024L))
 
 class Craft2Config extends Config(ChainBuilder.radar() ++ new Craft2DefaultConfig)
