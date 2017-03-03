@@ -44,5 +44,8 @@ class CraftP1Top(implicit val p: Parameters) extends Module{
   io <> craft.io
   io.elements.foreach{println(_)}
   
+  // [stevo]: loopy loop
+  craft.clock := craft.io.CLKRXOUT
+
   // Pads go here
 }
