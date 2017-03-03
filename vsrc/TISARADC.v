@@ -159,4 +159,8 @@ module TISARADC (
 ); 
 
 
+reg clk = 1'b0;
+always #3000 clk = !clk;
+assign CLKOUT_DES = clk;
+
 endmodule

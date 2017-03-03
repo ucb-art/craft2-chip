@@ -110,6 +110,7 @@ class DeserIO extends Bundle {
   val in           = Input(Vec(8, UInt(9.W)))
   val out          = Output(Vec(32, UInt(9.W)))
   val clk          = Input(Clock())
+  val rst          = Input(Bool())
   // clock that follows data to fifo
   val clkout_data = Output(Clock())
   // clock that goes to rest of the dsp chain
