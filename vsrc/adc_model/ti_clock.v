@@ -19,6 +19,8 @@
 //      ADC_WAYS        (0:inf)         8                   integer adc ways
 //      CLK_INIT        [0:ADCWAYS-1]   0                   integer reset clk, 
 //                                                                  to designate which clk reset to 1
+//      CLK_CORE        [0:ADCWAYS-1]   3                   integer core clock choosing
+//
 ////////////////////////////////////////////////////////////////////
 
 `include "verilog_header.vh"
