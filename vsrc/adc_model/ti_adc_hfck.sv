@@ -1,20 +1,16 @@
 ////////////////////////////////////////////////////////////////////
 // 
-// File:        ti_adc.sv
-// Module:      ti_adc
+// File:        ti_adc_hfck.sv
+// Module:      ti_adc_hfck
 // Project:     TI-ADC modeling
 // Description: time interleave SAR-ADC model, ideal
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
-// Date created:    01/29/2017
-// Date modefied:   02/21/2017
+// Date created:    03/04/2017
+// Date modefied:   03/04/2017
 // -----------------------------------------------------------------
-// Change history:  01/29/2017 - First Created
-//                  02/21/2017 - Add another parameter 'CLK_INIT'
-//                               Move clock out of generate block, as it can generate multi-clock
-//                               Delete adc_compl from output
-//                               Change parameters
-//                  02/25/2017 - Add subadc_clk output
+// Change history:  03/04/2017 - First Created
+//                  
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
@@ -31,7 +27,11 @@
 //      SENAMP_DEL      (0:inf)     1.0         ps      real    sense amplifier delay
 //      CLK_INIT        [0:ADCWAYS-1]   0               integer reset clk, 
 //                                                              to designate which clk reset to 1
-//
+//      CLK_CORE        [0:ADCWAYS-1]   3               integer core clock choosing
+//      CLK_DFFD        [0:inf)     1                   real    delay of DFF in clock distribution
+// -----------------------------------------------------------------
+// Notes:
+//      Only works for even number of ways for now
 ////////////////////////////////////////////////////////////////////
 
 //Things to notice:
@@ -40,7 +40,7 @@
 
 `include "verilog_header.vh"
 
-module ti_adc #(
+module ti_adc_hfck #(
     parameter ADC_SR        = 9.6e9,   //sample/s, assuming each sub_adc is 1Gsample/s    
     parameter ADC_WAYS      = 8,   
     parameter ADC_BITS      = 9,
@@ -57,11 +57,13 @@ module ti_adc #(
     parameter SENAMP_DEL    = 0.02,     //real, ps
     //from ti_clk
     parameter CLK_INIT      = 0,        //integer
-    parameter CLK_CORE      = 3         //integer
+    parameter CLK_CORE      = 3,        //integer
+    parameter CLK_DFFD      = 1         //real, ps
 )(
     //input
     input rst,
-    input adc_clk,
+    input adc_clkp,
+    input adc_clkn,
     input real adc_vip,
     input real adc_vin,
     //output
@@ -76,13 +78,15 @@ module ti_adc #(
 wire [0:ADC_WAYS-1] adc_compl;
 
 //ti_clock instantiation
-ti_clock #(
+ti_clock_half #(
         .ADC_WAYS       (ADC_WAYS),
         .CLK_INIT       (CLK_INIT),
-        .CLK_CORE       (CLK_CORE)
-    )ti_clock(
+        .CLK_CORE       (CLK_CORE),
+        .CLK_DFFD       (CLK_DFFD)
+)ti_clock_half(
         .rst            (rst),
-        .clk            (adc_clk),
+        .clkp           (adc_clkp),
+        .clkn           (adc_clkn),
         .ti_clk         (subadc_clk),
         .core_clk       (adc_coreclk)
     );

@@ -27,6 +27,7 @@
 //In TI-ADC, ADC[0] is the first ADC
 
 `include "verilog_header.vh"
+
 `define ADC_WAYS    8   
 `define ADC_BITS    9
 
@@ -92,14 +93,14 @@ module TISARADC (
     input EXTSEL_CLK7,
 
 
-    input EXT_CLK0,
-    input EXT_CLK1,
-    input EXT_CLK2,
-    input EXT_CLK3,
-    input EXT_CLK4,
-    input EXT_CLK5,
-    input EXT_CLK6,
-    input EXT_CLK7,
+    input EXTCLK0,
+    input EXTCLK1,
+    input EXTCLK2,
+    input EXTCLK3,
+    input EXTCLK4,
+    input EXTCLK5,
+    input EXTCLK6,
+    input EXTCLK7,
     
     //ADC REF
     input [7:0] VREF00,
@@ -134,18 +135,21 @@ module TISARADC (
     input [7:0] IREF2,
     
     //CLK outputs
-    output CLKOUT,
+    output CLKOUT_DES,
 
-    //ClK Calibration
-    input [7:0] CLKGCCAL0,
-    input [7:0] CLKGCCAL1,
-    input [7:0] CLKGCCAL2,
-    input [7:0] CLKGCCAL3,
-    input [7:0] CLKGCCAL4,
-    input [7:0] CLKGCCAL5,
-    input [7:0] CLKGCCAL6,
-    input [7:0] CLKGCCAL7,
+    //CKK Calibration
+    input [7:0] CLKGCAL0,
+    input [7:0] CLKGCAL1,
+    input [7:0] CLKGCAL2,
+    input [7:0] CLKGCAL3,
+    input [7:0] CLKGCAL4,
+    input [7:0] CLKGCAL5,
+    input [7:0] CLKGCAL6,
+    input [7:0] CLKGCAL7,
     input CLKRST,
+
+    //CLK Biasing
+    input [7:0] CLKGBIAS,
 
     //Source Follower
     input real ADCBIAS
@@ -170,17 +174,18 @@ assign ADCOUT6[`ADC_BITS-1:0] = adc_data_fin[6][0:`ADC_BITS-1];
 assign ADCOUT7[`ADC_BITS-1:0] = adc_data_fin[7][0:`ADC_BITS-1];
 
 //sub_adc instantiation
-ti_adc ti_adc(
+ti_adc_hfck ti_adc_hfck(
     //input
     .rst            (CLKRST),
-    .adc_clk        (ADCCLKP),
+    .adc_clkp       (ADCCLKP),
+    .adc_clkn       (ADCCLKM),
     .adc_vip        (ADCINP),
     .adc_vin        (ADCINM),
     //output
     .adc_data       (adc_data),
     //output [0:ADC_WAYS-1] adc_compl,
     .subadc_clk     (subadc_clk),
-    .adc_coreclk    (CLKOUT)
+    .adc_coreclk    (CLKOUT_DES)
 
 ); 
 
