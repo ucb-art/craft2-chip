@@ -32,13 +32,13 @@ mem_vsrcs = $(shell find $(build_dir)/*/VERILOG/*.v | grep -v pwr)
 sim_vsrcs = \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
 	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
+	$(base_dir)/vsrc/TestDriver.v \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
 	$(base_dir)/vsrc/AsyncResetReg.v \
 	$(base_dir)/vsrc/TISARADC.v \
 	$(mem_vsrcs)
 
-	#$(base_dir)/vsrc/TestDriver.v \
 	#$(wildcard $(base_dir)/vsrc/adc_model/*) \
 
 sim_csrcs = \
@@ -61,7 +61,11 @@ model_dir_debug = $(build_dir)/$(long_name).debug
 model_header = $(model_dir)/V$(MODEL).h
 model_header_debug = $(model_dir_debug)/V$(MODEL).h
 
+# [stevo]:
+# Wno-fatal means don't die when you get warnings, which we get from importing TSMC memories
+# rest of these defines are for TSMC memories (see their verilog for details)
 CUSTOM_FLAGS := \
+	-Wno-fatal \
   +define+CLOCK_PERIOD=$(clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
 	+define+TSMC_CM_NO_WARNING \

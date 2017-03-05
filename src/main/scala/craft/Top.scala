@@ -22,7 +22,6 @@ class CraftTopBundle(p: Parameters) extends BaseTopBundle(p)
   with PeripherySerialBundle
   with ADCTopLevelIO
   with CLKRXTopLevelIO
-  //with PeripheryCraft2DSPBundle
   with PeripherySRAMBundle
 
 class CraftTopModule(p: Parameters, l: CraftP1Core, b: CraftTopBundle)

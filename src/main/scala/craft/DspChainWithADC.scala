@@ -74,6 +74,7 @@ trait ADCModule {
   def io: DspChainIO with DspChainADCIO
   def scrfile: SCRFile
   def clock: Clock // module's implicit clock
+  def reset: Bool
 
   val adc = Module(new TISARADC)
 
@@ -208,6 +209,7 @@ trait ADCModule {
   deser.io.clk := adc.io.CLKOUT_DES
   // [stevo]: wouldn't do anything, since it's only used on reset
   deser.io.phi_init := 0.U
+  deser.io.rst := reset
   
   val adc_src = Wire(Decoupled(deser.io.out))
   adc_src.bits  := deser.io.out
