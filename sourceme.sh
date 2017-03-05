@@ -1,5 +1,5 @@
 export RISCV=/tools/projects/zhemao/craft2-chip/install
-export PATH=~rigge/gcc/bin:$RISCV/bin:$PATH
+#export PATH=~rigge/gcc/bin:$RISCV/bin:$PATH
 
 
 export LD_LIBRARY_PATH=~rigge/gcc/lib64:~rigge/gcc/lib:$LD_LIBRARY_PATH
@@ -18,3 +18,5 @@ export TSMCHOME=/tools/tstech16/CLN16FFC/TSMCHOME
 export MC2_INSTALL_DIR=~stevo.bailey/mc2/MC2_2013.12.00.f
 
 export PATH=$PATH:$MC2_INSTALL_DIR/bin
+
+scl enable devtoolset-2 bash
