@@ -12,7 +12,7 @@ case object BuildCLKRX extends Field[(Bundle with CLKRXTopLevelIO) => CLKRX]
 class CLKRXIO extends Bundle {
   val VIN = Analog(1.W)
   val VIP = Analog(1.W)
-  val CLKRXOUT = Output(Clock())
+  val VOBUF = Output(Clock())
 }
 
 class CLKRX extends BlackBox {
@@ -22,7 +22,7 @@ class CLKRX extends BlackBox {
 trait CLKRXTopLevelIO {
   val VIN = Analog(1.W)
   val VIP = Analog(1.W)
-  val CLKRXOUT = Output(Clock())
+  val VOBUF = Output(Clock())
 }
 
 trait CLKRXModule {
@@ -31,7 +31,7 @@ trait CLKRXModule {
   val m = Module(new CLKRX)
   attach(io.VIN, m.io.VIN)
   attach(io.VIP, m.io.VIP)
-  io.CLKRXOUT := m.io.CLKRXOUT
+  io.VOBUF := m.io.VOBUF
   //io <> m.io
 }
 

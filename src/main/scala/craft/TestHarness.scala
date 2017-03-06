@@ -8,6 +8,7 @@ import chisel3._
 import dspblocks._
 import dspjunctions._
 import testchipip._
+import chisel3.experimental._
 
 class TestHarness(implicit val p: Parameters) extends Module {
   //implicit val options = chisel3.core.ExplicitCompileOptions.NotStrict
@@ -17,14 +18,13 @@ class TestHarness(implicit val p: Parameters) extends Module {
 
   val io = IO(new Bundle {
     val success = Output(Bool())
-    //val stream_in = Flipped(ValidWithSync(UInt( firstBlockWidth.W )))
-    //val dsp_clock = Flipped(Bool())
+    val VIP = Analog(1.W)
+    val VIN = Analog(1.W)
   })
 
-  val dsp_clock = Reg(init = false.B)
-  dsp_clock := !dsp_clock
-
   val dut = Module(new CraftP1Top)
+  attach(dut.io.VIP, io.VIP)
+  attach(dut.io.VIN, io.VIN)
 
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
@@ -45,7 +45,7 @@ class CraftP1Top(implicit val p: Parameters) extends Module{
   io.elements.foreach{println(_)}
   
   // [stevo]: loopy loop
-  craft.clock := craft.io.CLKRXOUT
+  craft.clock := craft.io.VOBUF
 
   // Pads go here
 }
