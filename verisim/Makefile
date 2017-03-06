@@ -1,59 +1,37 @@
 base_dir=$(abspath ..)
 sim_dir=$(abspath .)
-framework_dir=$(base_dir)/dsp-framework
 
-
-CHISEL_ARGS ?= 
-build_dir ?= $(sim_dir)/generated-src
-PROJECT ?= craft
-MODEL ?= TestHarness
-CFG_PROJECT ?= $(PROJECT)
-CONFIG ?= Craft2Config
-TB ?= TestDriver
-
-
-sim = simulator-$(PROJECT)-$(CONFIG)
-sim_debug = simulator-$(PROJECT)-$(CONFIG)-debug
-
-default: $(sim)
-
-debug: $(sim_debug)
-
-CXXFLAGS := $(CXXFLAGS) -O1 -std=c++11 -I$(RISCV)/include
-LDFLAGS := $(LDFLAGS) -L$(RISCV)/lib -Wl,-rpath,$(RISCV)/lib -L$(sim_dir) -lfesvr -lpthread
+default: sim
 
 include $(base_dir)/Makefrag
 include $(sim_dir)/Makefrag-verilator
 
-long_name = $(PROJECT).$(MODEL).$(CONFIG)
+CXXFLAGS := $(CXXFLAGS) -O1 -std=c++11 -I$(RISCV)/include
+LDFLAGS := $(LDFLAGS) -L$(RISCV)/lib -Wl,-rpath,$(RISCV)/lib -L$(sim_dir) -lfesvr -lpthread
 
+simulator = simulator-$(PROJECT)-$(CONFIG)
+simulator_debug = simulator-$(PROJECT)-$(CONFIG)-debug
+
+sim: $(simulator)
+debug: $(simulator_debug)
+
+# TODO: make this not a two-step process
 mem_vsrcs = $(shell find $(build_dir)/*/VERILOG/*.v | grep -v pwr)
 
 sim_vsrcs = \
-	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
-	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
-	$(base_dir)/vsrc/TestDriver.v \
+	$(build_dir)/$(long_name).top.v \
+	$(build_dir)/$(long_name).harness.v \
+	$(build_dir)/$(long_name).mems.v \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
 	$(base_dir)/vsrc/AsyncResetReg.v \
 	$(base_dir)/vsrc/TISARADC.v \
+	$(base_dir)/vsrc/CLKRX.v \
 	$(mem_vsrcs)
-
-	#$(wildcard $(base_dir)/vsrc/adc_model/*) \
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc \
 	$(base_dir)/csrc/verilator-harness.cc
-
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
-	mkdir -p $(build_dir)
-	cd $(base_dir) && $(SBT) "run-main $(PROJECT).DspGenerator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
-
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
-	$(FIRRTL) -i $< -o $@ -X verilog -firw $(MODEL) -frsq -c:$(MODEL):-o:$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).conf
-
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
-	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --generate
 
 model_dir = $(build_dir)/$(long_name)
 model_dir_debug = $(build_dir)/$(long_name).debug
@@ -72,16 +50,19 @@ CUSTOM_FLAGS := \
 	+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
 
 
-$(sim): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
+$(simulator): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name)
 	$(VERILATOR) $(VERILATOR_FLAGS) $(CUSTOM_FLAGS) -Mdir $(build_dir)/$(long_name) \
 	-o $(sim_dir)/$@ $(sim_vsrcs) $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header)"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name) -f V$(MODEL).mk
 
-$(sim_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
+$(simulator_debug): $(sim_vsrcs) $(sim_csrcs) $(INSTALLED_VERILATOR)
 	mkdir -p $(build_dir)/$(long_name).debug
 	$(VERILATOR) $(VERILATOR_FLAGS) $(CUSTOM_FLAGS) -Mdir $(build_dir)/$(long_name).debug --trace \
 	-o $(sim_dir)/$@ $(sim_vsrcs) $(sim_csrcs) -LDFLAGS "$(LDFLAGS)" \
 	-CFLAGS "-I$(build_dir) -include $(model_header_debug) -DVM_TRACE=1"
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(build_dir)/$(long_name).debug -f V$(MODEL).mk
+
+clean:
+	rm -rf $(build_dir) simulator-* verilator
