@@ -3,11 +3,11 @@ sim_dir=$(abspath .)
 
 default: sim
 
-include $(base_dir)/Makefrag
-include $(sim_dir)/Makefrag-verilator
-
 CXXFLAGS := $(CXXFLAGS) -O1 -std=c++11 -I$(RISCV)/include
 LDFLAGS := $(LDFLAGS) -L$(RISCV)/lib -Wl,-rpath,$(RISCV)/lib -L$(sim_dir) -lfesvr -lpthread
+
+include $(base_dir)/Makefrag
+include $(sim_dir)/Makefrag-verilator
 
 simulator = simulator-$(PROJECT)-$(CONFIG)
 simulator_debug = simulator-$(PROJECT)-$(CONFIG)-debug
