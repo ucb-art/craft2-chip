@@ -27,7 +27,7 @@ build_dir ?= $(sim_dir)/generated-src
 PROJECT ?= craft
 MODEL ?= TestHarness
 CFG_PROJECT ?= $(PROJECT)
-CONFIG ?= Craft2SimpleConfig
+CONFIG ?= Craft2Config
 VLSITOP ?= CraftP1Top
 TB ?= TestDriver
 

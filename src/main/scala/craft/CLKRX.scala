@@ -7,7 +7,7 @@ import chisel3.experimental._
 import cde._
 import chisel3.core.ExplicitCompileOptions.NotStrict
 
-case object BuildCLKRX extends Field[(Bundle with CLKRXTopLevelIO) => CLKRX]
+case object BuildCLKRX extends Field[(Bundle with CLKRXTopLevelIO) => CLK_RX_amp_buf]
 
 class CLKRXIO extends Bundle {
   val VIN = Analog(1.W)
@@ -15,7 +15,7 @@ class CLKRXIO extends Bundle {
   val VOBUF = Output(Clock())
 }
 
-class CLKRX extends BlackBox {
+class CLK_RX_amp_buf extends BlackBox {
   val io = IO(new CLKRXIO)
 }
 
@@ -28,7 +28,7 @@ trait CLKRXTopLevelIO {
 trait CLKRXModule {
   implicit val p: Parameters
   def io: Bundle with CLKRXTopLevelIO
-  val m = Module(new CLKRX)
+  val m = Module(new CLK_RX_amp_buf)
   attach(io.VIN, m.io.VIN)
   attach(io.VIP, m.io.VIP)
   io.VOBUF := m.io.VOBUF
