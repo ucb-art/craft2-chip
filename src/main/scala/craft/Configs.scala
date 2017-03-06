@@ -212,18 +212,6 @@ object ChainBuilder {
   }
 }
 
-class WithSRAM(nBanksPerChannel: Int) extends Config(
-  (pname, site, here) => pname match {
-    case NSRAMBanksPerChannel => nBanksPerChannel
-    case NSRAMBlocksPerBank => {
-      val blockBytes = site(TLKey("L2toMC")).dataBits
-      val nBanks = nBanksPerChannel * site(NMemoryChannels)
-      (site(ExtMemSize) / (nBanks * blockBytes)).toInt
-    }
-    case _ => throw new CDEMatchError
-  })
-
-
 class Craft2BaseConfig extends Config(
   new WithCraft2DSP ++
   new WithSerialAdapter ++
