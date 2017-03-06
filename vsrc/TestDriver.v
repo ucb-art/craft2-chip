@@ -131,9 +131,14 @@ module TestDriver;
     end
   end
 
+  tri vip, vin;
+  assign vip = clock;
+  assign vin = ~clock;
   TestHarness testHarness(
     .clock(clock),
     .reset(reset),
+    .io_VIP(vip),
+    .io_VIN(vin),
     .io_success(success)
   );
 
