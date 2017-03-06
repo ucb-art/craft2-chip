@@ -21,6 +21,7 @@ class CraftTopBundle(p: Parameters) extends BaseTopBundle(p)
   with PeripheryCoreplexLocalInterrupterBundle
   with PeripherySerialBundle
   with ADCTopLevelIO
+  with CLKRXTopLevelIO
   with PeripherySRAMBundle
 
 class CraftTopModule(p: Parameters, l: CraftP1Core, b: CraftTopBundle)
@@ -31,4 +32,5 @@ class CraftTopModule(p: Parameters, l: CraftP1Core, b: CraftTopBundle)
   with PeripheryCraft2DSPModule
   with PeripherySRAMModule
   with HardwiredResetVector with DirectConnection with NoDebug
+  with CLKRXModule
 

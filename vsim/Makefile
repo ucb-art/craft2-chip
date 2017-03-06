@@ -1,45 +1,34 @@
 base_dir=$(abspath ..)
 sim_dir=$(abspath .)
 
-PROJECT ?= craft
-MODEL ?= TestHarness
-CONFIG ?= Craft2Config
-CFG_PROJECT ?= $(PROJECT)
-TB ?= TestDriver
+default: sim
+
+include $(base_dir)/Makefrag
 
 simv = simv-$(PROJECT)-$(CONFIG)
 simv_debug = simv-$(PROJECT)-$(CONFIG)-debug
 
-default: $(simv)
-
+sim: $(simv)
 debug: $(simv_debug)
 
-include $(base_dir)/Makefrag
-
+# TODO: make this not a two-step process
 mem_vsrcs = $(shell find $(build_dir)/*/VERILOG/*.v | grep -v pwr)
 
 sim_vsrcs = \
-	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v \
-	$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v \
+	$(build_dir)/$(long_name).top.v \
+	$(build_dir)/$(long_name).harness.v \
+	$(build_dir)/$(long_name).mems.v \
 	$(base_dir)/vsrc/TestDriver.v \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
 	$(base_dir)/vsrc/TISARADC.v \
+	$(base_dir)/vsrc/CLKRX.v \
 	$(base_dir)/vsrc/AsyncResetReg.v \
 	$(mem_vsrcs)
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc
 
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
-	mkdir -p $(build_dir)
-	cd $(base_dir) && $(SBT) "run-main $(PROJECT).DspGenerator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
-
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).fir
-	$(FIRRTL) -i $< -o $@ -X verilog -firw $(MODEL) -frsq -c:$(MODEL):-o:$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).conf
-
-$(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).mems.v: $(build_dir)/$(PROJECT).$(MODEL).$(CONFIG).v
-	cd $(build_dir) && $(MEM_GEN) --conf $(PROJECT).$(MODEL).$(CONFIG).conf --v $(PROJECT).$(MODEL).$(CONFIG).mems.v --generate
 
 CUSTOM_FLAGS := \
   +define+CLOCK_PERIOD=$(clock_period) \
@@ -80,6 +69,6 @@ $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
 	+define+DEBUG -debug_pp
 
 clean:
-	rm -rf csrc simv-* ucli.key vc_hdrs.h generated-src output
+	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles
 
 .PHONY: clean
