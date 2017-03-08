@@ -120,7 +120,7 @@ This creates a number of files in the `generated-src` directory.
 #### Generating memories
 
 While FIRRTL black-boxes the memories, they must be mapped to your technology.
-The script to do this is `vlsi/src/vlsi\_mem\_gen`.
+The script to do this is `vlsi/src/vlsi_mem_gen`.
 Right now, this is done for TSMC 16nm FF.
 Make sure you have the right permissions.
 On the BWRC servers, source `sourceme.sh` in bash to set up a TSMCHOME environment variable, add the license, and add the memory compiler to your path.
@@ -137,7 +137,7 @@ This produces a `.mems.v` file.
 
 The final step is to generate a pad frame and module that hooks up the pad frame to the design.
 Again, this is technology dependent, but it does not require any setup, only access to the vlsi submodule.
-The script to do this is `vlsi/src/create\_pads.py`.
+The script to do this is `vlsi/src/create_pads.py`.
 Modify this script as needed to produce the correct pad frame.
 Run the following command to perform this step.
 
