@@ -22,7 +22,7 @@ class TestHarness(implicit val p: Parameters) extends Module {
     val VIN = Analog(1.W)
   })
 
-  val dut = Module(new CraftP1Top)
+  val dut = Module(new CraftP1Core)
   attach(dut.io.VIP, io.VIP)
   attach(dut.io.VIN, io.VIN)
 
@@ -38,11 +38,10 @@ object Generator extends GeneratorApp {
   generateFirrtl
 }
 
-class CraftP1Top(implicit val p: Parameters) extends Module{
+class CraftP1Core(implicit val p: Parameters) extends Module{
   val io = IO(new CraftTopBundle(p))
-  val craft = LazyModule(new CraftP1Core(p)).module
+  val craft = LazyModule(new CraftP1CoreTop(p)).module
   io <> craft.io
-  io.elements.foreach{println(_)}
   
   // [stevo]: loopy loop
   craft.clock := craft.io.VOBUF

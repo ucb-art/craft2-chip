@@ -7,7 +7,7 @@ import testchipip._
 
 // import chisel3.core.ExplicitCompileOptions.NotStrict
 
-class CraftP1Core(q: Parameters) extends BaseTop(q)
+class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
     with PeripheryBootROM with PeripheryCoreplexLocalInterrupter
     with PeripherySerial
     with PeripheryCraft2DSP
@@ -24,7 +24,7 @@ class CraftTopBundle(p: Parameters) extends BaseTopBundle(p)
   with CLKRXTopLevelIO
   with PeripherySRAMBundle
 
-class CraftTopModule(p: Parameters, l: CraftP1Core, b: CraftTopBundle)
+class CraftTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftTopBundle)
   extends BaseTopModule(p, l, b)
   with PeripheryBootROMModule
   with PeripheryCoreplexLocalInterrupterModule
