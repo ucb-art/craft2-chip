@@ -2,6 +2,26 @@
 
 This repo contains the infrastructure for designing, testing, and building the craft2 chip.
 
+# Table of Contents
+
+* [Overview](#overview)
+* [Organization](#organization)
+* [Getting started](#gettingstarted)
+    * [Checking out the sources](#checkingoutthesources)
+    * [Compiling the dependencies](#compilingthedependencies)
+    * [Building the RISCV tools](#buildingtheriscvtools)
+    * [Compiling the design](#compilingthedesign)
+        * [Generating FIRRTL](#generatingfirrtl) 
+        * [Generating Verilog]
+        * [Generating memories]
+        * [Generating a pad frame and top-level Verilog]
+        * [Generating everything]
+    * [Simulating](#simulating)
+        * Synopsys VCS
+        * Verilator
+        * Cadence Incisive
+    * Working inside the Cadence VCAD Chamber
+
 ## Overview
 
 Craft2 is a [RISC-V](https://riscv.org/) [Rocket](https://github.com/ucb-bar/rocket-chip) processor generator with DSP extensions.
