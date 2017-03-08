@@ -31,12 +31,12 @@ class TestHarness(implicit val p: Parameters) extends Module {
   io.success := ser.io.exit
 }
 
-object Generator extends GeneratorApp {
-  val longName = names.topModuleProject + "." +
-                 names.topModuleClass + "." +
-                 names.configs
-  generateFirrtl
-}
+//object Generator extends GeneratorApp {
+//  val longName = names.topModuleProject + "." +
+//                 names.topModuleClass + "." +
+//                 names.configs
+//  generateFirrtl
+//}
 
 class CraftP1Core(implicit val p: Parameters) extends Module{
   val io = IO(new CraftTopBundle(p))
