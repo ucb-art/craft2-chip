@@ -6,21 +6,21 @@ This repo contains the infrastructure for designing, testing, and building the c
 
 * [Overview](#overview)
 * [Organization](#organization)
-* [Getting started](#gettingstarted)
-    * [Checking out the sources](#checkingoutthesources)
-    * [Compiling the dependencies](#compilingthedependencies)
-    * [Building the RISCV tools](#buildingtheriscvtools)
-    * [Compiling the design](#compilingthedesign)
-        * [Generating FIRRTL](#generatingfirrtl) 
-        * [Generating Verilog]
-        * [Generating memories]
-        * [Generating a pad frame and top-level Verilog]
-        * [Generating everything]
+* [Getting started](#getting-started)
+    * [Checking out the sources](#checking-out-the-sources)
+    * [Compiling the dependencies](#compiling-the-dependencies)
+    * [Building the RISCV tools](#building-the-riscv-tools)
+    * [Compiling the design](#compiling-the-design)
+        * [Generating FIRRTL](#generating-firrtl) 
+        * [Generating Verilog](#generating-verilog)
+        * [Generating memories](#generating-memories)
+        * [Generating a pad frame and top-level Verilog](#generating-a-pad-frame-and-top-level-verilog)
+        * [Generating everything](#generating-everything)
     * [Simulating](#simulating)
-        * Synopsys VCS
-        * Verilator
-        * Cadence Incisive
-    * Working inside the Cadence VCAD Chamber
+        * [Synopsys VCS](#synopsys-vcs)
+        * [Verilator](#verilator)
+        * [Cadence Incisive](#cadence-incisive)
+    * [Working inside the Cadence VCAD Chamber](#working-inside-the-cadence-vcad-chamber)
 
 ## Overview
 
