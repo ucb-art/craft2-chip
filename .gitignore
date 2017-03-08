@@ -6,3 +6,4 @@ target
 lib/
 /.ivy2
 generated-src/
+chain_api.h

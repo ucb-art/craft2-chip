@@ -8,6 +8,8 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 
 clock_period = 1
 
+default: top
+
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
 CRAFT_PACKAGES = fft pfb tuner filter rssi riscv-dma2
@@ -28,12 +30,13 @@ PROJECT ?= craft
 MODEL ?= TestHarness
 CFG_PROJECT ?= $(PROJECT)
 CONFIG ?= Craft2Config
-VLSITOP ?= CraftP1Top
+VLSITOP ?= CraftP1Core
 TB ?= TestDriver
 
 long_name = $(PROJECT).$(MODEL).$(CONFIG)
 
 MEM_GEN ?= $(base_dir)/vlsi/src/vlsi_mem_gen
+PAD_GEN ?= $(base_dir)/vlsi/src/create_pads.py
 
 $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
@@ -42,12 +45,17 @@ $(build_dir)/$(long_name).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
-$(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
-	cd $(base_dir) && $(SBT) "run-main barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).top.v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSITOP) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\""
+$(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
+	cd $(base_dir) && $(SBT) "run-main barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSITOP) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\""
 
 $(build_dir)/$(long_name).mems.v: $(build_dir)/$(long_name).conf $(MEM_GEN)
 	cd $(build_dir) && $(MEM_GEN) --conf $(long_name).conf --v $(long_name).mems.v --generate
 
+$(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v: $(build_dir)/$(long_name).v $(PAD_GEN)
+	cd $(build_dir) && $(PAD_GEN) $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).top.v
+
 firrtl: $(build_dir)/$(long_name).fir
-verilog: $(build_dir)/$(long_name).top.v
+verilog: $(build_dir)/$(long_name).v
 mems: $(build_dir)/$(long_name).mems.v
+pads: $(build_dir)/$(long_name).pads.v
+top: $(build_dir)/$(long_name).top.v
