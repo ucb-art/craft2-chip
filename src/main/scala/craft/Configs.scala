@@ -139,7 +139,7 @@ object ChainBuilder {
   def bm1Config() = BitManipulationConfig(lanes = 32)
   def bm1Input():T = FixedPoint(9.W, 0.BP)
   def bm1Output():T = FixedPoint(9.W, 0.BP)
-  def bm1Connect() = BlockConnectionParameters(connectPG = false, connectLA = tru, addSAM = true)
+  def bm1Connect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
 
   // Here be the bit manipulation 2 block, which truncates the 9-bit ADC output into 8 bits
   def bm2Config() = BitManipulationConfig(lanes = 32)
