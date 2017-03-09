@@ -14,8 +14,8 @@ SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -
 
 CRAFT_PACKAGES = fft pfb tuner filter rssi riscv-dma2
 craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
--include $(base_dir)/Makefrag.pkgs
 -include $(framework_dir)/Makefrag
+-include $(base_dir)/Makefrag.pkgs
 top_all_stamps := $(all_stamps) $(craft_stamps) 
 
 .PHONY: libs
