@@ -98,9 +98,13 @@ verilog: $(sim_vsrcs)
 
 $(simv): $(sim_vsrcs) $(sim_csrcs)
         rm -rf csrc && $(IRUN) $(IRUN_OPTS) -elaborate
+	echo irun -define $1 +verbose -64 -R > $@
+	chmod +x $@
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
         rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -elaborate
+	echo irun -define $1 +verbose -64 -R > $@
+	chmod +x $@
 
 clean:
 	rm -rf csrc simv-* ucli.key vc_hdrs.h generated-src output
