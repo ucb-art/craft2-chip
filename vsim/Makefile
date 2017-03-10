@@ -11,13 +11,14 @@ simv_debug = simv-$(PROJECT)-$(CONFIG)-debug
 sim: $(simv)
 debug: $(simv_debug)
 
-# TODO: make this not a two-step process
-mem_vsrcs = $(shell find $(build_dir)/*/VERILOG/*.v | grep -v pwr)
-
 sim_vsrcs = \
-	$(build_dir)/$(long_name).top.v \
+	$(build_dir)/$(long_name).v \
 	$(build_dir)/$(long_name).harness.v \
 	$(build_dir)/$(long_name).mems.v \
+	$(build_dir)/$(long_name).mems.behav.v \
+	$(build_dir)/$(long_name).top.v \
+	$(build_dir)/$(long_name).pads.v \
+	$(build_dir)/pads.behav.v \
 	$(base_dir)/vsrc/TestDriver.v \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
@@ -25,6 +26,8 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/CLKRX.v \
 	$(base_dir)/vsrc/AsyncResetReg.v \
 	$(mem_vsrcs)
+
+	#$(build_dir)/$(long_name).top.v \
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc
@@ -35,6 +38,7 @@ CUSTOM_FLAGS := \
 	+define+TSMC_CM_UNIT_DELAY \
 	+define+TSMC_CM_NO_WARNING \
 	+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
+	#+define+NON_STOP_IF_INPUT_PIN_Z
 
 
 VCS = vcs -full64
@@ -60,11 +64,12 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 
 verilog: $(sim_vsrcs)
 
-$(simv): $(sim_vsrcs) $(sim_csrcs)
+$(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	-debug_pp
 
-$(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
+$(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_dir)/Makefile
+	mkdir -p output
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	+define+DEBUG -debug_pp
 
@@ -72,3 +77,40 @@ clean:
 	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles
 
 .PHONY: clean
+
+
+#--------------------------------------------------------------------
+# Run
+#--------------------------------------------------------------------
+
+# $(generated_dir)/consts.$(CONFIG).vh: $(generated_dir)/$(long_name).prm
+# 	echo "\`ifndef CONST_VH" > $@
+# 	echo "\`define CONST_VH" >> $@
+# 	sed -r 's/\(([A-Za-z0-9_]+),([A-Za-z0-9_]+)\)/`define \1 \2/' $(patsubst %.v,%.prm,$<) >> $@
+# 	echo "\`endif // CONST_VH" >> $@
+# 
+# 
+# $(output_dir)/%.run: $(output_dir)/% $(simv)
+# 	cd $(sim_dir) && $(exec_simv) +max-cycles=$(timeout_cycles) $< 2> /dev/null 2> $@ && [ $$PIPESTATUS -eq 0 ]
+# 
+# $(output_dir)/%.out: $(output_dir)/% $(simv)
+# 	cd $(sim_dir) && $(exec_simv) +verbose +max-cycles=$(timeout_cycles) $< $(disasm) $@ && [ $$PIPESTATUS -eq 0 ]
+# 
+# $(output_dir)/%.vcd: $(output_dir)/% $(simv_debug)
+# 	cd $(sim_dir) && $(exec_simv_debug) +verbose +vcdfile=$@ +max-cycles=$(timeout_cycles) $< $(disasm) $(patsubst %.vcd,%.out,$@) && [ $$PIPESTATUS -eq 0 ]
+# 
+# $(output_dir)/%.vpd: $(output_dir)/% $(simv_debug)
+# 	cd $(sim_dir) && $(exec_simv_debug) +verbose +vcdplusfile=$@ +max-cycles=$(timeout_cycles) $< $(disasm) $(patsubst %.vpd,%.out,$@) && [ $$PIPESTATUS -eq 0 ]
+# 
+# $(output_dir)/%.saif: $(output_dir)/% $(simv_debug)
+# 	cd $(sim_dir) && rm -f $(output_dir)/pipe-$*.vcd && vcd2saif -input $(output_dir)/pipe-$*.vcd -pipe "$(exec_simv_debug) +verbose +vcdfile=$(output_dir)/pipe-$*.vcd +max-cycles=$(bmark_timeout_cycles) $<" -output $@ > $(patsubst %.saif,%.out,$@) 2>&1
+# 
+# run: run-asm-tests run-bmark-tests
+# run-debug: run-asm-tests-debug run-bmark-tests-debug
+# run-fast: run-asm-tests-fast run-bmark-tests-fast
+# 
+# .PHONY: run-asm-tests run-bmark-tests
+# .PHONY: run-asm-tests-debug run-bmark-tests-debug
+# .PHONY: run run-debug run-fast
+# 
+# junk += $(output_dir)

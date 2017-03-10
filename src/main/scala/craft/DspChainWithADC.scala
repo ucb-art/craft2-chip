@@ -11,9 +11,9 @@ import dspjunctions._
 import testchipip._
 
 trait ADCTopLevelIO {
-  //val VDDHADC    = Analog(1.W)
-  //val VDDADC     = Analog(1.W)
-  //val VSS        = Analog(1.W)
+  val VDDHADC    = Analog(1.W)
+  val VDDADC     = Analog(1.W)
+  val VSS        = Analog(1.W)
   val ADCBIAS    = Analog(1.W)
   val EXTCLK     = Input(Bool())
   val ADCINP      = Analog(1.W)
@@ -78,9 +78,9 @@ trait ADCModule {
 
   val adc = Module(new TISARADC)
 
-  //attach(io.VDDHADC, adc.io.VDDHADC)
-  //attach(io.VDDADC,  adc.io.VDDADC)
-  //attach(io.VSS,     adc.io.VSS)
+  attach(io.VDDHADC, adc.io.VDDHADC)
+  attach(io.VDDADC,  adc.io.VDDADC)
+  attach(io.VSS,     adc.io.VSS)
   attach(io.ADCBIAS, adc.io.ADCBIAS)
   attach(io.ADCINP,   adc.io.ADCINP)
   attach(io.ADCINM,   adc.io.ADCINM)

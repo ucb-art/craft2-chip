@@ -1,7 +1,7 @@
 #!/bin/sh
 
-base_dir=$(dirname $0)
-lib_dir=$(echo $1)
+base_dir="\$(base_dir)"
+lib_dir="\$(lib_dir)"
 shift
 
 for pkg in $@

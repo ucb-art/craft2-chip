@@ -55,7 +55,7 @@ class WithCraft2DSP extends Config(
       io <> chain.io
       ()
     }
-    case BuildCLKRX => (io: Bundle with CLKRXTopLevelIO) => {
+    case BuildCLKRX => (io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO) => {
       val m = Module(new CLK_RX_amp_buf)
       io <> m.io
     }
