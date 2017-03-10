@@ -38,6 +38,10 @@
 
 
 module TISARADC (
+    //Supply
+    inout VDDHADC,
+    inout VDDADC,
+    inout VSS,
     //input
     input ADCINP,
     input ADCINM,

@@ -13,18 +13,27 @@ class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
     with PeripheryCraft2DSP
     with PeripherySRAM {
   override lazy val module = Module(
-    new CraftTopModule(p, this, new CraftTopBundle(p)))
+    new CraftP1CoreTopModule(p, this, new CraftP1CoreTopBundle(p)))
 }
 
-class CraftTopBundle(p: Parameters) extends BaseTopBundle(p)
-  with PeripheryBootROMBundle
+trait WithCraftP1CoreBundle extends PeripheryBootROMBundle
   with PeripheryCoreplexLocalInterrupterBundle
   with PeripherySerialBundle
   with ADCTopLevelIO
-  with CLKRXTopLevelIO
+  with CLKRXTopLevelInIO
   with PeripherySRAMBundle
 
-class CraftTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftTopBundle)
+// excludes success and clk receiver output
+class CraftP1CoreBundle(val p: Parameters) extends Bundle
+  with WithCraftP1CoreBundle
+
+// add success and clock receiver output pins
+class CraftP1CoreTopBundle(p: Parameters) extends BaseTopBundle(p)
+  with WithCraftP1CoreBundle
+  with CLKRXTopLevelOutIO
+
+
+class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftP1CoreTopBundle)
   extends BaseTopModule(p, l, b)
   with PeripheryBootROMModule
   with PeripheryCoreplexLocalInterrupterModule

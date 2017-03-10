@@ -10,17 +10,13 @@ import dspjunctions._
 import testchipip._
 import chisel3.experimental._
 
-class TestHarness(implicit val p: Parameters) extends Module {
-  //implicit val options = chisel3.core.ExplicitCompileOptions.NotStrict
-  // only works for single-chain design for now...
-  //val firstBlockId = p(DspChainKey(p(DspChainId))).asInstanceOf[DspChainParameters].blocks(0)._2
-  //val firstBlockWidth = p(GenKey(firstBlockId)).genIn.getWidth * p(GenKey(firstBlockId)).lanesIn
+class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO {
+  val success = Output(Bool())
+}
 
-  val io = IO(new Bundle {
-    val success = Output(Bool())
-    val VIP = Analog(1.W)
-    val VIN = Analog(1.W)
-  })
+class TestHarness(implicit val p: Parameters) extends Module {
+
+  val io = IO(new TestHarnessIO)
 
   val dut = Module(new CraftP1Core)
   attach(dut.io.VIP, io.VIP)
@@ -31,20 +27,40 @@ class TestHarness(implicit val p: Parameters) extends Module {
   io.success := ser.io.exit
 }
 
-//object Generator extends GeneratorApp {
-//  val longName = names.topModuleProject + "." +
-//                 names.topModuleClass + "." +
-//                 names.configs
-//  generateFirrtl
-//}
-
 class CraftP1Core(implicit val p: Parameters) extends Module{
-  val io = IO(new CraftTopBundle(p))
+  val io = IO(new CraftP1CoreBundle(p))
   val craft = LazyModule(new CraftP1CoreTop(p)).module
-  io <> craft.io
-  
-  // [stevo]: loopy loop
   craft.clock := craft.io.VOBUF
+
+  // bulk connect doesn't work anymore :(
+  craft.io.serial <> io.serial
+  craft.io.EXTCLK := io.EXTCLK
+  craft.io.CLKRST := io.CLKRST
+
+  attach(craft.io.ADCBIAS, io.ADCBIAS)
+  attach(craft.io.ADCINP, io.ADCINP)
+  attach(craft.io.ADCINM, io.ADCINM)
+  attach(craft.io.ADCCLKP, io.ADCCLKP)
+  attach(craft.io.ADCCLKM, io.ADCCLKM)
+  attach(craft.io.VIN, io.VIN)
+  attach(craft.io.VIP, io.VIP)
+
 
   // Pads go here
 }
+
+
+// here's a diagram:
+
+//---------------------------|--|--|--------------------------------------
+//|  CraftP1Core:            |  |  |      
+//|                          |  |  |      ----------      (floating)
+//|                          |  |  |      |        ^          ^ 
+//|     ---------------------|--|--|------|--------|----------|------------
+//|     | CraftP1CoreTop     |  |  |      v        |          |
+//|     |                   misc pins   clock  clkrx_out   success
+//|     |
+//|     |
+//|     |
+//|     |
+//|     |
