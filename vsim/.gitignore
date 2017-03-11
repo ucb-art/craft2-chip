@@ -5,3 +5,16 @@
 /generated-src
 /ucli.key
 /vc_hdrs.h
+TISARADC.sv
+asyn_clkgen.v
+cap_dac.sv
+cap_logic.sv
+sample_hold.sv
+sar_logic.v
+sense_amp.sv
+sub_adc.sv
+ti_adc_hfck.sv
+ti_clock.v
+ti_clock_half.v
+verilog_header.vh
+vref.sv
