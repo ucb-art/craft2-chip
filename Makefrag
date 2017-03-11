@@ -52,7 +52,7 @@ $(build_dir)/$(long_name).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_
 $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
 	cd $(base_dir) && $(SBT) "run-main barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\""
 
-$(build_dir)/$(long_name).mems.v $(build_dir)/mems.behav.v: $(build_dir)/$(long_name).conf $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(MEM_GEN)
+$(build_dir)/$(long_name).mems.v $(build_dir)/mems.behav.v: $(build_dir)/$(long_name).conf $(MEM_GEN)
 	cd $(build_dir) && $(MEM_GEN) --conf $(long_name).conf --v $(long_name).mems.v --generate --behav $(build_dir)/mems.behav.v
 
 # [stevo]: temporary hack to rename dut from Core to Top so it includes the pad frame, and add rte

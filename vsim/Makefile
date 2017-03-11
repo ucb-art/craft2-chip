@@ -11,6 +11,7 @@ simv_debug = simv-$(PROJECT)-$(CONFIG)-debug
 sim: $(simv)
 debug: $(simv_debug)
 
+
 sim_vsrcs = \
 	$(build_dir)/$(long_name).v \
 	$(build_dir)/$(long_name).harness.v \
@@ -22,15 +23,19 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/TestDriver.v \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
-	$(base_dir)/vsrc/TISARADC.v \
 	$(base_dir)/vsrc/CLKRX.v \
-	$(base_dir)/vsrc/AsyncResetReg.v \
-	$(mem_vsrcs)
-
-	#$(build_dir)/$(long_name).top.v \
+	$(base_dir)/vsrc/AsyncResetReg.v
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc
+
+# [stevo]: add adc model, but copy here because each one has "include verilog_header" in it
+# assumes you're running this inside the sim_dir
+#sim_svsrcs_orig = $(wildcard $(base_dir)/vsrc/adc_model/*)
+#sim_svsrcs = $(notdir $(sim_svsrcs_orig))
+#$(sim_svsrcs): $(sim_svsrcs_orig)
+#	cp $(sim_svsrcs_orig) $(sim_dir)
+sim_svsrcs = $(base_dir)/vsrc/TISARADC.v
 
 CUSTOM_FLAGS := \
   +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
@@ -40,7 +45,7 @@ CUSTOM_FLAGS := \
 
 	#+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
 
-VCS = vcs -full64
+VCS = vcs -full64 -sverilog
 
 VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1ns/10ps -quiet \
 	+rad +v2k +vcs+lic+wait \
@@ -52,6 +57,7 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 	-sverilog \
 	+incdir+$(generated_dir) \
 	$(sim_vsrcs) $(sim_csrcs) \
+	$(sim_svsrcs) \
 	+define+PRINTF_COND=$(TB).printf_cond \
 	+define+STOP_COND=!$(TB).reset \
 	+define+RANDOMIZE_MEM_INIT \
@@ -63,17 +69,17 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 
 verilog: $(sim_vsrcs)
 
-$(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_dir)/Makefile
+$(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	-debug_pp
 
-$(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_dir)/Makefile
+$(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	mkdir -p output
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	+define+DEBUG -debug_pp
 
 clean:
-	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles
+	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles $(sim_svsrcs)
 
 .PHONY: clean
 
@@ -111,5 +117,5 @@ clean:
 # .PHONY: run-asm-tests run-bmark-tests
 # .PHONY: run-asm-tests-debug run-bmark-tests-debug
 # .PHONY: run run-debug run-fast
-# 
-# junk += $(output_dir)
+
+junk += $(output_dir)
