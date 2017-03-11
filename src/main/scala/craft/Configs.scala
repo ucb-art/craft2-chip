@@ -42,7 +42,7 @@ import chisel3.core.ExplicitCompileOptions.NotStrict
 class WithCraft2DSP extends Config(
   (pname, site, here) => pname match {
     case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, io: Bundle with ADCTopLevelIO, p: Parameters) => {
-      implicit val q = p
+      /*implicit val q = p
       val dataBaseAddr = 0x3000
       val ctrlBaseAddr = 0x2000
       val dsp_clock = Wire(Clock())
@@ -52,7 +52,7 @@ class WithCraft2DSP extends Config(
       // add width adapter because Hwacha needs 128-bit TL
       chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(control_port, chain.ctrlXbarParams)))
       chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(data_port, chain.dataXbarParams)))
-      io <> chain.io
+      io <> chain.io*/
       ()
     }
     case BuildCLKRX => (io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO) => {
