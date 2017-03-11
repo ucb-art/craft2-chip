@@ -6,10 +6,12 @@
 
 module TestDriver;
 
-  reg clock = 1'b0;
+  reg core_clock = 1'b0;
+  reg serial_clock = 1'b0;
   reg reset = 1'b1;
 
-  always #(`CLOCK_PERIOD/2.0) clock = ~clock;
+  always #(`CORE_CLOCK_PERIOD/2.0) core_clock = ~core_clock;
+  always #(`SERIAL_CLOCK_PERIOD/2.0) serial_clock = ~serial_clock;
   initial #(`RESET_DELAY) reset = 0;
 
   // Read input arguments and initialize
@@ -92,7 +94,7 @@ module TestDriver;
   reg failure = 1'b0;
   wire success;
   integer stderr = 32'h80000002;
-  always @(posedge clock)
+  always @(posedge core_clock)
   begin
 `ifdef GATE_LEVEL
     if (verbose)
@@ -132,10 +134,10 @@ module TestDriver;
   end
 
   wire vip, vin;
-  assign vip = clock;
-  assign vin = ~clock;
+  assign vip = core_clock;
+  assign vin = ~core_clock;
   TestHarness testHarness(
-    .clock(clock),
+    .clock(serial_clock),
     .reset(reset),
     .io_VIP(vip),
     .io_VIN(vin),

@@ -15,9 +15,9 @@ sim_vsrcs = \
 	$(build_dir)/$(long_name).v \
 	$(build_dir)/$(long_name).harness.v \
 	$(build_dir)/$(long_name).mems.v \
-	$(build_dir)/$(long_name).mems.behav.v \
 	$(build_dir)/$(long_name).top.v \
 	$(build_dir)/$(long_name).pads.v \
+	$(build_dir)/mems.behav.v \
 	$(build_dir)/pads.behav.v \
 	$(base_dir)/vsrc/TestDriver.v \
 	$(base_dir)/vsrc/SimSerial.v \
@@ -32,14 +32,13 @@ sim_vsrcs = \
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc
 
-
 CUSTOM_FLAGS := \
-  +define+CLOCK_PERIOD=$(clock_period) \
+  +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
+  +define+SERIAL_CLOCK_PERIOD=$(serial_clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
-	+define+TSMC_CM_NO_WARNING \
-	+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
-	#+define+NON_STOP_IF_INPUT_PIN_Z
+	+define+TSMC_CM_NO_WARNING
 
+	#+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
 
 VCS = vcs -full64
 
@@ -52,7 +51,7 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 	$(RISCV)/lib/libfesvr.so \
 	-sverilog \
 	+incdir+$(generated_dir) \
-	+define+CLOCK_PERIOD=1.0 $(sim_vsrcs) $(sim_csrcs) \
+	$(sim_vsrcs) $(sim_csrcs) \
 	+define+PRINTF_COND=$(TB).printf_cond \
 	+define+STOP_COND=!$(TB).reset \
 	+define+RANDOMIZE_MEM_INIT \
