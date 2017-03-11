@@ -253,14 +253,12 @@ trait ADCModule {
 }
 
 class DspChainWithADC(
-  ctrlBaseAddr: Long,
-  dataBaseAddr: Long,
   b: => Option[DspChainIO with DspChainADCIO] = None,
   override_clock: Option[Clock]=None,
   override_reset: Option[Bool]=None)(implicit p: Parameters) extends 
-    DspChain(ctrlBaseAddr, dataBaseAddr, override_clock, override_reset) 
-    with LazyADC with LazyCAL {
-  lazy val module: DspChainWithADCModule = new DspChainWithADCModule(this, b, override_clock, override_reset)
+    DspChain() with LazyADC with LazyCAL {
+  lazy val module: DspChainWithADCModule =
+    new DspChainWithADCModule(this, b, override_clock, override_reset)
 }
 
 class DspChainWithADCModule(
