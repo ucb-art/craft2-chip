@@ -77,8 +77,8 @@ object ChainBuilder {
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
-            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", BlockConnectEverything),
-            (implicit p => new FFTBlock[T],             id + ":fft", BlockConnectEverything)
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", BlockConnectEverything, site(DefaultSAMKey)),
+            (implicit p => new FFTBlock[T],             id + ":fft", BlockConnectEverything, site(DefaultSAMKey))
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,
@@ -107,12 +107,12 @@ object ChainBuilder {
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
-            (implicit p => new TunerBlock[T, T], id + ":tuner1", BlockConnectEverything),
-            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir1", BlockConnectEverything),
-            (implicit p => new TunerBlock[DspComplex[T], T], id + ":tuner2", BlockConnectEverything),
-            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir2", BlockConnectEverything),
-            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", BlockConnectEverything),
-            (implicit p => new FFTBlock[T],             id + ":fft", BlockConnectEverything)
+            (implicit p => new TunerBlock[T, T], id + ":tuner1", BlockConnectEverything, site(DefaultSAMKey)),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir1", BlockConnectEverything, site(DefaultSAMKey)),
+            (implicit p => new TunerBlock[DspComplex[T], T], id + ":tuner2", BlockConnectEverything, site(DefaultSAMKey)),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir2", BlockConnectEverything, site(DefaultSAMKey)),
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", BlockConnectEverything, site(DefaultSAMKey)),
+            (implicit p => new FFTBlock[T],             id + ":fft", BlockConnectEverything, site(DefaultSAMKey))
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,
@@ -140,6 +140,7 @@ object ChainBuilder {
   def bm1Input():T = FixedPoint(9.W, 0.BP)
   def bm1Output():T = FixedPoint(9.W, 0.BP)
   def bm1Connect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
+  def bm1SAMConfig() = SAMConfig(subpackets = 1, bufferDepth = 128)
 
   // Here be the bit manipulation 2 block, which truncates the 9-bit ADC output into 8 bits
   def bm2Config() = BitManipulationConfig(lanes = 32)
@@ -147,53 +148,42 @@ object ChainBuilder {
   def bm2Output():T = FixedPoint(8.W, 0.BP)
   def bm2Connect() = BlockConnectNothing
 
-  // Here be the first tuner
-  def tuner1Config() = TunerConfig(pipelineDepth = 0, lanes = 32, phaseGenerator = "SimpleFixed")
-  def tuner1Input():T = FixedPoint(8.W, 4.BP)
-  def tuner1Mixer():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
-  def tuner1Output():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
-  def tuner1Connect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
+  // Here be the tuner
+  def tunerConfig() = TunerConfig(pipelineDepth = 4, lanes = 32, phaseGenerator = "Fixed", mixerTableSize = 32)
+  def tunerInput():T = FixedPoint(8.W, 7.BP)
+  def tunerMixer():DspComplex[T] = DspComplex(FixedPoint(9.W, 7.BP), FixedPoint(9.W, 7.BP))
+  def tunerOutput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
+  def tunerConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
 
-  // Here be the first mixer
-  def fir1Config() = FIRConfig(numberOfTaps = 41, lanesIn = 32, lanesOut = 8, processingDelay = 11)
-  def fir1Input():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
-  def fir1Taps():DspComplex[T] = DspComplex(FixedPoint(8.W, 4.BP), FixedPoint(8.W, 4.BP))
-  def fir1Output():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
-  def fir1Connect() = BlockConnectNothing
-
-  // Here be the second tuner
-  def tuner2Config() = TunerConfig(pipelineDepth = 1, lanes = 8, phaseGenerator = "Fixed", mixerTableSize = 32)
-  def tuner2Input():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
-  def tuner2Mixer():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
-  def tuner2Output():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
-  def tuner2Connect() = BlockConnectNothing
-
-  // Here be the second mixer
-  def fir2Config() = FIRConfig(numberOfTaps = 23, lanesIn = 8, lanesOut = 4, processingDelay = 7)
-  def fir2Input():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
-  def fir2Taps():DspComplex[T] = DspComplex(FixedPoint(10.W, 4.BP), FixedPoint(10.W, 4.BP))
-  def fir2Output():DspComplex[T] = DspComplex(FixedPoint(12.W, 4.BP), FixedPoint(12.W, 4.BP))
-  def fir2Connect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
+  // Here be the filter-decimator
+  def firConfig() = FIRConfig(numberOfTaps = 136, lanesIn = 32, lanesOut = 4, processingDelay = 2)
+  def firInput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
+  def firTaps():DspComplex[T] = DspComplex(FixedPoint(8.W, 10.BP), FixedPoint(8.W, 10.BP))
+  def firOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
+  def firConnect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
+  def firSAMConfig() = SAMConfig(subpackets = 1, bufferDepth = 128)
 
   // Here be the filterbank
-  def pfbConfig() = PFBConfig(windowFunc = sincHamming.apply, numTaps = 12, outputWindowSize = 12, lanes = 4)
-  def pfbInput():DspComplex[T] = DspComplex(FixedPoint(12.W, 4.BP), FixedPoint(12.W, 4.BP))
+  def pfbConfig() = PFBConfig(processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4)
+  def pfbInput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
   // [stevo]: this looks weird, but it sets the bitwidths of the taps
-  def pfbTaps(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 12.W, 4.BP), FixedPoint.fromDouble(0.0, 12.W, 4.BP))
-  def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(14.W, 4.BP), FixedPoint(14.W, 4.BP))
+  def pfbTaps(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 11.W, 17.BP), FixedPoint.fromDouble(0.0, 11.W, 17.BP))
+  def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 17.BP), FixedPoint(11.W, 17.BP))
   def pfbConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
 
   // Here be the Fourier transform
   def fftConfig() = FFTConfig(n = 128, lanes = 4, pipelineDepth = 4)
-  def fftInput():T = FixedPoint(14.W, 4.BP) // gets complexed automatically
-  def fftOutput():T = FixedPoint(18.W, 4.BP) // gets complexed automatically
+  def fftInput():T = FixedPoint(11.W, 17.BP) // gets complexed automatically
+  def fftOutput():T = FixedPoint(15.W, 14.BP) // gets complexed automatically
   def fftConnect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
+  def fftSAMConfig() = SAMConfig(subpackets = 128/4, bufferDepth = 16)
 
   // Here be the receive signal strength indicator
   def rssiConfig() = RSSIConfig(numChannels = 4, numTriggers = 4, lanesIn = 4, lanesOut = 1, maxIntegrator2nLength = 4)
-  def rssiInput(): T = FixedPoint(18.W, 4.BP) // gets complexed automatically
-  def rssiThresh(): T = FixedPoint(41.W, 8.BP) // threshold type, should probably be (input_width*2+1+maxIntegrator2nLength).W, (input_bp*2).BP
+  def rssiInput(): T = FixedPoint(15.W, 14.BP) // gets complexed automatically
+  def rssiThresh(): T = FixedPoint(35.W, 14.BP) // threshold type, should probably be (input_width*2+1+maxIntegrator2nLength).W, (input_bp*2).BP
   def rssiConnect() = BlockConnectEverything
+  def rssiSAMConfig() = SAMConfig(subpackets = 128/4, bufferDepth = 16)
 
 
   ///////////////////////////////////////////////////////////////
@@ -207,15 +197,13 @@ object ChainBuilder {
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
-            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect()),
-            (implicit p => new BitManipulationBlock[T], id + ":bm2", bm2Connect()),
-            (implicit p => new TunerBlock[T, T], id + ":tuner1", tuner1Connect()),
-            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir1", fir1Connect()),
-            (implicit p => new TunerBlock[DspComplex[T], T], id + ":tuner2", tuner2Connect()),
-            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir2", fir2Connect()),
-            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", pfbConnect()),
-            (implicit p => new FFTBlock[T], id + ":fft", fftConnect()),
-            (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect())
+            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), Some(bm1SAMConfig())),
+            (implicit p => new BitManipulationBlock[T], id + ":bm2", bm2Connect(), None),
+            (implicit p => new TunerBlock[T, T], id + ":tuner", tunerConnect(), None),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir", firConnect(), None),
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", pfbConnect(), None),
+            (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), Some(fftSAMConfig())),
+            (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect(), Some(rssiSAMConfig()))
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,
@@ -228,10 +216,8 @@ object ChainBuilder {
     ConfigBuilder.nastiTLParams(id) ++
     BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output) ++ 
     BitManipulationConfigBuilder(id + ":bm2", bm2Config(), bm2Input, bm2Output) ++ 
-    TunerConfigBuilder(id + ":tuner1", tuner1Config(), tuner1Input, tuner1Output, Some(() => tuner1Mixer)) ++
-    FIRConfigBuilder(id + ":fir1", fir1Config(), fir1Input, Some(() => fir1Output), Some(() => fir1Taps)) ++
-    TunerConfigBuilder(id + ":tuner2", tuner2Config(), tuner2Input, tuner2Output, Some(() => tuner2Mixer)) ++
-    FIRConfigBuilder(id + ":fir2", fir2Config(), fir2Input, Some(() => fir2Output), Some(() => fir2Taps)) ++
+    TunerConfigBuilder(id + ":tuner", tunerConfig(), tunerInput, tunerOutput, Some(() => tunerMixer)) ++
+    FIRConfigBuilder(id + ":fir", firConfig(), firInput, Some(() => firOutput), Some(() => firTaps)) ++
     PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbTaps, Some(() => pfbOutput)) ++
     FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput)) ++
     RSSIConfigBuilder(id + ":rssi", rssiConfig(), rssiInput, rssiThresh)
