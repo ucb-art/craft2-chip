@@ -65,3 +65,6 @@ verilog: $(build_dir)/$(long_name).v
 mems: $(build_dir)/$(long_name).mems.v
 pads: $(build_dir)/$(long_name).pads.v
 top: $(build_dir)/$(long_name).top.v
+
+bootrom_img = $(base_dir)/bootrom/bootrom.img
+
