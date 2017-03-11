@@ -179,7 +179,7 @@ object ChainBuilder {
   def fftSAMConfig() = SAMConfig(subpackets = 128/4, bufferDepth = 16)
 
   // Here be the receive signal strength indicator
-  def rssiConfig() = RSSIConfig(numChannels = 4, numTriggers = 4, lanesIn = 4, lanesOut = 1, maxIntegrator2nLength = 4)
+  def rssiConfig() = RSSIConfig(numChannels = 4, numLanes = 4, maxIntegrator2nLength = 4)
   def rssiInput(): T = FixedPoint(15.W, 14.BP) // gets complexed automatically
   def rssiThresh(): T = FixedPoint(35.W, 14.BP) // threshold type, should probably be (input_width*2+1+maxIntegrator2nLength).W, (input_bp*2).BP
   def rssiConnect() = BlockConnectEverything
