@@ -5,9 +5,10 @@ ivy_dir ?= $(base_dir)/.ivy2
 ROCKETCHIP_DIR=$(framework_dir)/rocket-chip
 TESTCHIPIP_DIR=$(framework_dir)/testchipip
 
-# define simulation clock periods here, in ns I think
+# define simulation things
 core_clock_period = 1
 serial_clock_period = 3
+timeout_cycles = 100000000
 
 default: top
 
@@ -45,7 +46,7 @@ HARNESS_MOD ?= $(base_dir)/vlsi/src/modify_harness.py
 $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
 
-$(build_dir)/$(long_name).fir: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps)
+$(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps) $(bootrom_img)
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
@@ -68,3 +69,24 @@ top: $(build_dir)/$(long_name).top.v
 
 bootrom_img = $(base_dir)/bootrom/bootrom.img
 
+#--------------------------------------------------------------------
+# Build Tests
+#--------------------------------------------------------------------
+
+%.hex:
+	$(MAKE) -C $(dir $@) $(notdir $@)
+
+%.riscv.hex: %.riscv
+	$(MAKE) -C $(dir $@) $(notdir $@)
+
+
+#--------------------------------------------------------------------
+# disasm 
+#--------------------------------------------------------------------
+
+DISASM_EXTENSION = --extension=hwacha
+disasm := 2>
+which_disasm := $(shell which spike-dasm 2> /dev/null)
+ifneq ($(which_disasm),)
+	disasm := 3>&1 1>&2 2>&3 | $(which_disasm) $(DISASM_EXTENSION) >
+endif

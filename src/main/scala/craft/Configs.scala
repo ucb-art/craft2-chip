@@ -200,7 +200,7 @@ object ChainBuilder {
             (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), Some(bm1SAMConfig())),
             (implicit p => new BitManipulationBlock[T], id + ":bm2", bm2Connect(), None),
             (implicit p => new TunerBlock[T, T], id + ":tuner", tunerConnect(), None),
-            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir", firConnect(), None),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir", firConnect(), Some(firSAMConfig)),
             (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", pfbConnect(), None),
             (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), Some(fftSAMConfig())),
             (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect(), Some(rssiSAMConfig()))

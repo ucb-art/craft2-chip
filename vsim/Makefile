@@ -1,12 +1,13 @@
 base_dir=$(abspath ..)
 sim_dir=$(abspath .)
+output_dir=output
 
 default: sim
 
 include $(base_dir)/Makefrag
 
-simv = simv-$(PROJECT)-$(CONFIG)
-simv_debug = simv-$(PROJECT)-$(CONFIG)-debug
+simv = $(sim_dir)/simv-$(PROJECT)-$(CONFIG)
+simv_debug = $(sim_dir)/simv-$(PROJECT)-$(CONFIG)-debug
 
 sim: $(simv)
 debug: $(simv_debug)
@@ -43,9 +44,7 @@ CUSTOM_FLAGS := \
 	+define+TSMC_CM_UNIT_DELAY \
 	+define+TSMC_CM_NO_WARNING
 
-	#+define+TSMC_NO_TESTPINS_DEFAULT_VALUE_CHECK
-
-VCS = vcs -full64 -sverilog
+VCS = vcs -full64
 
 VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1ns/10ps -quiet \
 	+rad +v2k +vcs+lic+wait \
@@ -74,7 +73,7 @@ $(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	-debug_pp
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
-	mkdir -p output
+	mkdir -p $(output_dir)
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	+define+DEBUG -debug_pp
 
@@ -84,38 +83,46 @@ clean:
 .PHONY: clean
 
 
+ifneq ($(filter run% %.run %.out %.vpd %.vcd,$(MAKECMDGOALS)),)
+-include $(build_dir)/$(long_name).d
+endif
+
 #--------------------------------------------------------------------
 # Run
 #--------------------------------------------------------------------
 
-# $(generated_dir)/consts.$(CONFIG).vh: $(generated_dir)/$(long_name).prm
-# 	echo "\`ifndef CONST_VH" > $@
-# 	echo "\`define CONST_VH" >> $@
-# 	sed -r 's/\(([A-Za-z0-9_]+),([A-Za-z0-9_]+)\)/`define \1 \2/' $(patsubst %.v,%.prm,$<) >> $@
-# 	echo "\`endif // CONST_VH" >> $@
-# 
-# 
-# $(output_dir)/%.run: $(output_dir)/% $(simv)
-# 	cd $(sim_dir) && $(exec_simv) +max-cycles=$(timeout_cycles) $< 2> /dev/null 2> $@ && [ $$PIPESTATUS -eq 0 ]
-# 
-# $(output_dir)/%.out: $(output_dir)/% $(simv)
-# 	cd $(sim_dir) && $(exec_simv) +verbose +max-cycles=$(timeout_cycles) $< $(disasm) $@ && [ $$PIPESTATUS -eq 0 ]
-# 
-# $(output_dir)/%.vcd: $(output_dir)/% $(simv_debug)
-# 	cd $(sim_dir) && $(exec_simv_debug) +verbose +vcdfile=$@ +max-cycles=$(timeout_cycles) $< $(disasm) $(patsubst %.vcd,%.out,$@) && [ $$PIPESTATUS -eq 0 ]
-# 
-# $(output_dir)/%.vpd: $(output_dir)/% $(simv_debug)
-# 	cd $(sim_dir) && $(exec_simv_debug) +verbose +vcdplusfile=$@ +max-cycles=$(timeout_cycles) $< $(disasm) $(patsubst %.vpd,%.out,$@) && [ $$PIPESTATUS -eq 0 ]
-# 
-# $(output_dir)/%.saif: $(output_dir)/% $(simv_debug)
-# 	cd $(sim_dir) && rm -f $(output_dir)/pipe-$*.vcd && vcd2saif -input $(output_dir)/pipe-$*.vcd -pipe "$(exec_simv_debug) +verbose +vcdfile=$(output_dir)/pipe-$*.vcd +max-cycles=$(bmark_timeout_cycles) $<" -output $@ > $(patsubst %.saif,%.out,$@) 2>&1
-# 
-# run: run-asm-tests run-bmark-tests
-# run-debug: run-asm-tests-debug run-bmark-tests-debug
-# run-fast: run-asm-tests-fast run-bmark-tests-fast
-# 
-# .PHONY: run-asm-tests run-bmark-tests
-# .PHONY: run-asm-tests-debug run-bmark-tests-debug
-# .PHONY: run run-debug run-fast
+seed = $(shell date +%s)
+exec_simv = $(simv) -q +ntb_random_seed_automatic
+exec_simv_debug = $(simv_debug) -q +ntb_random_seed_automatic
+
+$(build_dir)/consts.$(CONFIG).vh: $(build_dir)/$(long_name).prm
+	echo "\`ifndef CONST_VH" > $@
+	echo "\`define CONST_VH" >> $@
+	sed -r 's/\(([A-Za-z0-9_]+),([A-Za-z0-9_]+)\)/`define \1 \2/' $(patsubst %.v,%.prm,$<) >> $@
+	echo "\`endif // CONST_VH" >> $@
+
+
+$(output_dir)/%.run: $(output_dir)/% $(simv)
+	cd $(sim_dir) && $(exec_simv) +max-cycles=$(timeout_cycles) $< 2> /dev/null 2> $@ && [ $$PIPESTATUS -eq 0 ]
+
+$(output_dir)/%.out: $(output_dir)/% $(simv)
+	cd $(sim_dir) && $(exec_simv) +verbose +max-cycles=$(timeout_cycles) $< $(disasm) $@ && [ $$PIPESTATUS -eq 0 ]
+
+$(output_dir)/%.vcd: $(output_dir)/% $(simv_debug)
+	cd $(sim_dir) && $(exec_simv_debug) +verbose +vcdfile=$@ +max-cycles=$(timeout_cycles) $< $(disasm) $(patsubst %.vcd,%.out,$@) && [ $$PIPESTATUS -eq 0 ]
+
+$(output_dir)/%.vpd: $(output_dir)/% $(simv_debug)
+	cd $(sim_dir) && $(exec_simv_debug) +verbose +vcdplusfile=$@ +max-cycles=$(timeout_cycles) $< $(disasm) $(patsubst %.vpd,%.out,$@) && [ $$PIPESTATUS -eq 0 ]
+
+$(output_dir)/%.saif: $(output_dir)/% $(simv_debug)
+	cd $(sim_dir) && rm -f $(output_dir)/pipe-$*.vcd && vcd2saif -input $(output_dir)/pipe-$*.vcd -pipe "$(exec_simv_debug) +verbose +vcdfile=$(output_dir)/pipe-$*.vcd +max-cycles=$(bmark_timeout_cycles) $<" -output $@ > $(patsubst %.saif,%.out,$@) 2>&1
+
+run: run-asm-tests run-bmark-tests
+run-debug: run-asm-tests-debug run-bmark-tests-debug
+run-fast: run-asm-tests-fast run-bmark-tests-fast
+
+.PHONY: run-asm-tests run-bmark-tests
+.PHONY: run-asm-tests-debug run-bmark-tests-debug
+.PHONY: run run-debug run-fast
 
 junk += $(output_dir)
