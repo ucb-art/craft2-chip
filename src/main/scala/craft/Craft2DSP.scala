@@ -53,8 +53,6 @@ trait PeripheryCraft2DSP extends LazyModule { self =>
   }
 }
 
-case object BuildCraft2DSP extends Field[(ClientUncachedTileLinkIO, ClientUncachedTileLinkIO, Bundle with ADCTopLevelIO, Parameters) => Unit]
-
 
 trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
   import chisel3.core.ExplicitCompileOptions.NotStrict

@@ -9,9 +9,10 @@ import dspblocks._
 import dspjunctions._
 import testchipip._
 import chisel3.experimental._
+import uart._
 import _root_.util._
 
-class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO {
+class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO {
   val success = Output(Bool())
 }
 

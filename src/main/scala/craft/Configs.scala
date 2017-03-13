@@ -39,29 +39,6 @@ import rssi._
 
 import chisel3.core.ExplicitCompileOptions.NotStrict
 
-class WithCraft2DSP extends Config(
-  (pname, site, here) => pname match {
-    case BuildCraft2DSP => (control_port: ClientUncachedTileLinkIO, data_port: ClientUncachedTileLinkIO, io: Bundle with ADCTopLevelIO, p: Parameters) => {
-      /*implicit val q = p
-      val dataBaseAddr = 0x3000
-      val ctrlBaseAddr = 0x2000
-      val dsp_clock = Wire(Clock())
-      val lazyChain = LazyModule(new DspChainWithADC(ctrlBaseAddr, dataBaseAddr, override_clock= Some(dsp_clock)))
-      val chain = Module(lazyChain.module)
-      dsp_clock := chain.io.adc_clk_out
-      // add width adapter because Hwacha needs 128-bit TL
-      chain.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(control_port, chain.ctrlXbarParams)))
-      chain.io.data_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=chain.reset, TileLinkWidthAdapter(data_port, chain.dataXbarParams)))
-      io <> chain.io*/
-      ()
-    }
-    case BuildCLKRX => (io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO) => {
-      val m = Module(new CLK_RX_amp_buf)
-      io <> m.io
-    }
-    case _ => throw new CDEMatchError
-  })
-
 object ChainBuilder {
   type T = FixedPoint
   def doubleToGen(x: Double): DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 32.W, 16.BP), FixedPoint.fromDouble(0.0, 32.W, 16.BP))
@@ -197,6 +174,7 @@ object ChainBuilder {
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
+            // (parameter to block function, unique id, BlockConnectionParameters, SAM Config (optional))
             (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), Some(bm1SAMConfig())),
             (implicit p => new BitManipulationBlock[T], id + ":bm2", bm2Connect(), None),
             (implicit p => new TunerBlock[T, T], id + ":tuner", tunerConnect(), None),
@@ -223,24 +201,6 @@ object ChainBuilder {
     RSSIConfigBuilder(id + ":rssi", rssiConfig(), rssiInput, rssiThresh)
   }
 }
-
-class Craft2BaseConfig extends Config(
-  new WithCraft2DSP ++
-  new WithSerialAdapter ++
-  // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
-  new rocketchip.BaseConfig)
-
-class Craft2DefaultConfig extends Config(
-  new WithL2Capacity(512) ++
-  new WithL2Cache ++
-  new WithExtMemSize(8L * 1024L * 1024L) ++
-  new WithNL2AcquireXacts(4) ++
-  new WithNMemoryChannels(8) ++
-  new WithSRAM(4) ++
-  new WithHwachaAndDma ++
-  new DefaultHwachaConfig ++
-  new WithDma ++
-  new Craft2BaseConfig)
 
 class WithHwachaAndDma extends Config (
   (pname, site, here) => pname match {
@@ -295,17 +255,28 @@ class WithExtraMMIOOutputs(n: Int) extends Config(
 )
 
 
+class Craft2BaseConfig extends Config(
+  new WithSerialAdapter ++
+  // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
+  new rocketchip.BaseConfig)
+
+class WithFullOptions extends Config(
+  new WithL2Capacity(512) ++
+  new WithL2Cache ++
+  new WithExtMemSize(8L * 1024L * 1024L) ++
+  new WithNL2AcquireXacts(4) ++
+  new WithNMemoryChannels(8) ++
+  new WithSRAM(4) ++
+  new WithHwachaAndDma ++
+  new DefaultHwachaConfig ++
+  new WithDma)
+
 class WithSimpleOptions extends Config(
   new WithL2Capacity(512) ++
   new WithL2Cache ++
+  new WithExtMemSize(8L * 1024L * 1024L) ++
   new WithSRAM(1) ++
-  new WithExtraMMIOOutputs(1) ++
-  new WithExtMemSize(8 * 1024L * 1024L))
+  new WithExtraMMIOOutputs(1))
 
-class Craft2Config extends Config(ChainBuilder.radar() ++ new Craft2DefaultConfig)
-class Craft2SimpleConfig extends Config(ChainBuilder.radar() ++
-  new WithSimpleOptions ++ new Craft2BaseConfig)
-class Craft2DefaultChainConfig extends Config(ChainBuilder.fullChain() ++
-  new Craft2DefaultConfig)
-class Craft2DefaultAFBConfig extends Config(ChainBuilder.afbChain() ++
-  new Craft2DefaultConfig)
+class Craft2Config extends Config(ChainBuilder.radar() ++ new WithFullOptions ++ new Craft2BaseConfig)
+class Craft2SimpleConfig extends Config(ChainBuilder.radar() ++ new WithSimpleOptions ++ new Craft2BaseConfig)

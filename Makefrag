@@ -14,7 +14,7 @@ default: top
 
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
-CRAFT_PACKAGES = fft pfb tuner filter rssi riscv-dma2
+CRAFT_PACKAGES = fft pfb tuner filter rssi riscv-dma2 uart
 craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
 -include $(framework_dir)/Makefrag
 -include $(base_dir)/Makefrag.pkgs

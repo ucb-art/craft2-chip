@@ -25,6 +25,7 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
 	$(base_dir)/vsrc/CLKRX.v \
+	$(base_dir)/vsrc/UART.v \
 	$(base_dir)/vsrc/AsyncResetReg.v
 
 sim_csrcs = \

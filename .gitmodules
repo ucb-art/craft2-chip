@@ -22,3 +22,6 @@
 [submodule "vlsi"]
 	path = vlsi
 	url = git@bwrcrepo.eecs.berkeley.edu:craft-chips/vlsi.git
+[submodule "uart"]
+	path = uart
+	url = git@bwrcrepo.eecs.berkeley.edu:craft-chips/uart.git
