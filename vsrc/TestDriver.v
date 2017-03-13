@@ -151,6 +151,11 @@ module TestDriver;
     .io_VDDHADC(),
     .io_VDDADC(),
     .io_VSS(),
+    .io_ua_rxd(1'b0),
+    .io_ua_int(),
+    .io_ua_txd(),
+    .io_ua_clock(1'b0),
+    .io_ua_reset(1'b0),
     .io_success(success)
   );
 
