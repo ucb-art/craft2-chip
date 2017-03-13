@@ -126,7 +126,7 @@ object ChainBuilder {
   def bm2Connect() = BlockConnectNothing
 
   // Here be the tuner
-  def tunerConfig() = TunerConfig(pipelineDepth = 4, lanes = 32, phaseGenerator = "Fixed", mixerTableSize = 32)
+  def tunerConfig() = TunerConfig(pipelineDepth = 4, lanes = 32, phaseGenerator = "Fixed", mixerTableSize = 32, shrink = 1.0)
   def tunerInput():T = FixedPoint(8.W, 7.BP)
   def tunerMixer():DspComplex[T] = DspComplex(FixedPoint(9.W, 7.BP), FixedPoint(9.W, 7.BP))
   def tunerOutput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
