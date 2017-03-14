@@ -240,20 +240,6 @@ class WithHwachaAndDma extends Config (
   }
 )
 
-class WithExtraMMIOOutputs(n: Int) extends Config(
-  (pname, site, here) => pname match {
-    case ExtraMMIOOutputs => Dump("EXTRA_MMIO_OUTPUTS", n)
-    case BuildPeripheryExtra => (extra_ios: Seq[ClientUncachedTileLinkIO], io: Bundle with PeripheryExtraBundle, p: Parameters) => {
-      // add width adapter because Hwacha needs 128-bit TL
-      extra_ios.zipWithIndex.foreach { case(port, i) => {
-        io.peripheryExtraAxi(i) <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkFrom(from_clock=io.peripheryExtraClock(i).asClock, from_reset=io.peripheryExtraReset(i), port))//TileLinkWidthAdapter(port, p)))
-      }}
-      ()
-    }
-    case _ => throw new CDEMatchError
-  }
-)
-
 
 class Craft2BaseConfig extends Config(
   new WithSerialAdapter ++
@@ -275,8 +261,7 @@ class WithSimpleOptions extends Config(
   new WithL2Capacity(512) ++
   new WithL2Cache ++
   new WithExtMemSize(8L * 1024L * 1024L) ++
-  new WithSRAM(1) ++
-  new WithExtraMMIOOutputs(1))
+  new WithSRAM(1))
 
 class Craft2Config extends Config(ChainBuilder.radar() ++ new WithFullOptions ++ new Craft2BaseConfig)
 class Craft2SimpleConfig extends Config(ChainBuilder.radar() ++ new WithSimpleOptions ++ new Craft2BaseConfig)

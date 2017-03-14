@@ -25,9 +25,9 @@ class CLK_RX_amp_buf extends BlackBox {
 trait CLKRXModule {
   implicit val p: Parameters
   def io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO
-  val m = Module(new CLK_RX_amp_buf)
-  attach(io.VIN, m.io.VIN)
-  attach(io.VIP, m.io.VIP)
-  io.VOBUF := m.io.VOBUF
+  val clkrx = Module(new CLK_RX_amp_buf)
+  attach(io.VIN, clkrx.io.VIN)
+  attach(io.VIP, clkrx.io.VIP)
+  io.VOBUF := clkrx.io.VOBUF
 }
 
