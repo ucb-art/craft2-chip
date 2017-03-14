@@ -14,17 +14,8 @@ class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
     with PeripheryCraft2DSP
     with PeripheryUART
     with PeripherySRAM {
-  // it looks like module is invoked by the constructor,
-  // so adc_clk_out needs to be a lazy val to avoid null
-  // pointer exceptions
-  lazy val adc_clk_out = Wire(Clock())
-  override lazy val module = {
-    val mod = Module(
-      new CraftP1CoreTopModule(p, this, new CraftP1CoreTopBundle(p))
-    )
-    adc_clk_out := mod.io.adc_clk_out
-    mod
-  }
+
+  override lazy val module = Module(new CraftP1CoreTopModule(p, this, new CraftP1CoreTopBundle(p)))
 }
 
 trait WithCraftP1CoreBundle extends PeripheryBootROMBundle

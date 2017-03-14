@@ -70,11 +70,10 @@ trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
 
   val dsp_clock = craftChainModule.io.adc_clk_out
   craftChainModule.clock := dsp_clock
-  io.adc_clk_out := dsp_clock
 
   // add width adapter because Hwacha needs 128-bit TL
-  craftChainModule.io.control_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=craftChainModule.reset, TileLinkWidthAdapter(control_port, craftChainModule.ctrlXbarParams)))
-  craftChainModule.io.data_axi <> PeripheryUtils.convertTLtoAXI(AsyncUTileLinkTo(to_clock=dsp_clock, to_reset=craftChainModule.reset, TileLinkWidthAdapter(data_port, craftChainModule.dataXbarParams)))
+  craftChainModule.io.control_axi <> AsyncNastiTo(to_clock=dsp_clock, to_reset=craftChainModule.reset, source=PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(control_port, craftChainModule.ctrlXbarParams)))
+  craftChainModule.io.data_axi <> AsyncNastiTo(to_clock=dsp_clock, to_reset=craftChainModule.reset, source=PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(data_port, craftChainModule.ctrlXbarParams)))
   io <> craftChainModule.io
 }
 
