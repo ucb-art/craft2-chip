@@ -11,16 +11,16 @@ import dspjunctions._
 import testchipip._
 
 trait ADCTopLevelIO {
-  val VDDHADC    = Analog(1.W)
-  val VDDADC     = Analog(1.W)
-  val VSS        = Analog(1.W)
+  val ADCVDDHADC    = Analog(1.W)
+  val ADCVDDADC     = Analog(1.W)
+  val ADCVSS        = Analog(1.W)
   val ADCBIAS    = Analog(1.W)
-  val EXTCLK     = Input(Bool())
+  val ADCEXTCLK     = Input(Bool())
   val ADCINP      = Analog(1.W)
   val ADCINM      = Analog(1.W)
   val ADCCLKP     = Analog(1.W)
   val ADCCLKM     = Analog(1.W)
-  val CLKRST      = Input(Bool())
+  val ADCRST      = Input(Bool())
 }
 
 trait LazyADC {
@@ -78,9 +78,9 @@ trait ADCModule {
 
   val adc = Module(new TISARADC)
 
-  attach(io.VDDHADC, adc.io.VDDHADC)
-  attach(io.VDDADC,  adc.io.VDDADC)
-  attach(io.VSS,     adc.io.VSS)
+  attach(io.ADCVDDHADC, adc.io.ADCVDDHADC)
+  attach(io.ADCVDDADC,  adc.io.ADCVDDADC)
+  attach(io.ADCVSS,     adc.io.ADCVSS)
   attach(io.ADCBIAS, adc.io.ADCBIAS)
   attach(io.ADCINP,   adc.io.ADCINP)
   attach(io.ADCINM,   adc.io.ADCINM)
@@ -123,14 +123,14 @@ trait ADCModule {
   adc.io.OSM6 := osm(6)
   adc.io.OSM7 := osm(7)
 
-  adc.io.EXTCLK0 := io.EXTCLK
-  adc.io.EXTCLK1 := io.EXTCLK
-  adc.io.EXTCLK2 := io.EXTCLK
-  adc.io.EXTCLK3 := io.EXTCLK
-  adc.io.EXTCLK4 := io.EXTCLK
-  adc.io.EXTCLK5 := io.EXTCLK
-  adc.io.EXTCLK6 := io.EXTCLK
-  adc.io.EXTCLK7 := io.EXTCLK
+  adc.io.EXTCLK0 := io.ADCEXTCLK
+  adc.io.EXTCLK1 := io.ADCEXTCLK
+  adc.io.EXTCLK2 := io.ADCEXTCLK
+  adc.io.EXTCLK3 := io.ADCEXTCLK
+  adc.io.EXTCLK4 := io.ADCEXTCLK
+  adc.io.EXTCLK5 := io.ADCEXTCLK
+  adc.io.EXTCLK6 := io.ADCEXTCLK
+  adc.io.EXTCLK7 := io.ADCEXTCLK
 
   adc.io.ASCLKD0 := asclkd(0)
   adc.io.ASCLKD1 := asclkd(1)
@@ -192,7 +192,7 @@ trait ADCModule {
 
   adc.io.CLKGBIAS := clkgbias
 
-  adc.io.CLKRST := io.CLKRST
+  adc.io.CLKRST := io.ADCCLKRST
 
   val adcout = Vec(
     adc.io.ADCOUT0,
@@ -233,7 +233,7 @@ trait ADCModule {
 
   lazy val numInBits = 9
   lazy val numOutBits = 9
-  lazy val numSlices = 8
+  lazy val numSlices = 8*4
   lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
   cal.io.adcdata := fifo_out.bits.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
 
