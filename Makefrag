@@ -61,11 +61,10 @@ $(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long
 	cd $(build_dir) && $(PAD_GEN) $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).top.v $(VLSIPADS) $(VLSICORE) $(VLSITOP) $(build_dir)/pads.behav.v
 	cd $(build_dir) && $(HARNESS_MOD) $(build_dir)/$(long_name).harness.v $(VLSITOP)
 
-firrtl: $(build_dir)/$(long_name).fir
-verilog: $(build_dir)/$(long_name).v
-mems: $(build_dir)/$(long_name).mems.v
-pads: $(build_dir)/$(long_name).pads.v
-top: $(build_dir)/$(long_name).top.v
+firrtl: $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d
+verilog: $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf
+mems: $(build_dir)/$(long_name).mems.v $(build_dir)/mems.behav.v
+pads top: $(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/pads.behav.v
 
 bootrom_img = $(base_dir)/bootrom/bootrom.img
 
