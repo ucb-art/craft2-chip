@@ -19,8 +19,8 @@ export MC2_INSTALL_DIR=~stevo.bailey/mc2/MC2_2013.12.00.f
 
 export PATH=$PATH:$MC2_INSTALL_DIR/bin
 
+# cadence incisive
+export PATH=/tools/cadence/INCISIV/INCISIVE152/tools/bin:$PATH
+
 # get the right gcc 
 scl enable devtoolset-2 bash
-
-# cadence incisive
-export PATH=/tools/cadence/INCISIV/INCISIVE151/tools/bin:$PATH
