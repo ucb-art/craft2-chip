@@ -20,7 +20,7 @@ trait ADCTopLevelIO {
   val ADCINM      = Analog(1.W)
   val ADCCLKP     = Analog(1.W)
   val ADCCLKM     = Analog(1.W)
-  val ADCRST      = Input(Bool())
+  val ADCCLKRST      = Input(Bool())
 }
 
 trait LazyADC {
@@ -45,22 +45,10 @@ trait LazyCAL {
 
   scrbuilder.addControl("MODE")
   scrbuilder.addControl("ADDR")
-  scrbuilder.addControl("CALCOEFF0")
-  scrbuilder.addControl("CALCOEFF1")
-  scrbuilder.addControl("CALCOEFF2")
-  scrbuilder.addControl("CALCOEFF3")
-  scrbuilder.addControl("CALCOEFF4")
-  scrbuilder.addControl("CALCOEFF5")
-  scrbuilder.addControl("CALCOEFF6")
-  scrbuilder.addControl("CALCOEFF7")
-  scrbuilder.addStatus("CALOUT0")
-  scrbuilder.addStatus("CALOUT1")
-  scrbuilder.addStatus("CALOUT2")
-  scrbuilder.addStatus("CALOUT3")
-  scrbuilder.addStatus("CALOUT4")
-  scrbuilder.addStatus("CALOUT5")
-  scrbuilder.addStatus("CALOUT6")
-  scrbuilder.addStatus("CALOUT7")
+  (0 until 32).foreach { i =>
+    scrbuilder.addControl(s"CALCOEFF$i")
+    scrbuilder.addStatus(s"CALOUT$i")
+  }
 }
 
 
@@ -78,9 +66,9 @@ trait ADCModule {
 
   val adc = Module(new TISARADC)
 
-  attach(io.ADCVDDHADC, adc.io.ADCVDDHADC)
-  attach(io.ADCVDDADC,  adc.io.ADCVDDADC)
-  attach(io.ADCVSS,     adc.io.ADCVSS)
+  attach(io.ADCVDDHADC, adc.io.VDDHADC)
+  attach(io.ADCVDDADC,  adc.io.VDDADC)
+  attach(io.ADCVSS,     adc.io.VSS)
   attach(io.ADCBIAS, adc.io.ADCBIAS)
   attach(io.ADCINP,   adc.io.ADCINP)
   attach(io.ADCINM,   adc.io.ADCINM)

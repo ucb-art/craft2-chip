@@ -12,7 +12,7 @@ import chisel3.experimental._
 import uart._
 import _root_.util._
 
-class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO {
+class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO with CoreResetBundle {
   val success = Output(Bool())
 }
 
@@ -21,8 +21,21 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val io = IO(new TestHarnessIO)
 
   val dut = Module(new CraftP1Core)
-  attach(dut.io.VIP, io.VIP)
-  attach(dut.io.VIN, io.VIN)
+  attach(dut.io.CLKRXVIP, io.CLKRXVIP)
+  attach(dut.io.CLKRXVIN, io.CLKRXVIN)
+  attach(dut.io.ADCBIAS, io.ADCBIAS)
+  attach(dut.io.ADCINP, io.ADCINP)
+  attach(dut.io.ADCINM, io.ADCINM)
+  attach(dut.io.ADCCLKP, io.ADCCLKP)
+  attach(dut.io.ADCCLKM, io.ADCCLKM)
+  dut.io.ADCEXTCLK := io.ADCEXTCLK
+  dut.io.ADCCLKRST := io.ADCCLKRST
+  dut.io.ua_rxd := io.ua_rxd
+  io.ua_int := dut.io.ua_int
+  io.ua_txd := dut.io.ua_txd
+  dut.io.ua_clock := io.ua_clock
+  dut.io.ua_reset := io.ua_reset
+  dut.io.core_reset := io.core_reset
 
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
@@ -33,25 +46,47 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
   val io = IO(new CraftP1CoreBundle(p))
   val craft = LazyModule(new CraftP1CoreTop(p)).module
 
+  // core clock and reset
   // loopback the clock receiver output into the core top
-  craft.clock := craft.io.VOBUF
+  val core_clock = craft.io.CLKRXVOBUF
+  craft.clock := core_clock
+  val core_reset = ResetSync(io.core_reset, core_clock)
+  craft.reset := core_reset
 
-  // bulk connect doesn't work anymore :(
-  craft.io.EXTCLK := io.EXTCLK
-  craft.io.CLKRST := io.CLKRST
-
+  // ADC
+  // adc digital
+  craft.io.ADCEXTCLK := io.ADCEXTCLK
+  craft.io.ADCCLKRST := io.ADCCLKRST
+  // adc analog
   attach(craft.io.ADCBIAS, io.ADCBIAS)
   attach(craft.io.ADCINP, io.ADCINP)
   attach(craft.io.ADCINM, io.ADCINM)
   attach(craft.io.ADCCLKP, io.ADCCLKP)
   attach(craft.io.ADCCLKM, io.ADCCLKM)
-  attach(craft.io.VIN, io.VIN)
-  attach(craft.io.VIP, io.VIP)
+  attach(craft.io.ADCVDDHADC, io.ADCVDDHADC)
+  attach(craft.io.ADCVDDADC, io.ADCVDDADC)
+  attach(craft.io.ADCVSS, io.ADCVSS)
 
-  // create async FIFOs for the serial interface in and out
-  // note: reset is same for both domains...
-  craft.io.serial.in <> AsyncDecoupledTo(to_clock = craft.io.VOBUF, to_reset = reset, source = io.serial.in, depth = 8, sync = 3)
-  io.serial.out <> AsyncDecoupledFrom(from_clock = craft.io.VOBUF, from_reset = reset, from_source = craft.io.serial.out, depth = 8, sync = 3)
+  // CLKRX
+  attach(craft.io.CLKRXVIN, io.CLKRXVIN)
+  attach(craft.io.CLKRXVIP, io.CLKRXVIP)
+
+  // UART, with reset synchronizers
+  craft.io.ua_rxd := io.ua_rxd
+  io.ua_int := craft.io.ua_int
+  io.ua_txd := craft.io.ua_txd
+  craft.io.ua_clock := io.ua_clock
+  craft.io.ua_reset := ResetSync(io.ua_reset, io.ua_clock)
+
+  // TSI, with reset synchronizers and Async FIFO
+  // note: TSI uses the normal "clock" and "reset" to this module
+  val tsi_reset = ResetSync(reset, clock)
+  craft.io.serial.in <> AsyncDecoupledCrossing(to_clock = core_clock, to_reset = core_reset, 
+    from_source = io.serial.in, from_clock = clock, from_reset = tsi_reset,
+    depth = 8, sync = 3)
+  io.serial.out <> AsyncDecoupledCrossing(to_clock = clock, to_reset = tsi_reset,
+    from_source = craft.io.serial.out, from_clock = core_clock, from_reset = core_reset,
+    depth = 8, sync = 3)
 
 }
 
