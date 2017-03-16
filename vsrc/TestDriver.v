@@ -136,6 +136,7 @@ module TestDriver;
   wire vip, vin;
   assign vip = core_clock;
   assign vin = ~core_clock;
+  wire [1:0] dummy;
   TestHarness testHarness(
     // TSI clock and reset
     .clock(serial_clock),
