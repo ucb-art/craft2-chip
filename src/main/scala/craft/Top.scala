@@ -25,6 +25,7 @@ trait WithCraftP1CoreBundle extends PeripheryBootROMBundle
   with CLKRXTopLevelInIO
   with PeripherySRAMBundle
   with PeripheryUARTBundle
+  with HasDspReset
 
 // excludes success and clk receiver output
 class CraftP1CoreBundle(val p: Parameters) extends Bundle
