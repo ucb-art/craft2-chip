@@ -29,6 +29,7 @@ trait WithCraftP1CoreBundle extends PeripheryBootROMBundle
 // excludes success and clk receiver output
 class CraftP1CoreBundle(val p: Parameters) extends Bundle
   with WithCraftP1CoreBundle
+  with CoreResetBundle
 
 // add success and clock receiver output pins
 class CraftP1CoreTopBundle(p: Parameters) extends BaseTopBundle(p)
@@ -48,3 +49,6 @@ class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftP1CoreTopBu
   with PeripheryUARTModule
   with CLKRXModule
 
+trait CoreResetBundle {
+  val core_reset = Input(Bool())
+}

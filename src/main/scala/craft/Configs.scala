@@ -200,6 +200,28 @@ object ChainBuilder {
     FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput)) ++
     RSSIConfigBuilder(id + ":rssi", rssiConfig(), rssiInput, rssiThresh)
   }
+  
+  def adc(id: String = "craft-pad"): Config = {
+    new Config(
+      (pname, site, here) => pname match {
+        case DefaultSAMKey => SAMConfig(16, 16)
+        case DspChainId => id
+        case DspChainKey(_id) if _id == id => DspChainParameters(
+          blocks = Seq(
+            // (parameter to block function, unique id, BlockConnectionParameters, SAM Config (optional))
+            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), Some(bm1SAMConfig()))
+          ),
+          logicAnalyzerSamples = 256,
+          logicAnalyzerUseCombinationalTrigger = true,
+          patternGeneratorSamples = 256,
+          patternGeneratorUseCombinationalTrigger = true
+        )
+        case _ => throw new CDEMatchError
+      }
+    ) ++
+    ConfigBuilder.nastiTLParams(id) ++
+    BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output)
+  }
 }
 
 class WithHwachaAndDma extends Config (
@@ -263,5 +285,10 @@ class WithSimpleOptions extends Config(
   new WithExtMemSize(8L * 1024L * 1024L) ++
   new WithSRAM(1))
 
+class WithPadOptions extends Config(
+  new WithSRAM(1)
+)
+
 class Craft2Config extends Config(ChainBuilder.radar() ++ new WithFullOptions ++ new Craft2BaseConfig)
 class Craft2SimpleConfig extends Config(ChainBuilder.radar() ++ new WithSimpleOptions ++ new Craft2BaseConfig)
+class Craft2PadConfig extends Config(ChainBuilder.adc() ++ new WithPadOptions ++ new Craft2BaseConfig)
