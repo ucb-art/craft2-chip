@@ -260,4 +260,4 @@ object RegSync {
     sync.io.in := in
     sync.io.out
   }
-
+}
