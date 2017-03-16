@@ -197,11 +197,11 @@ module des72to288(
 // out_31 = in_7 when phi==11
 
 wire                [1:0]       phi_next;
-wire                            clkout_dsp_next;
+// wire                            clkout_dsp_next;
 reg                 [1:0]       phi;
 
 assign phi_next = phi + 2'b01; //counter
-assign clkout_dsp_next = !phi[1]; //divide-by-4
+// assign clkout_dsp_next = !phi[1]; //divide-by-4
 
 always @(posedge clk, posedge rst) begin //asynchronous reset
     if (rst == 1'b1) begin
@@ -210,8 +210,10 @@ always @(posedge clk, posedge rst) begin //asynchronous reset
         clkout_data <= !phi_init[1]; 
     end else begin
         phi <= phi_next;
-        clkout_dsp <= clkout_dsp_next;
-        clkout_data <= clkout_dsp_next;
+        clkout_data = (phi == 2'b10 or phi == 2'b11) ? 1 : 0;
+        clkout_dsp =  (phi == 2'b00 or phi == 2'b01) ? 1 : 0;
+        //clkout_dsp <= clkout_dsp_next;
+        //clkout_data <= clkout_dsp_next;
     end
 end
 //des array
