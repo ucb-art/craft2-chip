@@ -12,7 +12,7 @@ import chisel3.experimental._
 import uart._
 import _root_.util._
 
-class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO with CoreResetBundle {
+class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO with CoreResetBundle with HasDspReset {
   val success = Output(Bool())
 }
 
@@ -36,6 +36,7 @@ class TestHarness(implicit val p: Parameters) extends Module {
   dut.io.ua_clock := io.ua_clock
   dut.io.ua_reset := io.ua_reset
   dut.io.core_reset := io.core_reset
+  dut.io.dsp_reset := io.dsp_reset
 
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
@@ -57,6 +58,7 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
   // adc digital
   craft.io.ADCEXTCLK := io.ADCEXTCLK
   craft.io.ADCCLKRST := io.ADCCLKRST
+  craft.io.dsp_reset := io.dsp_reset
   // adc analog
   attach(craft.io.ADCBIAS, io.ADCBIAS)
   attach(craft.io.ADCINP, io.ADCINP)

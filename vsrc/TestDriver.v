@@ -153,6 +153,7 @@ module TestDriver;
     .io_ua_txd(),
     // ADC signals and some PG
     .io_ADCCLKRST(reset),
+    .io_dsp_reset(reset),
     .io_ADCBIAS(),
     .io_ADCEXTCLK(1'b0),
     .io_ADCINP(),
