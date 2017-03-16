@@ -117,28 +117,30 @@ object ChainBuilder {
   def bm1Input():T = FixedPoint(9.W, 0.BP)
   def bm1Output():T = FixedPoint(9.W, 0.BP)
   def bm1Connect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
-  def bm1SAMConfig() = SAMConfig(subpackets = 1, bufferDepth = 128)
+  def bm1SAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the bit manipulation 2 block, which truncates the 9-bit ADC output into 8 bits
   def bm2Config() = BitManipulationConfig(lanes = 32)
   def bm2Input():T = FixedPoint(9.W, 0.BP)
   def bm2Output():T = FixedPoint(8.W, 0.BP)
   def bm2Connect() = BlockConnectNothing
+  def bm2SAMConfig() = None
 
   // Here be the tuner
   def tunerConfig() = TunerConfig(pipelineDepth = 4, lanes = 32, phaseGenerator = "Fixed", mixerTableSize = 32, shrink = 1.0)
   def tunerInput():T = FixedPoint(8.W, 7.BP)
   def tunerMixer():DspComplex[T] = DspComplex(FixedPoint(9.W, 7.BP), FixedPoint(9.W, 7.BP))
   def tunerOutput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
-  def tunerConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
+  def tunerConnect() = BlockConnectEverything
+  def tunerSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the filter-decimator
   def firConfig() = FIRConfig(numberOfTaps = 136, lanesIn = 32, lanesOut = 4, processingDelay = 2)
   def firInput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
   def firTaps():DspComplex[T] = DspComplex(FixedPoint(8.W, 10.BP), FixedPoint(8.W, 10.BP))
   def firOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
-  def firConnect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
-  def firSAMConfig() = SAMConfig(subpackets = 1, bufferDepth = 128)
+  def firConnect() = BlockConnectEverything
+  def firSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the filterbank
   def pfbConfig() = PFBConfig(processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4)
@@ -146,21 +148,22 @@ object ChainBuilder {
   // [stevo]: this looks weird, but it sets the bitwidths of the taps
   def pfbTaps(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 11.W, 17.BP), FixedPoint.fromDouble(0.0, 11.W, 17.BP))
   def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 17.BP), FixedPoint(11.W, 17.BP))
-  def pfbConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
+  def pfbConnect() = BlockConnectEverything
+  def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the Fourier transform
   def fftConfig() = FFTConfig(n = 128, lanes = 4, pipelineDepth = 4)
   def fftInput():T = FixedPoint(11.W, 17.BP) // gets complexed automatically
   def fftOutput():T = FixedPoint(15.W, 14.BP) // gets complexed automatically
-  def fftConnect() = BlockConnectionParameters(connectPG = false, connectLA = true, addSAM = true)
-  def fftSAMConfig() = SAMConfig(subpackets = 128/4, bufferDepth = 16)
+  def fftConnect() = BlockConnectEverything
+  def fftSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the receive signal strength indicator
-  def rssiConfig() = RSSIConfig(numChannels = 4, numLanes = 4, maxIntegrator2nLength = 4)
+  def rssiConfig() = RSSIConfig(numChannels = 128, numLanes = 4, maxIntegrator2nLength = 9)
   def rssiInput(): T = FixedPoint(15.W, 14.BP) // gets complexed automatically
-  def rssiThresh(): T = FixedPoint(35.W, 14.BP) // threshold type, should probably be (input_width*2+1+maxIntegrator2nLength).W, (input_bp*2).BP
+  def rssiThresh(): T = FixedPoint(40.W, 28.BP) // threshold type, should probably be (input_width*2+1+maxIntegrator2nLength).W, (input_bp*2).BP
   def rssiConnect() = BlockConnectEverything
-  def rssiSAMConfig() = SAMConfig(subpackets = 128/4, bufferDepth = 16)
+  def rssiSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
 
   ///////////////////////////////////////////////////////////////
@@ -175,18 +178,19 @@ object ChainBuilder {
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
             // (parameter to block function, unique id, BlockConnectionParameters, SAM Config (optional))
-            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), Some(bm1SAMConfig())),
-            (implicit p => new BitManipulationBlock[T], id + ":bm2", bm2Connect(), None),
-            (implicit p => new TunerBlock[T, T], id + ":tuner", tunerConnect(), None),
-            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir", firConnect(), Some(firSAMConfig)),
-            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", pfbConnect(), None),
-            (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), Some(fftSAMConfig())),
-            (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect(), Some(rssiSAMConfig()))
+            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), bm1SAMConfig()),
+            (implicit p => new BitManipulationBlock[T], id + ":bm2", bm2Connect(), bm2SAMConfig()),
+            (implicit p => new TunerBlock[T, T], id + ":tuner", tunerConnect(), tunerSAMConfig()),
+            (implicit p => new FIRBlock[DspComplex[T]], id + ":fir", firConnect(), firSAMConfig()),
+            (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", pfbConnect(), pfbSAMConfig()),
+            (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), fftSAMConfig()),
+            (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect(), rssiSAMConfig())
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,
           patternGeneratorSamples = 256,
-          patternGeneratorUseCombinationalTrigger = true
+          patternGeneratorUseCombinationalTrigger = true,
+          biggestWidth = 512
         )
         case _ => throw new CDEMatchError
       }
@@ -209,7 +213,7 @@ object ChainBuilder {
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
             // (parameter to block function, unique id, BlockConnectionParameters, SAM Config (optional))
-            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), Some(bm1SAMConfig()))
+            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), bm1SAMConfig())
           ),
           logicAnalyzerSamples = 256,
           logicAnalyzerUseCombinationalTrigger = true,

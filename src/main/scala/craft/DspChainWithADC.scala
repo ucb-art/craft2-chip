@@ -197,33 +197,19 @@ trait ADCModule {
   deser.io.clk := adc.io.CLKOUT_DES
   // [stevo]: wouldn't do anything, since it's only used on reset
   deser.io.phi_init := 0.U
-  deser.io.rst := reset
+  // unsynchronized ADC clock reset
+  deser.io.rst := io.ADCCLKRST
   
-  val adc_src = Wire(Decoupled(deser.io.out))
-  adc_src.bits  := deser.io.out
-  adc_src.valid := true.B
-
-  val fifo_out = _root_.util.AsyncDecoupledCrossing(
-    // from
-    from_clock = deser.io.clkout_data,
-    from_reset = false.B, // TODO ????? neeed to make sure the async regs are reset correctly
-    from_source = adc_src,
-    // to
-    to_clock = deser.io.clkout_dsp,
-    to_reset = false.B, // TODO
-    depth = 8, // FIFO depth
-    sync = 3  // how many synchronizing regs to place
-  )
+  val des_sync_data = RegSync(deser.io.out, deser.io.clkout_data, 1)
+  val des_sync_dsp  = RegSync(des_sync_data, deser.io.clkout_dsp, 1)
   
-  fifo_out.ready := true.B
-
   io.adc_clk_out := deser.io.clkout_dsp
 
   lazy val numInBits = 9
   lazy val numOutBits = 9
   lazy val numSlices = 8*4
   lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
-  cal.io.adcdata := fifo_out.bits.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
+  cal.io.adcdata := des_sync_dsp.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
 
   cal.io.mode := scrfile.control("MODE")
   cal.io.addr := scrfile.control("ADDR")
@@ -258,3 +244,20 @@ class DspChainWithADCModule(
     with ADCModule {
   override lazy val io: DspChainIO with DspChainADCIO = b.getOrElse(new DspChainIO with DspChainADCIO)
 }
+
+class RegSync[T <: Data](gen: => T, c: Clock, lat: Int = 2) extends Module(_clock = c) {
+  val io = IO(new Bundle {
+    val in = Input(gen)
+    val out = Output(gen)
+  })
+  io.out := ShiftRegister(io.in,lat)
+}
+
+object RegSync {
+  def apply[T <: Data](in: T, c: Clock, lat: Int = 2): T = {
+    val sync = Module(new RegSync(in.cloneType,c,2))
+    sync.suggestName("regSyncInst")
+    sync.io.in := in
+    sync.io.out
+  }
+
