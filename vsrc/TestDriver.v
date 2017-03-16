@@ -137,25 +137,31 @@ module TestDriver;
   assign vip = core_clock;
   assign vin = ~core_clock;
   TestHarness testHarness(
+    // TSI clock and reset
     .clock(serial_clock),
     .reset(reset),
-    .io_VIP(vip),
-    .io_VIN(vin),
+    // core clock and reset
+    .io_CLKRXVIP(vip),
+    .io_CLKRXVIN(vin),
+    .io_core_reset(reset),
+    // UART clock, reset, and signals
+    .io_ua_clock(1'b0),
+    .io_ua_reset(reset),
+    .io_ua_rxd(1'b0),
+    .io_ua_int(),
+    .io_ua_txd(),
+    // ADC signals and some PG
+    .io_ADCCLKRST(reset),
     .io_ADCBIAS(),
-    .io_EXTCLK(1'b0),
+    .io_ADCEXTCLK(1'b0),
     .io_ADCINP(),
     .io_ADCINM(),
     .io_ADCCLKP(),
     .io_ADCCLKM(),
-    .io_CLKRST(1'b0),
-    .io_VDDHADC(),
-    .io_VDDADC(),
-    .io_VSS(),
-    .io_ua_rxd(1'b0),
-    .io_ua_int(),
-    .io_ua_txd(),
-    .io_ua_clock(1'b0),
-    .io_ua_reset(1'b0),
+    .io_ADCVDDHADC(),
+    .io_ADCVDDADC(),
+    .io_ADCVSS(),
+    // test IO
     .io_success(success)
   );
 
