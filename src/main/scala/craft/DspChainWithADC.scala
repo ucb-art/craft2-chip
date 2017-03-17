@@ -9,6 +9,7 @@ import chisel3.util._
 import dspblocks._
 import dspjunctions._
 import testchipip._
+import _root_.util._
 
 trait ADCTopLevelIO {
   val ADCVDDHADC    = Analog(1.W)
@@ -200,8 +201,7 @@ trait ADCModule {
   // unsynchronized ADC clock reset
   deser.io.rst := io.ADCCLKRST
   
-  val des_sync_data = RegSync(deser.io.out, deser.io.clkout_data, 1)
-  val des_sync_dsp  = RegSync(des_sync_data, deser.io.clkout_dsp, 1)
+  val des_sync = Vec(deser.io.out.map(s => SyncCrossing(from_clock=deser.io.clkout_data, to_clock=deser.io.clkout_dsp, in=s, sync=1)))
   
   io.adc_clk_out := deser.io.clkout_dsp
 
@@ -209,7 +209,7 @@ trait ADCModule {
   lazy val numOutBits = 9
   lazy val numSlices = 8*4
   lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
-  cal.io.adcdata := des_sync_dsp.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
+  cal.io.adcdata := des_sync.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
 
   cal.io.mode := scrfile.control("MODE")
   cal.io.addr := scrfile.control("ADDR")
@@ -245,19 +245,32 @@ class DspChainWithADCModule(
   override lazy val io: DspChainIO with DspChainADCIO = b.getOrElse(new DspChainIO with DspChainADCIO)
 }
 
-class RegSync[T <: Data](gen: => T, c: Clock, lat: Int = 2) extends Module(_clock = c) {
-  val io = IO(new Bundle {
-    val in = Input(gen)
-    val out = Output(gen)
-  })
-  io.out := ShiftRegister(io.in,lat)
-}
+// [stevo]: copied from rocket-chip, but switched Bool input to Data
+object SyncCrossing {
+  class SynchronizerBackend[T<:Data](sync: Int, _clock: Clock, gen: T) extends Module(Some(_clock)) {
+    val io = IO(new Bundle {
+      val in = Input(gen)
+      val out = Output(gen)
+    })
 
-object RegSync {
-  def apply[T <: Data](in: T, c: Clock, lat: Int = 2): T = {
-    val sync = Module(new RegSync(in.cloneType,c,2))
-    sync.suggestName("regSyncInst")
-    sync.io.in := in
-    sync.io.out
+    io.out := ShiftRegister(io.in, sync)
+  }
+
+  class SynchronizerFrontend[T<:Data](_clock: Clock, gen: T) extends Module(Some(_clock)) {
+    val io = IO(new Bundle {
+      val in = Input(gen)
+      val out = Output(gen)
+    })
+
+    io.out := RegNext(io.in)
+  }
+
+  def apply[T<:Data](from_clock: Clock, to_clock: Clock, in: T, sync: Int = 2): T = {
+    val front = Module(new SynchronizerFrontend(from_clock, in.cloneType))
+    val back = Module(new SynchronizerBackend(sync, to_clock, in.cloneType))
+
+    front.io.in := in
+    back.io.in := front.io.out
+    back.io.out
   }
 }

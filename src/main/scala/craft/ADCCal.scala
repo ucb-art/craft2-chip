@@ -61,6 +61,7 @@ class SubADCCal(numInBits: Int, numOutBits: Int) extends Module {
 
   // memory
   val mem = SeqMem(math.pow(2, numInBits).toInt, UInt(numOutBits.W))
+  mem.suggestName(this.name + "_sram")
   io.calout := mem.read(memaddr, !wen)
 
   when(wen) {

@@ -145,8 +145,9 @@ object ChainBuilder {
   // Here be the filterbank
   def pfbConfig() = PFBConfig(processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4)
   def pfbInput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
-  // [stevo]: this looks weird, but it sets the bitwidths of the taps
-  def pfbTaps(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 11.W, 17.BP), FixedPoint.fromDouble(0.0, 11.W, 17.BP))
+  // [stevo]: make sure pfbTap and pfbConvert use the same width and binary point
+  def pfbTap:DspComplex[T] = DspComplex(FixedPoint(11.W, 17.BP), FixedPoint(11.W, 17.BP))
+  def pfbConvert(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 11.W, 17.BP), FixedPoint.fromDouble(0.0, 11.W, 17.BP))
   def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 17.BP), FixedPoint(11.W, 17.BP))
   def pfbConnect() = BlockConnectEverything
   def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
@@ -200,7 +201,7 @@ object ChainBuilder {
     BitManipulationConfigBuilder(id + ":bm2", bm2Config(), bm2Input, bm2Output) ++ 
     TunerConfigBuilder(id + ":tuner", tunerConfig(), tunerInput, tunerOutput, Some(() => tunerMixer)) ++
     FIRConfigBuilder(id + ":fir", firConfig(), firInput, Some(() => firOutput), Some(() => firTaps)) ++
-    PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbTaps, Some(() => pfbOutput)) ++
+    PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbConvert, Some(() => pfbOutput), Some(pfbTap)) ++
     FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput)) ++
     RSSIConfigBuilder(id + ":rssi", rssiConfig(), rssiInput, rssiThresh)
   }
