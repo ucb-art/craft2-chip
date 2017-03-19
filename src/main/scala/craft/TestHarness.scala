@@ -21,15 +21,15 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val io = IO(new TestHarnessIO)
 
   val dut = Module(new CraftP1Core)
-  attach(dut.io.CLKRXVIP, io.CLKRXVIP)
-  attach(dut.io.CLKRXVIN, io.CLKRXVIN)
-  attach(dut.io.ADCBIAS, io.ADCBIAS)
+  attach(dut.io.clkrxvip, io.clkrxvip)
+  attach(dut.io.clkrxvin, io.clkrxvin)
+  attach(dut.io.adcbias, io.adcbias)
   attach(dut.io.ADCINP, io.ADCINP)
   attach(dut.io.ADCINM, io.ADCINM)
   attach(dut.io.ADCCLKP, io.ADCCLKP)
   attach(dut.io.ADCCLKM, io.ADCCLKM)
-  dut.io.ADCEXTCLK := io.ADCEXTCLK
-  dut.io.ADCCLKRST := io.ADCCLKRST
+  dut.io.adcextclk := io.adcextclk
+  dut.io.adcclkrst := io.adcclkrst
   dut.io.ua_rxd := io.ua_rxd
   io.ua_int := dut.io.ua_int
   io.ua_txd := dut.io.ua_txd
@@ -49,29 +49,29 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
 
   // core clock and reset
   // loopback the clock receiver output into the core top
-  val core_clock = craft.io.CLKRXVOBUF
+  val core_clock = craft.io.clkrxvobuf
   craft.clock := core_clock
   val core_reset = ResetSync(io.core_reset, core_clock)
   craft.reset := core_reset
 
   // ADC
   // adc digital
-  craft.io.ADCEXTCLK := io.ADCEXTCLK
-  craft.io.ADCCLKRST := io.ADCCLKRST
+  craft.io.adcextclk := io.adcextclk
+  craft.io.adcclkrst := io.adcclkrst
   craft.io.dsp_reset := io.dsp_reset
   // adc analog
-  attach(craft.io.ADCBIAS, io.ADCBIAS)
+  attach(craft.io.adcbias, io.adcbias)
   attach(craft.io.ADCINP, io.ADCINP)
   attach(craft.io.ADCINM, io.ADCINM)
   attach(craft.io.ADCCLKP, io.ADCCLKP)
   attach(craft.io.ADCCLKM, io.ADCCLKM)
-  attach(craft.io.ADCVDDHADC, io.ADCVDDHADC)
-  attach(craft.io.ADCVDDADC, io.ADCVDDADC)
-  attach(craft.io.ADCVSS, io.ADCVSS)
+  attach(craft.io.adcvddhadc, io.adcvddhadc)
+  attach(craft.io.adcvddadc, io.adcvddadc)
+  attach(craft.io.adcvss, io.adcvss)
 
   // CLKRX
-  attach(craft.io.CLKRXVIN, io.CLKRXVIN)
-  attach(craft.io.CLKRXVIP, io.CLKRXVIP)
+  attach(craft.io.clkrxvin, io.clkrxvin)
+  attach(craft.io.clkrxvip, io.clkrxvip)
 
   // UART, with reset synchronizers
   craft.io.ua_rxd := io.ua_rxd

@@ -142,8 +142,8 @@ module TestDriver;
     .clock(serial_clock),
     .reset(reset),
     // core clock and reset
-    .io_CLKRXVIP(vip),
-    .io_CLKRXVIN(vin),
+    .io_clkrxvip(vip),
+    .io_clkrxvin(vin),
     .io_core_reset(reset),
     // UART clock, reset, and signals
     .io_ua_clock(1'b0),
@@ -152,17 +152,17 @@ module TestDriver;
     .io_ua_int(),
     .io_ua_txd(),
     // ADC signals and some PG
-    .io_ADCCLKRST(reset),
+    .io_adcclkrst(reset),
     .io_dsp_reset(reset),
-    .io_ADCBIAS(),
-    .io_ADCEXTCLK(1'b0),
+    .io_adcbias(),
+    .io_adcextclk(1'b0),
     .io_ADCINP(),
     .io_ADCINM(),
     .io_ADCCLKP(),
     .io_ADCCLKM(),
-    .io_ADCVDDHADC(),
-    .io_ADCVDDADC(),
-    .io_ADCVSS(),
+    .io_adcvddhadc(),
+    .io_adcvddadc(),
+    .io_adcvss(),
     // test IO
     .io_success(success)
   );
