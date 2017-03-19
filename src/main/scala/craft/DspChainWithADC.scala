@@ -12,16 +12,16 @@ import testchipip._
 import _root_.util._
 
 trait ADCTopLevelIO {
-  val ADCVDDHADC    = Analog(1.W)
-  val ADCVDDADC     = Analog(1.W)
-  val ADCVSS        = Analog(1.W)
-  val ADCBIAS    = Analog(1.W)
-  val ADCEXTCLK     = Input(Bool())
+  val adcvddhadc    = Analog(1.W)
+  val adcvddadc     = Analog(1.W)
+  val adcvss        = Analog(1.W)
+  val adcbias    = Analog(1.W)
+  val adcextclk     = Input(Bool())
   val ADCINP      = Analog(1.W)
   val ADCINM      = Analog(1.W)
   val ADCCLKP     = Analog(1.W)
   val ADCCLKM     = Analog(1.W)
-  val ADCCLKRST      = Input(Bool())
+  val adcclkrst      = Input(Bool())
 }
 
 trait LazyADC {
@@ -67,14 +67,14 @@ trait ADCModule {
 
   val adc = Module(new TISARADC)
 
-  attach(io.ADCVDDHADC, adc.io.VDDHADC)
-  attach(io.ADCVDDADC,  adc.io.VDDADC)
-  attach(io.ADCVSS,     adc.io.VSS)
-  attach(io.ADCBIAS, adc.io.ADCBIAS)
-  attach(io.ADCINP,   adc.io.ADCINP)
-  attach(io.ADCINM,   adc.io.ADCINM)
-  attach(io.ADCCLKP,  adc.io.ADCCLKP)
-  attach(io.ADCCLKM,  adc.io.ADCCLKM)
+  attach(io.adcvddhadc, adc.io.vddhadc)
+  attach(io.adcvddadc,  adc.io.vddadc)
+  attach(io.adcvss,     adc.io.vss)
+  attach(io.adcbias,    adc.io.adcbias)
+  attach(io.ADCINP,     adc.io.ADCINP)
+  attach(io.ADCINM,     adc.io.ADCINM)
+  attach(io.ADCCLKP,    adc.io.ADCCLKP)
+  attach(io.ADCCLKM,    adc.io.ADCCLKM)
 
   def wordToByteVec(u: UInt): Vec[UInt] =
     u.asTypeOf(Vec(8, UInt(8.W)))
@@ -94,112 +94,112 @@ trait ADCModule {
   val clkgcal = wordToByteVec(scrfile.control("CLKGCAL"))
   val clkgbias = scrfile.control("CLKGBIAS")
 
-  adc.io.OSP0 := osp(0)
-  adc.io.OSP1 := osp(1)
-  adc.io.OSP2 := osp(2)
-  adc.io.OSP3 := osp(3)
-  adc.io.OSP4 := osp(4)
-  adc.io.OSP5 := osp(5)
-  adc.io.OSP6 := osp(6)
-  adc.io.OSP7 := osp(7)
+  adc.io.osp0 := osp(0)
+  adc.io.osp1 := osp(1)
+  adc.io.osp2 := osp(2)
+  adc.io.osp3 := osp(3)
+  adc.io.osp4 := osp(4)
+  adc.io.osp5 := osp(5)
+  adc.io.osp6 := osp(6)
+  adc.io.osp7 := osp(7)
 
-  adc.io.OSM0 := osm(0)
-  adc.io.OSM1 := osm(1)
-  adc.io.OSM2 := osm(2)
-  adc.io.OSM3 := osm(3)
-  adc.io.OSM4 := osm(4)
-  adc.io.OSM5 := osm(5)
-  adc.io.OSM6 := osm(6)
-  adc.io.OSM7 := osm(7)
+  adc.io.osm0 := osm(0)
+  adc.io.osm1 := osm(1)
+  adc.io.osm2 := osm(2)
+  adc.io.osm3 := osm(3)
+  adc.io.osm4 := osm(4)
+  adc.io.osm5 := osm(5)
+  adc.io.osm6 := osm(6)
+  adc.io.osm7 := osm(7)
 
-  adc.io.EXTCLK0 := io.ADCEXTCLK
-  adc.io.EXTCLK1 := io.ADCEXTCLK
-  adc.io.EXTCLK2 := io.ADCEXTCLK
-  adc.io.EXTCLK3 := io.ADCEXTCLK
-  adc.io.EXTCLK4 := io.ADCEXTCLK
-  adc.io.EXTCLK5 := io.ADCEXTCLK
-  adc.io.EXTCLK6 := io.ADCEXTCLK
-  adc.io.EXTCLK7 := io.ADCEXTCLK
+  adc.io.extclk0 := io.adcextclk
+  adc.io.extclk1 := io.adcextclk
+  adc.io.extclk2 := io.adcextclk
+  adc.io.extclk3 := io.adcextclk
+  adc.io.extclk4 := io.adcextclk
+  adc.io.extclk5 := io.adcextclk
+  adc.io.extclk6 := io.adcextclk
+  adc.io.extclk7 := io.adcextclk
 
-  adc.io.ASCLKD0 := asclkd(0)
-  adc.io.ASCLKD1 := asclkd(1)
-  adc.io.ASCLKD2 := asclkd(2)
-  adc.io.ASCLKD3 := asclkd(3)
-  adc.io.ASCLKD4 := asclkd(4)
-  adc.io.ASCLKD5 := asclkd(5)
-  adc.io.ASCLKD6 := asclkd(6)
-  adc.io.ASCLKD7 := asclkd(7)
+  adc.io.asclkd0 := asclkd(0)
+  adc.io.asclkd1 := asclkd(1)
+  adc.io.asclkd2 := asclkd(2)
+  adc.io.asclkd3 := asclkd(3)
+  adc.io.asclkd4 := asclkd(4)
+  adc.io.asclkd5 := asclkd(5)
+  adc.io.asclkd6 := asclkd(6)
+  adc.io.asclkd7 := asclkd(7)
 
-  adc.io.EXTSEL_CLK0 := extsel_clk(0)
-  adc.io.EXTSEL_CLK1 := extsel_clk(1)
-  adc.io.EXTSEL_CLK2 := extsel_clk(2)
-  adc.io.EXTSEL_CLK3 := extsel_clk(3)
-  adc.io.EXTSEL_CLK4 := extsel_clk(4)
-  adc.io.EXTSEL_CLK5 := extsel_clk(5)
-  adc.io.EXTSEL_CLK6 := extsel_clk(6)
-  adc.io.EXTSEL_CLK7 := extsel_clk(7)
+  adc.io.extsel_clk0 := extsel_clk(0)
+  adc.io.extsel_clk1 := extsel_clk(1)
+  adc.io.extsel_clk2 := extsel_clk(2)
+  adc.io.extsel_clk3 := extsel_clk(3)
+  adc.io.extsel_clk4 := extsel_clk(4)
+  adc.io.extsel_clk5 := extsel_clk(5)
+  adc.io.extsel_clk6 := extsel_clk(6)
+  adc.io.extsel_clk7 := extsel_clk(7)
 
-  adc.io.VREF00 := vref0(0)
-  adc.io.VREF01 := vref0(1)
-  adc.io.VREF02 := vref0(2)
-  adc.io.VREF03 := vref0(3)
-  adc.io.VREF04 := vref0(4)
-  adc.io.VREF05 := vref0(5)
-  adc.io.VREF06 := vref0(6)
-  adc.io.VREF07 := vref0(7)
+  adc.io.vref00 := vref0(0)
+  adc.io.vref01 := vref0(1)
+  adc.io.vref02 := vref0(2)
+  adc.io.vref03 := vref0(3)
+  adc.io.vref04 := vref0(4)
+  adc.io.vref05 := vref0(5)
+  adc.io.vref06 := vref0(6)
+  adc.io.vref07 := vref0(7)
 
-  adc.io.VREF10 := vref1(0)
-  adc.io.VREF11 := vref1(1)
-  adc.io.VREF12 := vref1(2)
-  adc.io.VREF13 := vref1(3)
-  adc.io.VREF14 := vref1(4)
-  adc.io.VREF15 := vref1(5)
-  adc.io.VREF16 := vref1(6)
-  adc.io.VREF17 := vref1(7)
+  adc.io.vref10 := vref1(0)
+  adc.io.vref11 := vref1(1)
+  adc.io.vref12 := vref1(2)
+  adc.io.vref13 := vref1(3)
+  adc.io.vref14 := vref1(4)
+  adc.io.vref15 := vref1(5)
+  adc.io.vref16 := vref1(6)
+  adc.io.vref17 := vref1(7)
 
-  adc.io.VREF20 := vref2(0)
-  adc.io.VREF21 := vref2(1)
-  adc.io.VREF22 := vref2(2)
-  adc.io.VREF23 := vref2(3)
-  adc.io.VREF24 := vref2(4)
-  adc.io.VREF25 := vref2(5)
-  adc.io.VREF26 := vref2(6)
-  adc.io.VREF27 := vref2(7)
+  adc.io.vref20 := vref2(0)
+  adc.io.vref21 := vref2(1)
+  adc.io.vref22 := vref2(2)
+  adc.io.vref23 := vref2(3)
+  adc.io.vref24 := vref2(4)
+  adc.io.vref25 := vref2(5)
+  adc.io.vref26 := vref2(6)
+  adc.io.vref27 := vref2(7)
 
-  adc.io.IREF0 := iref(0)
-  adc.io.IREF1 := iref(1)
-  adc.io.IREF2 := iref(2)
+  adc.io.iref0 := iref(0)
+  adc.io.iref1 := iref(1)
+  adc.io.iref2 := iref(2)
 
-  adc.io.CLKGCAL0 := clkgcal(0)
-  adc.io.CLKGCAL1 := clkgcal(1)
-  adc.io.CLKGCAL2 := clkgcal(2)
-  adc.io.CLKGCAL3 := clkgcal(3)
-  adc.io.CLKGCAL4 := clkgcal(4)
-  adc.io.CLKGCAL5 := clkgcal(5)
-  adc.io.CLKGCAL6 := clkgcal(6)
-  adc.io.CLKGCAL7 := clkgcal(7)
+  adc.io.clkgcal0 := clkgcal(0)
+  adc.io.clkgcal1 := clkgcal(1)
+  adc.io.clkgcal2 := clkgcal(2)
+  adc.io.clkgcal3 := clkgcal(3)
+  adc.io.clkgcal4 := clkgcal(4)
+  adc.io.clkgcal5 := clkgcal(5)
+  adc.io.clkgcal6 := clkgcal(6)
+  adc.io.clkgcal7 := clkgcal(7)
 
-  adc.io.CLKGBIAS := clkgbias
+  adc.io.clkgbias := clkgbias
 
-  adc.io.CLKRST := io.ADCCLKRST
+  adc.io.clkrst := io.adcclkrst
 
   val adcout = Vec(
-    adc.io.ADCOUT0,
-    adc.io.ADCOUT1,
-    adc.io.ADCOUT2,
-    adc.io.ADCOUT3,
-    adc.io.ADCOUT4,
-    adc.io.ADCOUT5,
-    adc.io.ADCOUT6,
-    adc.io.ADCOUT7)
+    adc.io.adcout0,
+    adc.io.adcout1,
+    adc.io.adcout2,
+    adc.io.adcout3,
+    adc.io.adcout4,
+    adc.io.adcout5,
+    adc.io.adcout6,
+    adc.io.adcout7)
 
   val deser = Module(new des72to288)
   deser.io.in := adcout
-  deser.io.clk := adc.io.CLKOUT_DES
+  deser.io.clk := adc.io.clkout_des
   // [stevo]: wouldn't do anything, since it's only used on reset
   deser.io.phi_init := 0.U
   // unsynchronized ADC clock reset
-  deser.io.rst := io.ADCCLKRST
+  deser.io.rst := io.adcclkrst
   
   val des_sync = Vec(deser.io.out.map(s => SyncCrossing(from_clock=deser.io.clkout_data, to_clock=deser.io.clkout_dsp, in=s, sync=1)))
   

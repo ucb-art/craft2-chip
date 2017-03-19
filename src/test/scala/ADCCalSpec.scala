@@ -100,9 +100,14 @@ class ADCCalTester(c: ADCCal) extends DspTester(c) {
     //rawdataarr6(i)=i
     //rawdataarr7(i)=i
   }
-
+  
   //lut set mode
+  poke(c.io.wen, false) //wen reset
+  step(1)
   poke(c.io.mode, lutset)
+  step(1)
+  poke(c.io.wen, true)
+  step(1)
   for (i <- 0 until addrrange ) {
     poke(c.io.addr, i)
     poke(c.io.calcoeff(0), codearr0(i))
@@ -116,6 +121,8 @@ class ADCCalTester(c: ADCCal) extends DspTester(c) {
     step(1)
   }
   //calibration mode
+  poke(c.io.wen, false) //wen reset
+  step(1)
   poke(c.io.mode, normal)
   for (i <- 0 until addrrange ) {
     poke(c.io.adcdata(0), i)
@@ -137,7 +144,12 @@ class ADCCalTester(c: ADCCal) extends DspTester(c) {
     expect(c.io.calout(7), codearr7(i))
   }
   //adc test mode
+  poke(c.io.wen, false) //wen reset
+  step(1)
   poke(c.io.mode, adctest)
+  step(1)
+  poke(c.io.wen, true)
+  step(1)
   for (i <- 0 until rawdatarange ) {
     poke(c.io.adcdata(0), rawdataarr0(i))
     poke(c.io.adcdata(1), rawdataarr1(i))
@@ -150,9 +162,11 @@ class ADCCalTester(c: ADCCal) extends DspTester(c) {
     step(1)
   }
   //adc readout mode
+  poke(c.io.wen, false) //wen reset
+  step(1)
   //this requires synchronized cycles because internal address counter is keep running
   poke(c.io.mode, idle)
-  for (i <- 0 until addrrange ) {
+  for (i <- 7 until addrrange ) {
     poke(c.io.addr, i)
     step(1)
     //peek(c.io.calout(0))
@@ -163,14 +177,14 @@ class ADCCalTester(c: ADCCal) extends DspTester(c) {
     //peek(c.io.calout(5))
     //peek(c.io.calout(6))
     //peek(c.io.calout(7))
-    expect(c.io.calout(0), rawdataarr0(i))
-    expect(c.io.calout(1), rawdataarr1(i))
-    expect(c.io.calout(2), rawdataarr2(i))
-    expect(c.io.calout(3), rawdataarr3(i))
-    expect(c.io.calout(4), rawdataarr4(i))
-    expect(c.io.calout(5), rawdataarr5(i))
-    expect(c.io.calout(6), rawdataarr6(i))
-    expect(c.io.calout(7), rawdataarr7(i))
+    expect(c.io.calout(0), rawdataarr0(i-7))
+    expect(c.io.calout(1), rawdataarr1(i-7))
+    expect(c.io.calout(2), rawdataarr2(i-7))
+    expect(c.io.calout(3), rawdataarr3(i-7))
+    expect(c.io.calout(4), rawdataarr4(i-7))
+    expect(c.io.calout(5), rawdataarr5(i-7))
+    expect(c.io.calout(6), rawdataarr6(i-7))
+    expect(c.io.calout(7), rawdataarr7(i-7))
   }
 
   //peek(c.io.calout(0))
