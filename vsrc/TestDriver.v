@@ -159,10 +159,10 @@ module TestDriver;
     .io_ua_int(),
     .io_ua_txd(),
     // ADC signals and DSP clock and reset
-    .io_adcclkrst(adc_reset),
+    .io_adcclkreset(adc_reset),
     .io_dsp_reset(reset),
     .io_ADCBIAS(),
-    .io_adcextclk(1'b0),
+    .io_adcextclock(1'b0),
     .io_ADCINP(),
     .io_ADCINM(),
     .io_ADCCLKP(dip),
