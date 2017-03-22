@@ -23,7 +23,7 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val dut = Module(new CraftP1Core)
   attach(dut.io.clkrxvip, io.clkrxvip)
   attach(dut.io.clkrxvin, io.clkrxvin)
-  attach(dut.io.adcbias, io.adcbias)
+  attach(dut.io.ADCBIAS, io.ADCBIAS)
   attach(dut.io.ADCINP, io.ADCINP)
   attach(dut.io.ADCINM, io.ADCINM)
   attach(dut.io.ADCCLKP, io.ADCCLKP)
@@ -60,14 +60,11 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
   craft.io.adcclkrst := io.adcclkrst
   craft.io.dsp_reset := io.dsp_reset
   // adc analog
-  attach(craft.io.adcbias, io.adcbias)
+  attach(craft.io.ADCBIAS, io.ADCBIAS)
   attach(craft.io.ADCINP, io.ADCINP)
   attach(craft.io.ADCINM, io.ADCINM)
   attach(craft.io.ADCCLKP, io.ADCCLKP)
   attach(craft.io.ADCCLKM, io.ADCCLKM)
-  attach(craft.io.adcvddhadc, io.adcvddhadc)
-  attach(craft.io.adcvddadc, io.adcvddadc)
-  attach(craft.io.adcvss, io.adcvss)
 
   // CLKRX
   attach(craft.io.clkrxvin, io.clkrxvin)

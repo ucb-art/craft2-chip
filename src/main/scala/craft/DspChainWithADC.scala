@@ -12,16 +12,13 @@ import testchipip._
 import _root_.util._
 
 trait ADCTopLevelIO {
-  val adcvddhadc    = Analog(1.W)
-  val adcvddadc     = Analog(1.W)
-  val adcvss        = Analog(1.W)
-  val adcbias    = Analog(1.W)
+  val ADCBIAS       = Analog(1.W)
   val adcextclk     = Input(Bool())
-  val ADCINP      = Analog(1.W)
-  val ADCINM      = Analog(1.W)
-  val ADCCLKP     = Analog(1.W)
-  val ADCCLKM     = Analog(1.W)
-  val adcclkrst      = Input(Bool())
+  val ADCINP        = Analog(1.W)
+  val ADCINM        = Analog(1.W)
+  val ADCCLKP       = Analog(1.W)
+  val ADCCLKM       = Analog(1.W)
+  val adcclkrst     = Input(Bool())
 }
 
 trait LazyADC {
@@ -46,6 +43,7 @@ trait LazyCAL {
 
   scrbuilder.addControl("MODE")
   scrbuilder.addControl("ADDR")
+  scrbuilder.addControl("WEN")
   (0 until 32).foreach { i =>
     scrbuilder.addControl(s"CALCOEFF$i")
     scrbuilder.addStatus(s"CALOUT$i")
@@ -67,10 +65,7 @@ trait ADCModule {
 
   val adc = Module(new TISARADC)
 
-  attach(io.adcvddhadc, adc.io.vddhadc)
-  attach(io.adcvddadc,  adc.io.vddadc)
-  attach(io.adcvss,     adc.io.vss)
-  attach(io.adcbias,    adc.io.adcbias)
+  attach(io.ADCBIAS,    adc.io.ADCBIAS)
   attach(io.ADCINP,     adc.io.ADCINP)
   attach(io.ADCINM,     adc.io.ADCINM)
   attach(io.ADCCLKP,    adc.io.ADCCLKP)
@@ -213,6 +208,7 @@ trait ADCModule {
 
   cal.io.mode := scrfile.control("MODE")
   cal.io.addr := scrfile.control("ADDR")
+  cal.io.wen := scrfile.control("WEN")
   cal.io.calcoeff.zipWithIndex.foreach{ case(port, i) => port := scrfile.control(s"CALCOEFF$i") }
   cal.io.calout.zipWithIndex.foreach{ case(port, i) => scrfile.status(s"CALOUT$i") := port }
 

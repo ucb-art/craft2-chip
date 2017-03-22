@@ -10,6 +10,7 @@ class ADCCalIO(numInBits: Int, numOutBits: Int, numSlices: Int) extends Bundle {
   val calcoeff = Input(Vec(numSlices, UInt(numOutBits.W)))
   val calout = Output(Vec(numSlices, UInt(numOutBits.W)))
   val mode = Input(UInt(2.W))
+  val wen = Input(Bool()) //external wen
   val addr = Input(UInt(numInBits.W))
   override def cloneType = (new ADCCalIO(numInBits, numOutBits, numSlices)).asInstanceOf[this.type]
 }
@@ -19,13 +20,13 @@ class SubADCCalIO(numInBits: Int, numOutBits: Int) extends Bundle {
   val calcoeff = Input(UInt(numOutBits.W))
   val calout = Output(UInt(numOutBits.W))
   val mode = Input(UInt(2.W))
+  val wen = Input(Bool())
   val addr = Input(UInt(numInBits.W))
   override def cloneType = (new SubADCCalIO(numInBits, numOutBits)).asInstanceOf[this.type]
 }
 
 class SubADCCal(numInBits: Int, numOutBits: Int) extends Module {
   val io = IO(new SubADCCalIO(numInBits, numOutBits))
-  val wen = Wire(Bool())
   val memaddr = Wire(UInt(numInBits.W))
   val memdata = Wire(UInt(numOutBits.W))
   
@@ -42,19 +43,15 @@ class SubADCCal(numInBits: Int, numOutBits: Int) extends Module {
 
   // mode selection
   when(io.mode === idle) {
-    wen := false.B
     memaddr := io.addr
     memdata := dontcare
   } .elsewhen(io.mode === normal) {
-    wen := false.B
     memaddr := io.adcdata
     memdata := dontcare
   } .elsewhen(io.mode === lutset) {
-    wen := true.B
     memaddr := io.addr
     memdata := io.calcoeff
   } .elsewhen(io.mode === adctest) {
-    wen := true.B
     memaddr := addrCounter
     memdata := io.adcdata
   }
@@ -62,9 +59,9 @@ class SubADCCal(numInBits: Int, numOutBits: Int) extends Module {
   // memory
   val mem = SeqMem(math.pow(2, numInBits).toInt, UInt(numOutBits.W))
   mem.suggestName(this.name + "_sram")
-  io.calout := mem.read(memaddr, !wen)
+  io.calout := mem.read(memaddr, !io.wen)
 
-  when(wen) {
+  when(io.wen) {
     mem.write(memaddr, memdata)
   }
 }
@@ -83,6 +80,7 @@ class ADCCal(numInBits: Int, numOutBits: Int, numSlices: Int) extends Module {
     mod.io.calcoeff := io.calcoeff(i)
     io.calout(i) := mod.io.calout
     mod.io.mode := io.mode
+    mod.io.wen := io.wen
     mod.io.addr := io.addr
   }
 }
