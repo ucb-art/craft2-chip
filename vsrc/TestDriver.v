@@ -2,17 +2,22 @@
 
 `ifndef RESET_DELAY
  `define RESET_DELAY 777.7
+ `define ADC_RESET_DELAY 376.4
 `endif
 
 module TestDriver;
 
   reg core_clock = 1'b0;
   reg serial_clock = 1'b0;
+  reg dsp_clock = 1'b0;
   reg reset = 1'b1;
+  reg adc_reset = 1'b1;
 
   always #(`CORE_CLOCK_PERIOD/2.0) core_clock = ~core_clock;
   always #(`SERIAL_CLOCK_PERIOD/2.0) serial_clock = ~serial_clock;
+  always #(`DSP_CLOCK_PERIOD/2.0) dsp_clock = ~dsp_clock;
   initial #(`RESET_DELAY) reset = 0;
+  initial #(`ADC_RESET_DELAY) adc_reset = 0;
 
   // Read input arguments and initialize
   reg verbose = 1'b0;
@@ -136,6 +141,8 @@ module TestDriver;
   wire vip, vin;
   assign vip = core_clock;
   assign vin = ~core_clock;
+  assign dip = dsp_clock;
+  assign din = ~dsp_clock;
   wire [1:0] dummy;
   TestHarness testHarness(
     // TSI clock and reset
@@ -151,15 +158,15 @@ module TestDriver;
     .io_ua_rxd(1'b0),
     .io_ua_int(),
     .io_ua_txd(),
-    // ADC signals and some PG
-    .io_adcclkrst(reset),
+    // ADC signals and DSP clock and reset
+    .io_adcclkrst(adc_reset),
     .io_dsp_reset(reset),
     .io_ADCBIAS(),
     .io_adcextclk(1'b0),
     .io_ADCINP(),
     .io_ADCINM(),
-    .io_ADCCLKP(),
-    .io_ADCCLKM(),
+    .io_ADCCLKP(dip),
+    .io_ADCCLKM(din),
     // test IO
     .io_success(success)
   );
