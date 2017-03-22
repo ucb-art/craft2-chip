@@ -13,12 +13,12 @@ import _root_.util._
 
 trait ADCTopLevelIO {
   val ADCBIAS       = Analog(1.W)
-  val adcextclk     = Input(Bool())
+  val adcextclock   = Input(Bool())
   val ADCINP        = Analog(1.W)
   val ADCINM        = Analog(1.W)
   val ADCCLKP       = Analog(1.W)
   val ADCCLKM       = Analog(1.W)
-  val adcclkrst     = Input(Bool())
+  val adcclkreset   = Input(Bool())
 }
 
 trait LazyADC {
@@ -107,14 +107,14 @@ trait ADCModule {
   adc.io.osm6 := osm(6)
   adc.io.osm7 := osm(7)
 
-  adc.io.extclk0 := io.adcextclk
-  adc.io.extclk1 := io.adcextclk
-  adc.io.extclk2 := io.adcextclk
-  adc.io.extclk3 := io.adcextclk
-  adc.io.extclk4 := io.adcextclk
-  adc.io.extclk5 := io.adcextclk
-  adc.io.extclk6 := io.adcextclk
-  adc.io.extclk7 := io.adcextclk
+  adc.io.extclk0 := io.adcextclock
+  adc.io.extclk1 := io.adcextclock
+  adc.io.extclk2 := io.adcextclock
+  adc.io.extclk3 := io.adcextclock
+  adc.io.extclk4 := io.adcextclock
+  adc.io.extclk5 := io.adcextclock
+  adc.io.extclk6 := io.adcextclock
+  adc.io.extclk7 := io.adcextclock
 
   adc.io.asclkd0 := asclkd(0)
   adc.io.asclkd1 := asclkd(1)
@@ -176,7 +176,7 @@ trait ADCModule {
 
   adc.io.clkgbias := clkgbias
 
-  adc.io.clkrst := io.adcclkrst
+  adc.io.clkrst := io.adcclkreset
 
   val adcout = Vec(
     adc.io.adcout0,
@@ -194,7 +194,7 @@ trait ADCModule {
   // [stevo]: wouldn't do anything, since it's only used on reset
   deser.io.phi_init := 0.U
   // unsynchronized ADC clock reset
-  deser.io.rst := io.adcclkrst
+  deser.io.rst := io.adcclkreset
   
   val des_sync = Vec(deser.io.out.map(s => SyncCrossing(from_clock=deser.io.clkout_data, to_clock=deser.io.clkout_dsp, in=s, sync=1)))
   
