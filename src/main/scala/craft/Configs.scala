@@ -143,18 +143,18 @@ object ChainBuilder {
   def firSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the filterbank
-  def pfbConfig() = PFBConfig(processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4)
+  def pfbConfig() = PFBConfig(windowFunc = userCoeff.apply, processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4)
   def pfbInput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
   // [stevo]: make sure pfbTap and pfbConvert use the same width and binary point
-  def pfbTap:DspComplex[T] = DspComplex(FixedPoint(11.W, 17.BP), FixedPoint(11.W, 17.BP))
-  def pfbConvert(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 11.W, 17.BP), FixedPoint.fromDouble(0.0, 11.W, 17.BP))
-  def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 17.BP), FixedPoint(11.W, 17.BP))
+  def pfbTap:DspComplex[T] = DspComplex(FixedPoint(12.W, 17.BP), FixedPoint(12.W, 17.BP))
+  def pfbConvert(x: Double):DspComplex[T] = DspComplex(FixedPoint.fromDouble(x, 12.W, 17.BP), FixedPoint.fromDouble(0.0, 12.W, 17.BP))
+  def pfbOutput():DspComplex[T] = DspComplex(FixedPoint(12.W, 17.BP), FixedPoint(12.W, 17.BP))
   def pfbConnect() = BlockConnectEverything
   def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the Fourier transform
   def fftConfig() = FFTConfig(n = 128, lanes = 4, pipelineDepth = 4)
-  def fftInput():T = FixedPoint(11.W, 17.BP) // gets complexed automatically
+  def fftInput():T = FixedPoint(12.W, 17.BP) // gets complexed automatically
   def fftOutput():T = FixedPoint(15.W, 14.BP) // gets complexed automatically
   def fftConnect() = BlockConnectEverything
   def fftSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
@@ -174,7 +174,7 @@ object ChainBuilder {
   def radar(id: String = "craft-radar"): Config = {
     new Config(
       (pname, site, here) => pname match {
-        case DefaultSAMKey => SAMConfig(16, 16)
+        case DefaultSAMKey => SAMConfig(1, 4096)
         case DspChainId => id
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
@@ -187,9 +187,9 @@ object ChainBuilder {
             (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), fftSAMConfig()),
             (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect(), rssiSAMConfig())
           ),
-          logicAnalyzerSamples = 256,
+          logicAnalyzerSamples = 8192,
           logicAnalyzerUseCombinationalTrigger = true,
-          patternGeneratorSamples = 256,
+          patternGeneratorSamples = 8192,
           patternGeneratorUseCombinationalTrigger = true,
           biggestWidth = 512
         )

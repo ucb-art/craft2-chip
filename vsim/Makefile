@@ -42,6 +42,7 @@ sim_svsrcs = $(base_dir)/vsrc/TISARADC.v
 CUSTOM_FLAGS := \
   +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
   +define+SERIAL_CLOCK_PERIOD=$(serial_clock_period) \
+  +define+DSP_CLOCK_PERIOD=$(dsp_clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
 	+define+TSMC_CM_NO_WARNING
 

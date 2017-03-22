@@ -1,7 +1,6 @@
 ////////////////////////////////////////////////////////////////////
 // 
-// File:        ti_adc.sv
-// Module:      ti_adc
+// File:        ti_adc.sv // Module:      ti_adc
 // Project:     TI-ADC modeling
 // Description: time interleave SAR-ADC model, ideal
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
@@ -26,8 +25,8 @@
 //In each, Sub-ADC BIT[0] is the highest bit
 //In TI-ADC, ADC[0] is the first ADC
 
-`timescale 1ps/1fs
-`default_nettype none
+//`timescale 1ps/1fs
+//`default_nettype none
 
 `define PI 3.1415926535897932
 `define NS_TO_FS 1e6
@@ -154,9 +153,6 @@ module TISARADC (
     input ADCBIAS
 ); 
 
-
-reg clk = 1'b0;
-always #3000 clk = !clk;
-assign clkout_des = clk;
+assign clkout_des = ADCCLKP & ~ADCCLKM & ~clkrst;
 
 endmodule
