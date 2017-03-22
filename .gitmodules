@@ -25,3 +25,6 @@
 [submodule "uart"]
 	path = uart
 	url = git@bwrcrepo.eecs.berkeley.edu:craft-chips/uart.git
+[submodule "chisel-jtag"]
+	path = chisel-jtag
+	url = https://github.com/ucb-art/chisel-jtag

@@ -6,10 +6,7 @@ import chisel3._
 import chisel3.experimental._
 
 class ADCIO extends Bundle {
-  val vddhadc     = Analog(1.W)
-  val vddadc      = Analog(1.W)
-  val vss         = Analog(1.W)
-  val adcbias     = Analog(1.W)
+  val ADCBIAS     = Analog(1.W)
   val ADCINP      = Analog(1.W)
   val ADCINM      = Analog(1.W)
   val ADCCLKP     = Analog(1.W)

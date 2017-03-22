@@ -96,12 +96,48 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 
 $(simv): $(sim_vsrcs) $(sim_csrcs)
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) -elaborate
-	echo irun -define $$\@ +verbose -64 -R > $@
+	rm -f $@
+	touch $@
+	@echo '#!/bin/bash' >> $@
+	@echo '' >> $@
+	@echo 'VARS=""' >> $@
+	@echo 'DEFINE=""' >> $@
+	@echo 'while [[ $$# -gt 0 ]]' >> $@
+	@echo 'do' >> $@
+	@echo '  arg="$$1"' >> $@
+	@echo '  if [[ "$$arg" == +* ]] ; then' >> $@
+	@echo '    VARS="$$VARS $$arg"' >> $@
+	@echo '  else' >> $@
+	@echo '    DEFINE="$$arg"' >> $@
+	@echo '  fi' >> $@
+	@echo '  shift' >> $@
+	@echo 'done' >> $@
+	@echo '' >> $@
+	@echo 'echo irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
+	@echo 'irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
 	chmod +x $@
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -elaborate
-	echo irun -define $$\@ +verbose -64 -R > $@
+	rm -f $@
+	touch $@
+	@echo '#!/bin/bash' >> $@
+	@echo '' >> $@
+	@echo 'VARS=""' >> $@
+	@echo 'DEFINE=""' >> $@
+	@echo 'while [[ $$# -gt 0 ]]' >> $@
+	@echo 'do' >> $@
+	@echo '  arg="$$1"' >> $@
+	@echo '  if [[ "$$arg" == +* ]] ; then' >> $@
+	@echo '    VARS="$$VARS $$arg"' >> $@
+	@echo '  else' >> $@
+	@echo '    DEFINE="$$arg"' >> $@
+	@echo '  fi' >> $@
+	@echo '  shift' >> $@
+	@echo 'done' >> $@
+	@echo '' >> $@
+	@echo 'echo irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
+	@echo 'irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
 	chmod +x $@
 
 clean:

@@ -154,15 +154,12 @@ module TestDriver;
     // ADC signals and some PG
     .io_adcclkrst(reset),
     .io_dsp_reset(reset),
-    .io_adcbias(),
+    .io_ADCBIAS(),
     .io_adcextclk(1'b0),
     .io_ADCINP(),
     .io_ADCINM(),
     .io_ADCCLKP(),
     .io_ADCCLKM(),
-    .io_adcvddhadc(),
-    .io_adcvddadc(),
-    .io_adcvss(),
     // test IO
     .io_success(success)
   );

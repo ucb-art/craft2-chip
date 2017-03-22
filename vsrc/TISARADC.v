@@ -38,10 +38,6 @@
 
 
 module TISARADC (
-    //Supply
-    inout vddhadc,
-    inout vddadc,
-    inout vss,
     //input
     input ADCINP,
     input ADCINM,
@@ -155,7 +151,7 @@ module TISARADC (
     input clkrst,
 
     //Source Follower
-    input adcbias
+    input ADCBIAS
 ); 
 
 

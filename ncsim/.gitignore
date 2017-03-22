@@ -1,0 +1,4 @@
+*.log
+*.history
+INCA_libs
+simv*
