@@ -210,8 +210,8 @@ always @(posedge clk, posedge rst) begin //asynchronous reset
         clkout_data <= !phi_init[1]; 
     end else begin
         phi <= phi_next;
-        clkout_data = (phi == 2'b10 || phi == 2'b11) ? 1 : 0;
-        clkout_dsp =  (phi == 2'b00 || phi == 2'b01) ? 1 : 0;
+        clkout_data <= (phi == 2'b10 || phi == 2'b11) ? 1 : 0;
+        clkout_dsp <=  (phi == 2'b00 || phi == 2'b01) ? 1 : 0;
         //clkout_dsp <= clkout_dsp_next;
         //clkout_data <= clkout_dsp_next;
     end
