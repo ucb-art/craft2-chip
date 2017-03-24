@@ -1,4 +1,5 @@
 *.log
 *.history
-INCA_libs
-simv*
+/simv-*
+/output
+/generated-src
