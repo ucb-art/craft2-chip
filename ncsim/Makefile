@@ -42,6 +42,7 @@ sim_svsrcs = $(base_dir)/vsrc/TISARADC.v
 CUSTOM_FLAGS := \
   +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
   +define+SERIAL_CLOCK_PERIOD=$(serial_clock_period) \
+  +define+DSP_CLOCK_PERIOD=$(dsp_clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
 	+define+TSMC_CM_NO_WARNING
 
@@ -56,7 +57,7 @@ IRUN_OPTS = \
 	$(RISCV)/lib/libfesvr.so \
 	-sv \
 	+incdir+$(sim_dir)/generated-src \
-	+define+CLOCK_PERIOD=1.0 $(sim_vsrcs) $(sim_csrcs) \
+	$(sim_vsrcs) $(sim_csrcs) \
 	$(sim_svsrcs) \
 	+define+PRINTF_COND=$(TB).printf_cond \
 	+define+STOP_COND=!$(TB).reset \
@@ -71,31 +72,8 @@ IRUN_OPTS = \
 	-ccext .c \
 	$(CUSTOM_FLAGS)
 
-VCS = vcs -full64
-
-VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1ns/10ps -quiet \
-	+rad +v2k +vcs+lic+wait \
-	+vc+list -CC "-I$(VCS_HOME)/include" \
-	-CC "-I$(RISCV)/include" \
-	-CC "-std=c++11" \
-	-CC "-Wl,-rpath,$(RISCV)/lib" \
-	$(RISCV)/lib/libfesvr.so \
-	-sverilog \
-	+incdir+$(generated_dir) \
-	$(sim_vsrcs) $(sim_csrcs) \
-	$(sim_svsrcs) \
-	+define+PRINTF_COND=$(TB).printf_cond \
-	+define+STOP_COND=!$(TB).reset \
-	+define+RANDOMIZE_MEM_INIT \
-	+define+RANDOMIZE_REG_INIT \
-	+define+RANDOMIZE_GARBAGE_ASSIGN \
-	+define+RANDOMIZE_INVALID_ASSIGN \
-	+libext+.v \
-	$(CUSTOM_FLAGS)
-
-
 $(simv): $(sim_vsrcs) $(sim_csrcs)
-	rm -rf csrc && $(IRUN) $(IRUN_OPTS) -elaborate
+	rm -rf csrc && $(IRUN) $(IRUN_OPTS) -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@
 	@echo '#!/bin/bash' >> $@
@@ -113,12 +91,12 @@ $(simv): $(sim_vsrcs) $(sim_csrcs)
 	@echo '  shift' >> $@
 	@echo 'done' >> $@
 	@echo '' >> $@
-	@echo 'echo irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
-	@echo 'irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
+	@echo 'echo irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
+	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
 	chmod +x $@
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
-	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -elaborate
+	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@
 	@echo '#!/bin/bash' >> $@
@@ -136,8 +114,8 @@ $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
 	@echo '  shift' >> $@
 	@echo 'done' >> $@
 	@echo '' >> $@
-	@echo 'echo irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
-	@echo 'irun -define "$$DEFINE" "$$VARS" +verbose -64 -R' >> $@
+	@echo 'echo irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
+	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
 	chmod +x $@
 
 clean:
@@ -155,8 +133,8 @@ endif
 #--------------------------------------------------------------------
 
 seed = $(shell date +%s)
-exec_simv = $(simv) -q +ntb_random_seed_automatic
-exec_simv_debug = $(simv_debug) -q +ntb_random_seed_automatic
+exec_simv = $(simv)
+exec_simv_debug = $(simv_debug)
 
 $(build_dir)/consts.$(CONFIG).vh: $(build_dir)/$(long_name).prm
 	echo "\`ifndef CONST_VH" > $@
