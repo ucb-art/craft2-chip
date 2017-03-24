@@ -1,6 +1,5 @@
 export RISCV=/tools/projects/zhemao/craft2-chip/install
-#export PATH=~rigge/gcc/bin:$RISCV/bin:$PATH
-
+export PATH=$PATH:$RISCV/bin
 
 export LD_LIBRARY_PATH=~rigge/gcc/lib64:~rigge/gcc/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$RISCV/lib64:$RISCV/lib:$LD_LIBRARY_PATH
@@ -24,3 +23,9 @@ export PATH=/tools/cadence/INCISIV/INCISIVE152/tools/bin:$PATH
 
 # get the right gcc 
 scl enable devtoolset-2 bash
+
+# layer props for calibre (currently not working?)
+# alias viewgds="calibredrv -dl /users/stevo.bailey/TSMC16.layerprops -s /users/bmzimmer/.calibrewb_workspace/wbinit.tcl -m "
+
+# cadence tools
+export PATH=$PATH:/tools/cadence/GENUS/GENUS162/tools/bin:/tools/cadence/INNOVUS/INNOVUS162/tools/bin:/tools/cadence/INCISIV/INCISIVE152/tools/bin

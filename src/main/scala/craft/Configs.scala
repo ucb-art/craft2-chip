@@ -135,7 +135,8 @@ object ChainBuilder {
   def tunerSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the filter-decimator
-  def firConfig() = FIRConfig(numberOfTaps = 136, lanesIn = 32, lanesOut = 4, processingDelay = 2)
+  // suggested pipelining: 1 multiply pipeline, and log2(min(lanesIn, numberOfTaps)) output pipeline
+  def firConfig() = FIRConfig(numberOfTaps = 136, lanesIn = 32, lanesOut = 4, processingDelay = 8, multiplyPipelineDepth = 1, outputPipelineDepth = 5)
   def firInput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
   def firTaps():DspComplex[T] = DspComplex(FixedPoint(8.W, 10.BP), FixedPoint(8.W, 10.BP))
   def firOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
@@ -143,7 +144,7 @@ object ChainBuilder {
   def firSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the filterbank
-  def pfbConfig() = PFBConfig(windowFunc = userCoeff.apply, processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4)
+  def pfbConfig() = PFBConfig(windowFunc = userCoeff.apply, processingDelay = 192, numTaps = 12, outputWindowSize = 128, lanes = 4, multiplyPipelineDepth = 1, outputPipelineDepth = 1)
   def pfbInput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))
   // [stevo]: make sure pfbTap and pfbConvert use the same width and binary point
   def pfbTap:DspComplex[T] = DspComplex(FixedPoint(12.W, 17.BP), FixedPoint(12.W, 17.BP))
@@ -153,7 +154,7 @@ object ChainBuilder {
   def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the Fourier transform
-  def fftConfig() = FFTConfig(n = 128, lanes = 4, pipelineDepth = 4)
+  def fftConfig() = FFTConfig(n = 128, lanes = 4, pipelineDepth = 7)
   def fftInput():T = FixedPoint(12.W, 17.BP) // gets complexed automatically
   def fftOutput():T = FixedPoint(15.W, 14.BP) // gets complexed automatically
   def fftConnect() = BlockConnectEverything
