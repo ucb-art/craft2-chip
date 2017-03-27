@@ -28,7 +28,6 @@ class TestHarness(implicit val p: Parameters) extends Module {
   attach(dut.io.ADCINM, io.ADCINM)
   attach(dut.io.ADCCLKP, io.ADCCLKP)
   attach(dut.io.ADCCLKM, io.ADCCLKM)
-  dut.io.adcextclock := io.adcextclock
   dut.io.adcclkreset := io.adcclkreset
   dut.io.ua_rxd := io.ua_rxd
   io.ua_int := dut.io.ua_int
@@ -56,7 +55,6 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
 
   // ADC
   // adc digital
-  craft.io.adcextclock := io.adcextclock
   craft.io.adcclkreset := io.adcclkreset
   craft.io.dsp_reset := io.dsp_reset
   // adc analog

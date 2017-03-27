@@ -70,6 +70,7 @@ IRUN_OPTS = \
 	-DVCS_VPI \
 	-timescale 1ns/10ps \
 	-ccext .c \
+	-access +R \
 	$(CUSTOM_FLAGS)
 
 $(simv): $(sim_vsrcs) $(sim_csrcs)
@@ -96,7 +97,7 @@ $(simv): $(sim_vsrcs) $(sim_csrcs)
 	chmod +x $@
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
-	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -elaborate -nclibdirname $@.daidir
+	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -linedebug -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@
 	@echo '#!/bin/bash' >> $@

@@ -136,7 +136,7 @@ object ChainBuilder {
 
   // Here be the filter-decimator
   // suggested pipelining: 1 multiply pipeline, and log2(min(lanesIn, numberOfTaps)) output pipeline
-  def firConfig() = FIRConfig(numberOfTaps = 136, lanesIn = 32, lanesOut = 4, processingDelay = 8, multiplyPipelineDepth = 1, outputPipelineDepth = 5)
+  def firConfig() = FIRConfig(numberOfTaps = 136, lanesIn = 32, lanesOut = 4, processingDelay = 2, multiplyPipelineDepth = 1, outputPipelineDepth = 5)
   def firInput():DspComplex[T] = DspComplex(FixedPoint(8.W, 7.BP), FixedPoint(8.W, 7.BP))
   def firTaps():DspComplex[T] = DspComplex(FixedPoint(8.W, 10.BP), FixedPoint(8.W, 10.BP))
   def firOutput():DspComplex[T] = DspComplex(FixedPoint(11.W, 10.BP), FixedPoint(11.W, 10.BP))

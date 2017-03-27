@@ -7,7 +7,7 @@
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    12/06/2016
-// Date modefied:   02/21/2017
+// Date modefied:   03/24/2017
 // -----------------------------------------------------------------
 // Change history:  12/06/2016 - First Created
 //                  12/07/2016 - Add 'init' signal generation
@@ -20,6 +20,8 @@
 //                             - add more judgment on 'posedge asyn_clk', line 63
 //                  01/29/2017 - Add parameter description
 //                  02/21/2017 - Add state when 'rst' goes to 0
+//                  03/23/2017 - Delete 'rst' signal
+//                  03/24/2017 - Swap LSB and MSB
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
@@ -33,14 +35,13 @@ module sar_logic #(
     parameter ADC_BITS      = 8
 )(
     //input
-    input rst,
     input clk,
     input asyn_clk,
     input senamp_out,
     //output
-    output reg [1:ADC_BITS-1] dac_data_h,   //data to cap dac
-    output reg [1:ADC_BITS-1] dac_data_l,
-    output reg [0:ADC_BITS-1] adc_data,     //adc output
+    output reg [ADC_BITS-1:1] dac_data_h,   //data to cap dac
+    output reg [ADC_BITS-1:1] dac_data_l,
+    output reg [ADC_BITS-1:0] adc_data,     //adc output
     output reg compl                        //adc complete flag
 ); 
 
@@ -53,29 +54,23 @@ parameter WIDTH = $clog2(ADC_BITS);
 
 reg [WIDTH:0] i;
 reg [1:0] state;
-reg [0:ADC_BITS-1] adc_data_m;
+reg [ADC_BITS-1:0] adc_data_m;
 
 //Calculating states
-always @(posedge clk or negedge rst)           //state FINISH 
+always @(posedge clk)           //state FINISH 
         state <= INIT;
-always @(posedge asyn_clk or negedge rst)      //state INIT or DAC or even in state FINISH
-    if (rst == 1'd1)
-        //there's some cases that in state FINISH, avoid it go to state COMP
-        //corresponding to the dash line in FSM figure
-        if (i< ADC_BITS)
-            state <= COMP;
-        else
-            state <= FINISH;
+always @(posedge asyn_clk)      //state INIT or DAC or even in state FINISH
+    //there's some cases that in state FINISH, avoid it go to state COMP
+    //corresponding to the dash line in FSM figure
+    if (i< ADC_BITS)
+        state <= COMP;
     else
-        state <= INIT;
-always @(negedge asyn_clk or negedge rst)      //state COMP 
-    if (rst == 1'd1)
-        if (i < ADC_BITS)
-            state <= DAC;
-        else
-            state <= FINISH;
+        state <= FINISH;
+always @(negedge asyn_clk)      //state COMP 
+    if (i < ADC_BITS)
+        state <= DAC;
     else
-        state <= INIT;
+        state <= FINISH;
 
 //calculation ouput
 always @(state)
@@ -93,13 +88,13 @@ always @(state)
             //compl <= 1'd0;
         end
         DAC: begin
-            dac_data_h[i] <= senamp_out;
-            dac_data_l[i] <= ~senamp_out;
-            adc_data_m[i-1] <= senamp_out;
+            dac_data_h[ADC_BITS-i] <= senamp_out;
+            dac_data_l[ADC_BITS-i] <= ~senamp_out;
+            adc_data_m[ADC_BITS-i] <= senamp_out;
             //compl <= 1'd0;
         end
         FINISH: begin
-            adc_data_m[i-1] <= senamp_out;
+            adc_data_m[ADC_BITS-i] <= senamp_out;
             compl <= 1'd1;
         end
     endcase

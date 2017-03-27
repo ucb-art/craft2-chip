@@ -7,7 +7,7 @@
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    12/16/2016
-// Date modefied:   02/21/2017
+// Date modefied:   02/23/2017
 // -----------------------------------------------------------------
 // Change history:  12/16/2016 - First Created
 //                  01/13/2017 - Ref is Yidu's thesis, Page 30
@@ -19,6 +19,7 @@
 //                               add some delay to clock generation
 //                  01/29/2017 - Add parameter description
 //                  02/21/2017 - Add state when 'rst' goes to 0
+//                  03/23/2017 - Delete 'rst' signal
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
@@ -33,7 +34,6 @@ module asyn_clkgen #(
     parameter ASYN_DEL      = 10.0  //e-12s 
 )(
     //input
-    input rst,
     input clk,
     input compl,
     input senamp_done,              //comparator done
@@ -55,26 +55,17 @@ always @(*) begin
 end
 
 //Calculating states
-always @(posedge clk or negedge rst)       //in state HIGH
-        state <= INIT2;
-always @(negedge clk or negedge rst)       //in state INIT1
-    if (rst == 1'd1)
-        state <= INIT1;
-    else
-        state <= INIT2;
-always @(posedge down or negedge rst)      //in state INIT2 or state HIGH
-    if (rst == 1'd1)
-        if (compl == 1'd1)
-            state <= HIGH;
-        else
-            state <= LOW;
-    else
-        state <= INIT2;
-always @(posedge up or negedge rst)        //in state LOW
-    if (rst == 1'd1)
+always @(posedge clk)       //in state HIGH
+    state <= INIT2;
+always @(negedge clk)       //in state INIT1
+    state <= INIT1;
+always @(posedge down)      //in state INIT2 or state HIGH
+    if (compl == 1'd1)
         state <= HIGH;
     else
-        state <= INIT2;
+        state <= LOW;
+always @(posedge up)        //in state LOW
+    state <= HIGH;
 
 //Caluclating output
 always @(state)

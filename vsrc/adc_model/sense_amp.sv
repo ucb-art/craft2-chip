@@ -7,7 +7,7 @@
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    12/01/2016
-// Date modefied:   01/29/2017
+// Date modefied:   03/21/2017
 // -----------------------------------------------------------------
 // Change history:  12/01/2016 - First Created
 //                  12/16/2016 - Add delay to output
@@ -19,22 +19,27 @@
 //                               for falling edge, make delay to vmp, vmn be 0
 //                  01/29/2017 - Add parameters
 //                               Delete all things about dout
+//                  03/21/2017 - Add offset voltages: vosp, vosn
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
 //      SENAMP_DEL      (0:inf)     1.0         ps      real    sense amplifier delay
+//      OFFSET_GAIN     [0:1]       0.25                real    offset gain for sense amplifier
 //
 ////////////////////////////////////////////////////////////////////
 
 `include "verilog_header.vh"
 
 module sense_amp #(
-    parameter SENAMP_DEL    = 1.0   //e-12s
+    parameter SENAMP_DEL    = 1.0,  //e-12s
+    parameter OFFSET_GAIN   = 0.25
 )(
     //input
     input asyn_clk,
     input real vip,
     input real vin,
+    input real vosp,
+    input real vosn,
     //output
     output reg vmp,
     output reg vmn,
@@ -45,7 +50,7 @@ module sense_amp #(
 
 //Calculate ouput
 always @(posedge asyn_clk) 
-    if (vip >= vin) begin
+    if ((vip+OFFSET_GAIN*vosp) >= (vin+OFFSET_GAIN*vosn)) begin
         vmp <= #SENAMP_DEL 1'd1;
         vmn <= #SENAMP_DEL 1'd0;
         vop <= #SENAMP_DEL 1'd1;

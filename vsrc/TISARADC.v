@@ -1,12 +1,13 @@
 ////////////////////////////////////////////////////////////////////
 // 
-// File:        ti_adc.sv // Module:      ti_adc
+// File:        ti_adc.sv
+// Module:      ti_adc
 // Project:     TI-ADC modeling
 // Description: time interleave SAR-ADC model, ideal
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    01/29/2017
-// Date modefied:   02/25/2017
+// Date modefied:   03/23/2017
 // -----------------------------------------------------------------
 // Change history:  01/29/2017 - First Created
 //                  02/21/2017 - Add another parameter 'CLK_INIT'
@@ -16,17 +17,22 @@
 //                  02/25/2017 - Change default values
 //                               Add pins from real ADC
 //                               Change pin names!!
+//                  03/21/2017 - Remove VDD/VSS
+//                               Change pin name from uppercase to lowercase
+//                               Connect vref and offset control to inside block
+//                  03/23/2017 - Add input clock/rst part as real circuit
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
 ////////////////////////////////////////////////////////////////////
 
 //Things to notice:
-//In each, Sub-ADC BIT[0] is the highest bit
+//In each, Sub-ADC BIT[`ADC_BITS-1] is the highest bit
 //In TI-ADC, ADC[0] is the first ADC
 
 //`timescale 1ps/1fs
 //`default_nettype none
+
 
 `define PI 3.1415926535897932
 `define NS_TO_FS 1e6
@@ -37,7 +43,6 @@
 
 
 module TISARADC (
-    //input
     input ADCINP,
     input ADCINM,
     //""clock will have problem, as this is sinusoid wave!!
@@ -92,52 +97,16 @@ module TISARADC (
     input extsel_clk6,
     input extsel_clk7,
 
-
-    input extclk0,
-    input extclk1,
-    input extclk2,
-    input extclk3,
-    input extclk4,
-    input extclk5,
-    input extclk6,
-    input extclk7,
-    
     //ADC REF
-    input [7:0] vref00,
-    input [7:0] vref01,
-    input [7:0] vref02,
-    input [7:0] vref03,
-    input [7:0] vref04,
-    input [7:0] vref05,
-    input [7:0] vref06,
-    input [7:0] vref07,
-
-    input [7:0] vref10,
-    input [7:0] vref11,
-    input [7:0] vref12,
-    input [7:0] vref13,
-    input [7:0] vref14,
-    input [7:0] vref15,
-    input [7:0] vref16,
-    input [7:0] vref17,
-
-    input [7:0] vref20,
-    input [7:0] vref21,
-    input [7:0] vref22,
-    input [7:0] vref23,
-    input [7:0] vref24,
-    input [7:0] vref25,
-    input [7:0] vref26,
-    input [7:0] vref27,
-
-    input [7:0] iref0,
-    input [7:0] iref1,
-    input [7:0] iref2,
+    input [7:0] vref0,
+    input [7:0] vref1,
+    input [7:0] vref2,
     
     //CLK outputs
     output clkout_des,
+    output clkbout_nc,
 
-    //ClK Calibration
+    //CKK Calibration
     input [7:0] clkgcal0,
     input [7:0] clkgcal1,
     input [7:0] clkgcal2,
@@ -153,6 +122,39 @@ module TISARADC (
     input ADCBIAS
 ); 
 
-assign clkout_des = ADCCLKP & ~ADCCLKM & ~clkrst;
+reg clkrstP_s1, clkrstP_s2, clkrstN_s2;
+wire clk_gatedP, clk_gatedN;
+reg [1:0] cntP, cntN;
+
+always @(negedge ADCCLKP) begin
+    clkrstP_s1 <= clkrst;
+    clkrstP_s2 <= clkrstP_s1;   
+end
+ 
+always @(negedge ADCCLKM) begin
+    clkrstN_s2 <= clkrstP_s2;   
+end
+
+assign clk_gatedP = ~(~ADCCLKP | clkrstP_s2);
+assign clk_gatedN = ~(~ADCCLKM | clkrstN_s2);
+ 
+// This always block not needed, but including it in case I got the wrong phasing for the output clock
+always @(negedge clk_gatedP or posedge clkrstP_s2) begin
+    if (clkrstP_s2)  begin
+        cntP <= 2'b00;
+    end else begin
+        cntP <= cntP+1;
+    end
+end
+ 
+always @(negedge clk_gatedN or posedge clkrstN_s2) begin
+    if (clkrstN_s2)  begin
+        cntN <= 2'b00;
+    end else begin
+        cntN <= cntN+1;
+    end
+end
+ 
+assign clkout_des = ((cntN == 2'b01) ? 1'b1 : 1'b0) & clk_gatedN;
 
 endmodule
