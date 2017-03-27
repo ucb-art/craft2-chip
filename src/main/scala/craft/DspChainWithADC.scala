@@ -30,7 +30,7 @@ trait LazyADC {
   scrbuilder.addControl("VREF0")
   scrbuilder.addControl("VREF1")
   scrbuilder.addControl("VREF2")
-  scrbuilder.addControl("IREF")
+  //scrbuilder.addControl("IREF")
   scrbuilder.addControl("CLKGCAL")
   scrbuilder.addControl("CLKGBIAS")
   scrbuilder.addControl("ADC_VALID")
