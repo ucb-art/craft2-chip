@@ -156,5 +156,6 @@ always @(negedge clk_gatedN or posedge clkrstN_s2) begin
 end
  
 assign clkout_des = ((cntN == 2'b01) ? 1'b1 : 1'b0) & clk_gatedN;
+assign clkbout_nc = ((cntN == 2'b11) ? 1'b1 : 1'b0) & clk_gatedN;
 
 endmodule
