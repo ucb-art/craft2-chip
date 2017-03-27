@@ -104,7 +104,7 @@ module TISARADC (
     
     //CLK outputs
     output clkout_des,
-    output clkbout_nc,
+    output clkbout_nc, //180-degree shifted clock of clkout_des, just for reference (do not connect this pin to core)
 
     //CKK Calibration
     input [7:0] clkgcal0,
