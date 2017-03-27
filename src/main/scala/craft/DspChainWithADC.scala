@@ -13,7 +13,6 @@ import _root_.util._
 
 trait ADCTopLevelIO {
   val ADCBIAS       = Analog(1.W)
-  val adcextclock   = Input(Bool())
   val ADCINP        = Analog(1.W)
   val ADCINM        = Analog(1.W)
   val ADCCLKP       = Analog(1.W)
@@ -82,10 +81,9 @@ trait ADCModule {
   val osm = wordToByteVec(scrfile.control("OSM"))
   val asclkd = wordToNibbleVec(scrfile.control("ASCLKD"))
   val extsel_clk = wordToBoolVec(scrfile.control("EXTSEL_CLK"))
-  val vref0 = wordToByteVec(scrfile.control("VREF0"))
-  val vref1 = wordToByteVec(scrfile.control("VREF1"))
-  val vref2 = wordToByteVec(scrfile.control("VREF2"))
-  val iref = wordToByteVec(scrfile.control("IREF"))
+  val vref0 = scrfile.control("VREF0")
+  val vref1 = scrfile.control("VREF1")
+  val vref2 = scrfile.control("VREF2")
   val clkgcal = wordToByteVec(scrfile.control("CLKGCAL"))
   val clkgbias = scrfile.control("CLKGBIAS")
 
@@ -107,15 +105,6 @@ trait ADCModule {
   adc.io.osm6 := osm(6)
   adc.io.osm7 := osm(7)
 
-  adc.io.extclk0 := io.adcextclock
-  adc.io.extclk1 := io.adcextclock
-  adc.io.extclk2 := io.adcextclock
-  adc.io.extclk3 := io.adcextclock
-  adc.io.extclk4 := io.adcextclock
-  adc.io.extclk5 := io.adcextclock
-  adc.io.extclk6 := io.adcextclock
-  adc.io.extclk7 := io.adcextclock
-
   adc.io.asclkd0 := asclkd(0)
   adc.io.asclkd1 := asclkd(1)
   adc.io.asclkd2 := asclkd(2)
@@ -134,36 +123,9 @@ trait ADCModule {
   adc.io.extsel_clk6 := extsel_clk(6)
   adc.io.extsel_clk7 := extsel_clk(7)
 
-  adc.io.vref00 := vref0(0)
-  adc.io.vref01 := vref0(1)
-  adc.io.vref02 := vref0(2)
-  adc.io.vref03 := vref0(3)
-  adc.io.vref04 := vref0(4)
-  adc.io.vref05 := vref0(5)
-  adc.io.vref06 := vref0(6)
-  adc.io.vref07 := vref0(7)
-
-  adc.io.vref10 := vref1(0)
-  adc.io.vref11 := vref1(1)
-  adc.io.vref12 := vref1(2)
-  adc.io.vref13 := vref1(3)
-  adc.io.vref14 := vref1(4)
-  adc.io.vref15 := vref1(5)
-  adc.io.vref16 := vref1(6)
-  adc.io.vref17 := vref1(7)
-
-  adc.io.vref20 := vref2(0)
-  adc.io.vref21 := vref2(1)
-  adc.io.vref22 := vref2(2)
-  adc.io.vref23 := vref2(3)
-  adc.io.vref24 := vref2(4)
-  adc.io.vref25 := vref2(5)
-  adc.io.vref26 := vref2(6)
-  adc.io.vref27 := vref2(7)
-
-  adc.io.iref0 := iref(0)
-  adc.io.iref1 := iref(1)
-  adc.io.iref2 := iref(2)
+  adc.io.vref0 := vref0
+  adc.io.vref1 := vref1
+  adc.io.vref2 := vref2
 
   adc.io.clkgcal0 := clkgcal(0)
   adc.io.clkgcal1 := clkgcal(1)

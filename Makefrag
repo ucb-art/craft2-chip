@@ -8,7 +8,7 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 # define simulation things
 core_clock_period = 1.4
 serial_clock_period = 37
-dsp_clock_period = 1
+dsp_clock_period = 0.208
 timeout_cycles = 100000000
 
 default: top

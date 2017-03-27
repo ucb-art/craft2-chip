@@ -7,30 +7,36 @@
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    01/19/2017
-// Date modefied:   01/29/2017
+// Date modefied:   03/24/2017
 // -----------------------------------------------------------------
 // Change history:  01/19/2017 - First Created
 //                  01/29/2017 - Add parameters
+//                  03/19/2017 - Add cap array for calibaration
+//                               Change DAC_CAP to UNIT CAP
+//                  03/23/2017 - Delete 'rst' signal
+//                  03/24/2017 - Swap LSB and MSB
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    DESCRIPTION
 //      ASYN_DEL        (0:inf)     10.0        ps      delay between up and down pulses,
 //                                                      also the time for DAC settling
 //      PAR_CAP         [0:inf)     0           F       parasitic cap at comparator input
-//      DAC_CAP         (0:inf)     1.0e-15     F       CAP DAC unit capacitance
+//      UNIT_CAP        (0:inf)     1.0e-15     F       CAP DAC unit capacitance
 //      ADC_BITS        (0:inf)     8                   ADC bits
+//      DAC_CAPS        [0:inf)     next row            array   If the value is 0 will use inside calculation
+//                                  '{1, 2, 4, 8, 16, 32, 64, 128}  
 //
 ////////////////////////////////////////////////////////////////////
 
 module cap_logic #(
     parameter ASYN_DEL      = 10.0,     //e-12s
     //from cap_dac
+    parameter ADC_BITS      = 8,        
     parameter PAR_CAP       = 0,        //F
-    parameter DAC_CAP       = 1.0e-15,  //F
-    parameter ADC_BITS      = 8        
+    parameter UNIT_CAP      = 1.0e-15,    //F
+    parameter DAC_CAPS [1:ADC_BITS-1]   = '{1, 2, 4, 8, 16, 32, 64, 128}
 )(
     //input
-    input rst,
     input senamp_done,                  //from asyn_clk
     input clk,                          //from sar_logic
     input senamp_out,
@@ -43,7 +49,7 @@ module cap_logic #(
     output real dac_vop,                //from cap_dac
     output real dac_von,
     output asyn_clk,                    //from asyn_clk, to senseamp
-    output [0:ADC_BITS-1] adc_data,     //from sar_logic
+    output [ADC_BITS-1:0] adc_data,     //from sar_logic
     output compl
 );
 
@@ -54,7 +60,6 @@ asyn_clkgen #(
     .ASYN_DEL       (ASYN_DEL) 
 )asyn_clkgen(
     //input
-    .rst            (rst),
     .clk            (clk),
     .compl          (compl),
     .senamp_done    (senamp_done),      //comparator senamp_done
@@ -67,7 +72,6 @@ sar_logic #(
     .ADC_BITS       (ADC_BITS)
 )sar_logic(
     //input
-    .rst            (rst),
     .clk            (clk),
     .asyn_clk       (asyn_clk),
     .senamp_out     (senamp_out),
@@ -81,7 +85,8 @@ sar_logic #(
 //cap_dac instiation -- p path
 cap_dac #(
     .PAR_CAP        (PAR_CAP),
-    .DAC_CAP        (DAC_CAP),
+    .UNIT_CAP       (UNIT_CAP),
+    .DAC_CAPS       (DAC_CAPS),
     .ADC_BITS       (ADC_BITS) 
 )cap_dacp(
     //input
@@ -97,7 +102,8 @@ cap_dac #(
 //n path
 cap_dac #(
     .PAR_CAP        (PAR_CAP),
-    .DAC_CAP        (DAC_CAP),
+    .UNIT_CAP       (UNIT_CAP),
+    .DAC_CAPS       (DAC_CAPS),
     .ADC_BITS       (ADC_BITS) 
 )cap_dacn(
     //input

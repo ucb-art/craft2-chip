@@ -7,11 +7,14 @@
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    03/04/2017
-// Date modefied:   03/04/2017
+// Date modefied:   03/23/2017
 // -----------------------------------------------------------------
 // Change history:  03/04/2017 - First Created
 //                  03/04/2017 - Based on real design,
 //                               use DFF and TGATE to work
+//                  03/23/2017 - Change RST to 'high' sensitive
+//                               Change core clock connection with inside sub-ADC clock
+//                               w/o 50% duty cycle
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE           DEFAULT     UNIT    TYPE    DESCRIPTION 
@@ -37,7 +40,7 @@ module ti_clock_half #(
     input clkp,
     input clkn,
     output [0:ADC_WAYS-1] ti_clk,
-    output reg core_clk
+    output core_clk
 );
 
 parameter HALF_WAY = ADC_WAYS/2;
@@ -46,8 +49,8 @@ reg [0:HALF_WAY-1] enp, enn;
 reg [0:ADC_WAYS-1] clk_m;
 integer i;
 
-always @(negedge clkp or negedge rst) begin     //same as real design, genrating en signals
-    if (rst == 1'd0) 
+always @(negedge clkp or posedge rst) begin     //same as real design, genrating en signals
+    if (rst == 1'd1) 
         for (i=0; i<HALF_WAY; i=i+1) 
             if (i == CLK_INIT)
                 enp[i] <= #CLK_DFFD 1'd1;
@@ -61,9 +64,9 @@ always @(negedge clkp or negedge rst) begin     //same as real design, genrating
                 enp[i] <=  #CLK_DFFD enp[i-1];
 end
 
-always @(negedge clkn or negedge rst) begin     //same as real design, genrating en signals
+always @(negedge clkn or posedge rst) begin     //same as real design, genrating en signals
 
-    if (rst == 1'd0) 
+    if (rst == 1'd1) 
         for (i=0; i<HALF_WAY; i=i+1) 
             if (i == CLK_INIT)
                 enn[i] <= #CLK_DFFD 1'd1;
@@ -92,6 +95,7 @@ always @(*)                                      //tgate
 
 assign ti_clk = clk_m;
 
+/*
 always @(posedge clk_m[CLK_CORE] or negedge rst)
     if (rst == 1'd0) 
         core_clk <= 1'd0;
@@ -99,5 +103,7 @@ always @(posedge clk_m[CLK_CORE] or negedge rst)
         core_clk <= 1'd1;
 always @(posedge clk_m[CLK_CORE+HALF_WAY])
     core_clk <= 1'd0;
+*/
+assign core_clk = clk_m[CLK_CORE];
 
 endmodule
