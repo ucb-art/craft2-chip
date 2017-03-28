@@ -21,8 +21,8 @@ class TestHarness(implicit val p: Parameters) extends Module {
   val io = IO(new TestHarnessIO)
 
   val dut = Module(new CraftP1Core)
-  attach(dut.io.clkrxvip, io.clkrxvip)
-  attach(dut.io.clkrxvin, io.clkrxvin)
+  attach(dut.io.CLKRXVIP, io.CLKRXVIP)
+  attach(dut.io.CLKRXVIN, io.CLKRXVIN)
   attach(dut.io.ADCBIAS, io.ADCBIAS)
   attach(dut.io.ADCINP, io.ADCINP)
   attach(dut.io.ADCINM, io.ADCINM)
@@ -65,8 +65,8 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
   attach(craft.io.ADCCLKM, io.ADCCLKM)
 
   // CLKRX
-  attach(craft.io.clkrxvin, io.clkrxvin)
-  attach(craft.io.clkrxvip, io.clkrxvip)
+  attach(craft.io.CLKRXVIN, io.CLKRXVIN)
+  attach(craft.io.CLKRXVIP, io.CLKRXVIP)
 
   // UART, with reset synchronizers
   craft.io.ua_rxd := io.ua_rxd
