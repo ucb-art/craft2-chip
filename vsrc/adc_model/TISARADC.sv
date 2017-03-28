@@ -7,7 +7,7 @@
 // Author:      Zhongkai Wang (zhongkai@eecs.berkeley.edu)
 // -----------------------------------------------------------------
 // Date created:    02/24/2017
-// Date modefied:   03/23/2017
+// Date modefied:   03/24/2017
 // -----------------------------------------------------------------
 // Change history:  02/24/2017 - First created
 //                  02/25/2017 - Change default values
@@ -18,6 +18,7 @@
 //                               Connect vref and offset control to inside block
 //                  03/23/2017 - Add input clock/rst part as real circuit
 //                  03/23/2017 - Add some parameters
+//                  03/24/2017 - Solve bug on retimer
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
@@ -29,7 +30,6 @@
 
 `include "verilog_header.vh"
 
-`define ADC_SR      9.6e9
 `define ADC_WAYS    8   
 `define ADC_BITS    9
 `define DAC_CAPS    '{1, 2, 4, 8, 16, 32, 64, 128}
@@ -38,8 +38,8 @@
 
 
 module TISARADC (
-    input real ADCINP,
-    input real ADCINM,
+    inout real ADCINP,
+    inout real ADCINM,
     //""clock will have problem, as this is sinusoid wave!!
     input ADCCLKP,
     input ADCCLKM,
@@ -92,53 +92,19 @@ module TISARADC (
     input extsel_clk6,
     input extsel_clk7,
 
-
-    input extclk0,
-    input extclk1,
-    input extclk2,
-    input extclk3,
-    input extclk4,
-    input extclk5,
-    input extclk6,
-    input extclk7,
-    
     //ADC REF
     //for vrefn
-    input [7:0] vref00,
-    input [7:0] vref01,
-    input [7:0] vref02,
-    input [7:0] vref03,
-    input [7:0] vref04,
-    input [7:0] vref05,
-    input [7:0] vref06,
-    input [7:0] vref07,
+    input [7:0] vref0,
 
     //for vcm
-    input [7:0] vref10,
-    input [7:0] vref11,
-    input [7:0] vref12,
-    input [7:0] vref13,
-    input [7:0] vref14,
-    input [7:0] vref15,
-    input [7:0] vref16,
-    input [7:0] vref17,
+    input [7:0] vref1,
 
     //for vrefp
-    input [7:0] vref20,
-    input [7:0] vref21,
-    input [7:0] vref22,
-    input [7:0] vref23,
-    input [7:0] vref24,
-    input [7:0] vref25,
-    input [7:0] vref26,
-    input [7:0] vref27,
-
-    input [7:0] iref0,
-    input [7:0] iref1,
-    input [7:0] iref2,
+    input [7:0] vref2,
     
     //CLK outputs
     output clkout_des,
+    output clkbout_nc,
 
     //CKK Calibration
     input [7:0] clkgcal0,
@@ -163,6 +129,7 @@ reg [`ADC_BITS-1:0] adc_data_mid [0:`ADC_WAYS-1];
 reg [`ADC_BITS-1:0] adc_data_pre [0:`ADC_WAYS-1];
 reg [`ADC_BITS-1:0] adc_data_fin [0:`ADC_WAYS-1];
 
+
 reg [7:0] data_vcm [0:`ADC_WAYS-1];
 reg [7:0] data_vrefp [0:`ADC_WAYS-1];
 reg [7:0] data_vrefn [0:`ADC_WAYS-1];
@@ -181,32 +148,32 @@ assign adcout6 = adc_data_fin[6];
 assign adcout7 = adc_data_fin[7];
 
 //reference control
-assign data_vrefn[0]=vref00;
-assign data_vrefn[1]=vref01;
-assign data_vrefn[2]=vref02;
-assign data_vrefn[3]=vref03;
-assign data_vrefn[4]=vref04;
-assign data_vrefn[5]=vref05;
-assign data_vrefn[6]=vref06;
-assign data_vrefn[7]=vref07;
+assign data_vrefn[0]=vref0;
+assign data_vrefn[1]=vref0;
+assign data_vrefn[2]=vref0;
+assign data_vrefn[3]=vref0;
+assign data_vrefn[4]=vref0;
+assign data_vrefn[5]=vref0;
+assign data_vrefn[6]=vref0;
+assign data_vrefn[7]=vref0;
  
-assign data_vcm[0]=vref10;
-assign data_vcm[1]=vref11;
-assign data_vcm[2]=vref12;
-assign data_vcm[3]=vref13;
-assign data_vcm[4]=vref14;
-assign data_vcm[5]=vref15;
-assign data_vcm[6]=vref16;
-assign data_vcm[7]=vref17;
+assign data_vcm[0]=vref1;
+assign data_vcm[1]=vref1;
+assign data_vcm[2]=vref1;
+assign data_vcm[3]=vref1;
+assign data_vcm[4]=vref1;
+assign data_vcm[5]=vref1;
+assign data_vcm[6]=vref1;
+assign data_vcm[7]=vref1;
 
-assign data_vrefp[0]=vref20;
-assign data_vrefp[1]=vref21;
-assign data_vrefp[2]=vref22;
-assign data_vrefp[3]=vref23;
-assign data_vrefp[4]=vref24;
-assign data_vrefp[5]=vref25;
-assign data_vrefp[6]=vref26;
-assign data_vrefp[7]=vref27;
+assign data_vrefp[0]=vref2;
+assign data_vrefp[1]=vref2;
+assign data_vrefp[2]=vref2;
+assign data_vrefp[3]=vref2;
+assign data_vrefp[4]=vref2;
+assign data_vrefp[5]=vref2;
+assign data_vrefp[6]=vref2;
+assign data_vrefp[7]=vref2;
 
 //offset control
 assign data_vosp[0] = osp0;
@@ -232,6 +199,7 @@ reg clkrstP_s1, clkrstP_s2, clkrstN_s1, clkrstN_s2;
 wire clk_gatedP, clk_gatedN;
 reg [1:0] cntP, cntN;
 wire clkout_des_dig;
+wire clkbout_nc_dig;
 
 always @(negedge ADCCLKP) begin
     clkrstP_s1 <= clkrst;
@@ -263,11 +231,11 @@ always @(negedge clk_gatedN or posedge clkrstN_s2) begin
 end
  
 assign clkout_des_dig = ((cntN == 2'b01) ? 1'b1 : 1'b0) & clk_gatedN;
+assign clkbout_nc_dig = ((cntN == 2'b11) ? 1'b1 : 1'b0) & clk_gatedN;
 //Input clk buffer ends
 
 //sub_adc instantiation
 ti_adc_hfck#(
-    .ADC_SR         (`ADC_SR),
     .ADC_WAYS       (`ADC_WAYS),
     .ADC_BITS       (`ADC_BITS),
     .DAC_CAPS       (`DAC_CAPS),
@@ -288,15 +256,15 @@ ti_adc_hfck#(
     .adc_data       (adc_data),
     //output [0:ADC_WAYS-1] adc_compl,
     .subadc_clk     (subadc_clk),
-    .adc_coreclk    (clkout_des)
+    .adc_coreclk    (clkout_des),
+    .adc_coreclkb   (clkbout_nc)
 ); 
 
-//Retimer
 //retimer 1st stage
 always @(subadc_clk[5] or adc_data)
     if (subadc_clk[5] == 1'd1) adc_data_mid[0:3] = adc_data[0:3];
 always @(subadc_clk[1] or adc_data)
-    if (subadc_clk[5] == 1'd1) adc_data_mid[4:7] = adc_data[4:7];
+    if (subadc_clk[1] == 1'd1) adc_data_mid[4:7] = adc_data[4:7];
 
 //retimer 2nd stage
 always @(subadc_clk[3] or adc_data_mid) 

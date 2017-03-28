@@ -40,7 +40,8 @@ module ti_clock_half #(
     input clkp,
     input clkn,
     output [0:ADC_WAYS-1] ti_clk,
-    output core_clk
+    output core_clk,
+    output core_clkb
 );
 
 parameter HALF_WAY = ADC_WAYS/2;
@@ -105,5 +106,6 @@ always @(posedge clk_m[CLK_CORE+HALF_WAY])
     core_clk <= 1'd0;
 */
 assign core_clk = clk_m[CLK_CORE];
+assign core_clkb = clk_m[CLK_CORE+HALF_WAY];
 
 endmodule

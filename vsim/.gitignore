@@ -18,3 +18,5 @@ ti_clock.v
 ti_clock_half.v
 verilog_header.vh
 vref.sv
+vol_dac.sv
+ti_adc_hfck_tb_params.vh
