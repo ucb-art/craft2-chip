@@ -160,13 +160,6 @@ object ChainBuilder {
   def fftConnect() = BlockConnectEverything
   def fftSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
-  // Here be the receive signal strength indicator
-  def rssiConfig() = RSSIConfig(numChannels = 128, numLanes = 4, maxIntegrator2nLength = 9)
-  def rssiInput(): T = FixedPoint(15.W, 14.BP) // gets complexed automatically
-  def rssiThresh(): T = FixedPoint(40.W, 28.BP) // threshold type, should probably be (input_width*2+1+maxIntegrator2nLength).W, (input_bp*2).BP
-  def rssiConnect() = BlockConnectEverything
-  def rssiSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
-
 
   ///////////////////////////////////////////////////////////////
   ////////////                                     Here be radar 
@@ -185,8 +178,7 @@ object ChainBuilder {
             (implicit p => new TunerBlock[T, T], id + ":tuner", tunerConnect(), tunerSAMConfig()),
             (implicit p => new FIRBlock[DspComplex[T]], id + ":fir", firConnect(), firSAMConfig()),
             (implicit p => new PFBBlock[DspComplex[T]], id + ":pfb", pfbConnect(), pfbSAMConfig()),
-            (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), fftSAMConfig()),
-            (implicit p => new RSSIBlock[T], id + ":rssi", rssiConnect(), rssiSAMConfig())
+            (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), fftSAMConfig())
           ),
           logicAnalyzerSamples = 8192,
           logicAnalyzerUseCombinationalTrigger = true,
@@ -203,8 +195,7 @@ object ChainBuilder {
     TunerConfigBuilder(id + ":tuner", tunerConfig(), tunerInput, tunerOutput, Some(() => tunerMixer)) ++
     FIRConfigBuilder(id + ":fir", firConfig(), firInput, Some(() => firOutput), Some(() => firTaps)) ++
     PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbConvert, Some(() => pfbOutput), Some(pfbTap)) ++
-    FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput)) ++
-    RSSIConfigBuilder(id + ":rssi", rssiConfig(), rssiInput, rssiThresh)
+    FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput))
   }
   
   def adc(id: String = "craft-pad"): Config = {
@@ -288,7 +279,7 @@ class WithFullOptions extends Config(
 class WithSimpleOptions extends Config(
   new WithL2Capacity(512) ++
   new WithL2Cache ++
-  new WithExtMemSize(8L * 1024L * 1024L) ++
+  new WithExtMemSize(8L * 1024L) ++ // must be multiple of 4096 so its page aligned
   new WithSRAM(1))
 
 class WithPadOptions extends Config(

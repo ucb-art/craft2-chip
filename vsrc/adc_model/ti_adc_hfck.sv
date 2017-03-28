@@ -20,7 +20,6 @@
 // -----------------------------------------------------------------
 // Parameters:
 //      PARAMETER_NAME  RANGE       DEFAULT     UNIT    TYPE    DESCRIPTION
-//      ADC_SR          (0:inf)     8e9         samp/s  real    ADC sample rate
 //      ADC_BITS        (0:inf)     8                   integer ADC bits
 //      ADC_WAYS        (0:inf)     8                   integer adc ways
 //      ASYN_DEL        (0:inf)     10.0        ps      real    delay between up and down pulses,
@@ -53,7 +52,6 @@
 `include "verilog_header.vh"
 
 module ti_adc_hfck #(
-    parameter ADC_SR        = 9.6e9,   //sample/s, assuming each sub_adc is 1Gsample/s    
     parameter ADC_WAYS      = 8,   
     parameter ADC_BITS      = 9,
     //from asyn_clk
@@ -92,10 +90,10 @@ module ti_adc_hfck #(
     output [ADC_BITS-1:0] adc_data [0:ADC_WAYS-1],
     //output [0:ADC_WAYS-1] adc_compl,
     output [0:ADC_WAYS-1] subadc_clk,
-    output adc_coreclk
+    output adc_coreclk,
+    output adc_coreclkb
 ); 
 
-//parameter DELAY = 1/ADC_SR*`S_TO_PS;
 
 wire [0:ADC_WAYS-1] adc_compl;
 
@@ -110,7 +108,8 @@ ti_clock_half #(
         .clkp           (adc_clkp),
         .clkn           (adc_clkn),
         .ti_clk         (subadc_clk),
-        .core_clk       (adc_coreclk)
+        .core_clk       (adc_coreclk),
+        .core_clkb       (adc_coreclkb)
     );
 
 genvar i;
