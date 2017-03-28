@@ -149,8 +149,8 @@ module TestDriver;
     .clock(serial_clock),
     .reset(reset),
     // core clock and reset
-    .io_clkrxvip(vip),
-    .io_clkrxvin(vin),
+    .io_CLKRXVIP(vip),
+    .io_CLKRXVIN(vin),
     .io_core_reset(reset),
     // UART clock, reset, and signals
     .io_ua_clock(1'b0),
