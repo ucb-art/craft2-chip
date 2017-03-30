@@ -8,8 +8,8 @@ import cde._
 import chisel3.core.ExplicitCompileOptions.NotStrict
 
 trait CLKRXTopLevelInIO {
-  val CLKRXVIN = Analog(1.W)
-  val CLKRXVIP = Analog(1.W)
+  val CLKRXVIN = Input(Bool())
+  val CLKRXVIP = Input(Bool())
 }
 
 trait CLKRXTopLevelOutIO {
@@ -17,8 +17,8 @@ trait CLKRXTopLevelOutIO {
 }
 
 class CLKRXIO extends Bundle {
-  val VIN = Analog(1.W)
-  val VIP = Analog(1.W)
+  val VIN = Input(Bool())
+  val VIP = Input(Bool())
   val VOBUF = Output(Clock())
 }
 
@@ -30,8 +30,8 @@ trait CLKRXModule {
   implicit val p: Parameters
   def io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO
   val clkrx = Module(new CLK_RX_amp_buf)
-  attach(io.CLKRXVIN, clkrx.io.VIN)
-  attach(io.CLKRXVIP, clkrx.io.VIP)
+  clkrx.io.VIN := io.CLKRXVIN
+  clkrx.io.VIP := io.CLKRXVIP
   io.clkrxvobuf := clkrx.io.VOBUF
 }
 

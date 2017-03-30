@@ -16,18 +16,18 @@ class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO wit
   val success = Output(Bool())
 }
 
-class TestHarness(implicit val p: Parameters) extends Module {
-
+class TestHarness(implicit val p: Parameters) extends Module with RealAnalogAnnotator {
   val io = IO(new TestHarnessIO)
+  annotateReal()
 
   val dut = Module(new CraftP1Core)
-  attach(dut.io.CLKRXVIP, io.CLKRXVIP)
-  attach(dut.io.CLKRXVIN, io.CLKRXVIN)
+  dut.io.CLKRXVIP := io.CLKRXVIP
+  dut.io.CLKRXVIN := io.CLKRXVIN
   attach(dut.io.ADCBIAS, io.ADCBIAS)
   attach(dut.io.ADCINP, io.ADCINP)
   attach(dut.io.ADCINM, io.ADCINM)
-  attach(dut.io.ADCCLKP, io.ADCCLKP)
-  attach(dut.io.ADCCLKM, io.ADCCLKM)
+  dut.io.ADCCLKP := io.ADCCLKP
+  dut.io.ADCCLKM := io.ADCCLKM
   dut.io.adcclkreset := io.adcclkreset
   dut.io.ua_rxd := io.ua_rxd
   io.ua_int := dut.io.ua_int
@@ -42,9 +42,10 @@ class TestHarness(implicit val p: Parameters) extends Module {
   io.success := ser.io.exit
 }
 
-class CraftP1Core(implicit val p: Parameters) extends Module{
+class CraftP1Core(implicit val p: Parameters) extends Module with RealAnalogAnnotator {
   val io = IO(new CraftP1CoreBundle(p))
   val craft = LazyModule(new CraftP1CoreTop(p)).module
+  annotateReal()
 
   // core clock and reset
   // loopback the clock receiver output into the core top
@@ -61,12 +62,12 @@ class CraftP1Core(implicit val p: Parameters) extends Module{
   attach(craft.io.ADCBIAS, io.ADCBIAS)
   attach(craft.io.ADCINP, io.ADCINP)
   attach(craft.io.ADCINM, io.ADCINM)
-  attach(craft.io.ADCCLKP, io.ADCCLKP)
-  attach(craft.io.ADCCLKM, io.ADCCLKM)
+  craft.io.ADCCLKP := io.ADCCLKP
+  craft.io.ADCCLKM := io.ADCCLKM
 
   // CLKRX
-  attach(craft.io.CLKRXVIN, io.CLKRXVIN)
-  attach(craft.io.CLKRXVIP, io.CLKRXVIP)
+  craft.io.CLKRXVIN := io.CLKRXVIN
+  craft.io.CLKRXVIP := io.CLKRXVIP
 
   // UART, with reset synchronizers
   craft.io.ua_rxd := io.ua_rxd

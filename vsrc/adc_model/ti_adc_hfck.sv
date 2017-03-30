@@ -59,7 +59,7 @@ module ti_adc_hfck #(
     //from cap_dac
     parameter PAR_CAP       = 0.0,      //real, F
     parameter UNIT_CAP      = 1.0e-15,   //F
-    parameter DAC_CAPS [1:ADC_BITS-1]   = '{1, 2, 4, 8, 16, 32, 64, 128},
+    parameter integer DAC_CAPS [1:ADC_BITS-1]   = '{1, 2, 4, 8, 16, 32, 64, 128},
     //from refrence
     parameter VRDAC_BITS    = 8,        
     parameter VRDAC_HIGH    = 0.9,      //real, V

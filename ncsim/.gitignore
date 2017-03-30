@@ -3,3 +3,5 @@
 /simv-*
 /output
 /generated-src
+/ucli.key
+/vc_hdrs.h

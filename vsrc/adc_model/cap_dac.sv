@@ -40,7 +40,7 @@ module cap_dac #(
     parameter PAR_CAP       = 0,          //F
     parameter ADC_BITS      = 8, 
     parameter UNIT_CAP      = 1.0e-15,    //F
-    parameter DAC_CAPS [1:ADC_BITS-1]   = '{1, 2, 4, 8, 16, 32, 64, 128}
+    parameter integer DAC_CAPS [1:ADC_BITS-1]   = '{1, 2, 4, 8, 16, 32, 64, 128}
     //parameter DAC_CAP1 [1:ADC_BITS-1]   = '{0, 0, 0, 0, 0, 0, 0, 0}
 )(
     //input

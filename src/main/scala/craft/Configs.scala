@@ -66,6 +66,7 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
     FFTConfigBuilder(id + ":fft", fftConfig, () => getGenType())
   }
@@ -100,6 +101,7 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     TunerConfigBuilder(id + ":tuner1", tuner1Config, () => getGenType(), () => DspComplex(getGenType(), getGenType())) ++
     FIRConfigBuilder(id + ":fir1", fir1Config, () => DspComplex(getGenType(), getGenType()), Some(() => DspComplex(getGenType(), getGenType()))) ++
     TunerConfigBuilder(id + ":tuner2", tuner2Config, () => DspComplex(getGenType(), getGenType()), () => DspComplex(getGenType(), getGenType())) ++
@@ -190,6 +192,7 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output) ++ 
     BitManipulationConfigBuilder(id + ":bm2", bm2Config(), bm2Input, bm2Output) ++ 
     TunerConfigBuilder(id + ":tuner", tunerConfig(), tunerInput, tunerOutput, Some(() => tunerMixer)) ++
@@ -217,6 +220,7 @@ object ChainBuilder {
       }
     ) ++
     ConfigBuilder.nastiTLParams(id) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output)
   }
 }

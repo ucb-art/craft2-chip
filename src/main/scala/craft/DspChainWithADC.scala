@@ -15,8 +15,8 @@ trait ADCTopLevelIO {
   val ADCBIAS       = Analog(1.W)
   val ADCINP        = Analog(1.W)
   val ADCINM        = Analog(1.W)
-  val ADCCLKP       = Analog(1.W)
-  val ADCCLKM       = Analog(1.W)
+  val ADCCLKP       = Input(Bool())
+  val ADCCLKM       = Input(Bool())
   val adcclkreset   = Input(Bool())
 }
 
@@ -67,8 +67,8 @@ trait ADCModule {
   attach(io.ADCBIAS,    adc.io.ADCBIAS)
   attach(io.ADCINP,     adc.io.ADCINP)
   attach(io.ADCINM,     adc.io.ADCINM)
-  attach(io.ADCCLKP,    adc.io.ADCCLKP)
-  attach(io.ADCCLKM,    adc.io.ADCCLKM)
+  adc.io.ADCCLKM := io.ADCCLKM
+  adc.io.ADCCLKP := io.ADCCLKP
 
   def wordToByteVec(u: UInt): Vec[UInt] =
     u.asTypeOf(Vec(8, UInt(8.W)))
@@ -199,8 +199,9 @@ class DspChainWithADCModule(
   override_clock: Option[Clock]=None,
   override_reset: Option[Bool]=None)(implicit p: Parameters)
   extends DspChainModule(outer, b, override_clock, override_reset)
-    with ADCModule {
+    with ADCModule with RealAnalogAnnotator {
   override lazy val io: DspChainIO with DspChainADCIO = b.getOrElse(new DspChainIO with DspChainADCIO)
+  annotateReal()
 }
 
 // [stevo]: copied from rocket-chip, but switched Bool input to Data
