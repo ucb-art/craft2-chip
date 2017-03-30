@@ -5,16 +5,32 @@
  `define ADC_RESET_DELAY 376.4
 `endif
 
+`ifndef PI
+  `define PI 3.1415926535897932
+`endif
+
 module TestDriver;
 
   reg core_clock = 1'b0;
-  reg serial_clock = 1'b0;
   reg dsp_clock = 1'b0;
+  reg serial_clock = 1'b0;
   reg reset = 1'b1;
   reg adc_reset = 1'b1;
 
-  always #(`CORE_CLOCK_PERIOD/2.0) core_clock = ~core_clock;
+  import "DPI" function real sin(real x);     //using sin function in C
+  real adcinp = 0.5; 
+  real adcinm = 0.5;
+
+  // [stevo]: make sine wave
+  `define ADCPERIOD 100
+  always #(`ADCPERIOD/100) begin
+      adcinp = 0.5 + 0.5*sin(2*`PI/`ADCPERIOD*$realtime());
+      adcinm = 0.5 + 0.5*sin(2*`PI/`ADCPERIOD*$realtime()+`PI);
+  end  
+
+  // digital clocks
   always #(`SERIAL_CLOCK_PERIOD/2.0) serial_clock = ~serial_clock;
+  always #(`CORE_CLOCK_PERIOD/2.0) core_clock = ~core_clock;
   always #(`DSP_CLOCK_PERIOD/2.0) dsp_clock = ~dsp_clock;
   initial #(`RESET_DELAY) reset = 0;
   initial #(`ADC_RESET_DELAY) adc_reset = 0;
@@ -138,19 +154,14 @@ module TestDriver;
     end
   end
 
-  wire vip, vin;
-  assign vip = core_clock;
-  assign vin = ~core_clock;
-  assign dip = dsp_clock;
-  assign din = ~dsp_clock;
   wire [1:0] dummy;
   TestHarness testHarness(
     // TSI clock and reset
     .clock(serial_clock),
     .reset(reset),
     // core clock and reset
-    .io_CLKRXVIP(vip),
-    .io_CLKRXVIN(vin),
+    .io_CLKRXVIP(core_clock),
+    .io_CLKRXVIN(~core_clock),
     .io_core_reset(reset),
     // UART clock, reset, and signals
     .io_ua_clock(1'b0),
@@ -162,10 +173,10 @@ module TestDriver;
     .io_adcclkreset(adc_reset),
     .io_dsp_reset(reset),
     .io_ADCBIAS(),
-    .io_ADCINP(),
-    .io_ADCINM(),
-    .io_ADCCLKP(dip),
-    .io_ADCCLKM(din),
+    .io_ADCINP(adcinp),
+    .io_ADCINM(adcinm),
+    .io_ADCCLKP(dsp_clock),
+    .io_ADCCLKM(~dsp_clock),
     // test IO
     .io_success(success)
   );

@@ -1,2 +1,5 @@
 *.o
 *.riscv
+dma-ext.h
+memcpy-dma.c
+memcpy.h

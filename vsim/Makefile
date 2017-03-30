@@ -33,11 +33,11 @@ sim_csrcs = \
 
 # [stevo]: add adc model, but copy here because each one has "include verilog_header" in it
 # assumes you're running this inside the sim_dir
-#sim_svsrcs_orig = $(wildcard $(base_dir)/vsrc/adc_model/*)
-#sim_svsrcs = $(notdir $(sim_svsrcs_orig))
-#$(sim_svsrcs): $(sim_svsrcs_orig)
-#	cp $(sim_svsrcs_orig) $(sim_dir)
-sim_svsrcs = $(base_dir)/vsrc/TISARADC.v
+sim_svsrcs_orig = $(wildcard $(base_dir)/vsrc/adc_model/*)
+sim_svsrcs = $(addprefix $(build_dir)/,$(notdir $(sim_svsrcs_orig)))
+$(sim_svsrcs): $(sim_svsrcs_orig)
+	cp $(sim_svsrcs_orig) $(build_dir)
+	sed -e 's*verilog_header.vh*$(build_dir)/verilog_header.vh*' -i $(foreach src,$(sim_svsrcs),$(addprefix -i ,$(src)))
 
 CUSTOM_FLAGS := \
   +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
@@ -67,8 +67,6 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 	+define+RANDOMIZE_INVALID_ASSIGN \
 	+libext+.v \
 	$(CUSTOM_FLAGS)
-
-verilog: $(sim_vsrcs)
 
 $(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \

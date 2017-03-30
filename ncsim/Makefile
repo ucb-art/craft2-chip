@@ -33,11 +33,11 @@ sim_csrcs = \
 
 # [stevo]: add adc model, but copy here because each one has "include verilog_header" in it
 # assumes you're running this inside the sim_dir
-#sim_svsrcs_orig = $(wildcard $(base_dir)/vsrc/adc_model/*)
-#sim_svsrcs = $(notdir $(sim_svsrcs_orig))
-#$(sim_svsrcs): $(sim_svsrcs_orig)
-#	cp $(sim_svsrcs_orig) $(sim_dir)
-sim_svsrcs = $(base_dir)/vsrc/TISARADC.v
+sim_svsrcs_orig = $(wildcard $(base_dir)/vsrc/adc_model/*)
+sim_svsrcs = $(addprefix $(build_dir)/,$(notdir $(sim_svsrcs_orig)))
+$(sim_svsrcs): $(sim_svsrcs_orig)
+	cp $(sim_svsrcs_orig) $(build_dir)
+	sed -e 's*verilog_header.vh*$(build_dir)/verilog_header.vh*' -i $(foreach src,$(sim_svsrcs),$(addprefix -i ,$(src)))
 
 CUSTOM_FLAGS := \
   +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
@@ -58,7 +58,7 @@ IRUN_OPTS = \
 	-sv \
 	+incdir+$(sim_dir)/generated-src \
 	$(sim_vsrcs) $(sim_csrcs) \
-	$(sim_svsrcs) \
+	$(filter-out %.vh,$(sim_svsrcs)) \
 	+define+PRINTF_COND=$(TB).printf_cond \
 	+define+STOP_COND=!$(TB).reset \
 	+define+RANDOMIZE_MEM_INIT \
@@ -73,7 +73,7 @@ IRUN_OPTS = \
 	-access +R \
 	$(CUSTOM_FLAGS)
 
-$(simv): $(sim_vsrcs) $(sim_csrcs)
+$(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@
@@ -96,7 +96,7 @@ $(simv): $(sim_vsrcs) $(sim_csrcs)
 	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
 	chmod +x $@
 
-$(simv_debug) : $(sim_vsrcs) $(sim_csrcs)
+$(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -linedebug -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@

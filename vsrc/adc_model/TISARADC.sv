@@ -38,8 +38,8 @@
 
 
 module TISARADC (
-    inout real ADCINP,
-    inout real ADCINM,
+    input real ADCINP,
+    input real ADCINM,
     //""clock will have problem, as this is sinusoid wave!!
     input ADCCLKP,
     input ADCCLKM,
@@ -119,7 +119,7 @@ module TISARADC (
     input clkrst,
 
     //Source Follower
-    input ADCBIAS
+    input real ADCBIAS
 ); 
 
 wire [`ADC_BITS-1:0] adc_data [0:`ADC_WAYS-1];

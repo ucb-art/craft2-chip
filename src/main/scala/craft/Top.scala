@@ -16,7 +16,7 @@ class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
     with PeripheryUART
     with PeripherySRAM {
 
-  override lazy val module = Module(new CraftP1CoreTopModule(p, this, new CraftP1CoreTopBundle(p)))
+  override lazy val module = Module(new CraftP1CoreTopModule(p, this, {new CraftP1CoreTopBundle(p)} ))
 }
 
 trait WithCraftP1CoreBundle extends PeripheryBootROMBundle
@@ -41,7 +41,7 @@ class CraftP1CoreTopBundle(p: Parameters) extends BaseTopBundle(p)
   with HasDspOutputClock
 
 
-class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftP1CoreTopBundle)
+class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: => CraftP1CoreTopBundle)
   extends BaseTopModule(p, l, b)
   with PeripheryBootROMModule
   with PeripheryCoreplexLocalInterrupterModule
@@ -50,6 +50,7 @@ class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftP1CoreTopBu
   with PeripherySRAMModule
   with HardwiredResetVector with DirectConnection with NoDebug
   with PeripheryUARTModule
+  with RealAnalogAnnotator
   with CLKRXModule {
 
   var string = ""
@@ -67,6 +68,7 @@ class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: CraftP1CoreTopBu
 
   AddrMapStringOutput.contents = Some(string) 
     
+  annotateReal()
 }
 
 trait CoreResetBundle {
