@@ -283,7 +283,7 @@ class WithFullOptions extends Config(
 class WithSimpleOptions extends Config(
   new WithL2Capacity(512) ++
   new WithL2Cache ++
-  new WithExtMemSize(8L * 1024L) ++ // must be multiple of 4096 so its page aligned
+  new WithExtMemSize(8L * 1024L * 1024L) ++ // must be multiple of 4096 so its page aligned
   new WithSRAM(1))
 
 class WithPadOptions extends Config(
