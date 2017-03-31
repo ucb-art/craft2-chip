@@ -65,6 +65,7 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     ConfigBuilder.nastiTLParams(id) ++
     ConfigBuilder.writeHeaders("./tests") ++
     PFBConfigBuilder(id + ":pfb", pfbConfig, () => DspComplex(getGenType(), getGenType()), doubleToGen) ++
@@ -100,6 +101,7 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     ConfigBuilder.nastiTLParams(id) ++
     ConfigBuilder.writeHeaders("./tests") ++
     TunerConfigBuilder(id + ":tuner1", tuner1Config, () => getGenType(), () => DspComplex(getGenType(), getGenType())) ++
@@ -191,6 +193,7 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     ConfigBuilder.nastiTLParams(id) ++
     ConfigBuilder.writeHeaders("./tests") ++
     BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output) ++ 
@@ -219,6 +222,7 @@ object ChainBuilder {
         case _ => throw new CDEMatchError
       }
     ) ++
+    ConfigBuilder.writeHeaders("./tests") ++
     ConfigBuilder.nastiTLParams(id) ++
     ConfigBuilder.writeHeaders("./tests") ++
     BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output)
@@ -278,11 +282,13 @@ class WithFullOptions extends Config(
   new WithSRAM(4) ++
   new WithHwachaAndDma ++
   new DefaultHwachaConfig ++
+  new WithDspChainIncludeJtag ++
   new WithDma)
 
 class WithSimpleOptions extends Config(
   new WithL2Capacity(512) ++
   new WithL2Cache ++
+  new WithDspChainIncludeJtag ++
   new WithExtMemSize(8L * 1024L * 1024L) ++ // must be multiple of 4096 so its page aligned
   new WithSRAM(1))
 
