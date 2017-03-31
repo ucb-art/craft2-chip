@@ -115,8 +115,8 @@ $(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	@echo '  shift' >> $@
 	@echo 'done' >> $@
 	@echo '' >> $@
-	@echo 'echo irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
-	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
+	@echo 'echo irun -define "$$DEFINE" "$$VARS" -64 -R -input probe.tcl -nclibdirname $@.daidir' >> $@
+	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -input probe.tcl -nclibdirname $@.daidir' >> $@
 	chmod +x $@
 
 clean:
