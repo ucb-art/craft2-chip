@@ -65,6 +65,13 @@ class CraftP1Core(implicit val p: Parameters) extends Module with RealAnalogAnno
   craft.io.ADCCLKP := io.ADCCLKP
   craft.io.ADCCLKM := io.ADCCLKM
 
+  // JTAG
+  craft.io.trst := io.trst
+  craft.io.tms  := io.tms
+  craft.io.tdi  := io.tdi
+  io.tdo        := craft.io.tdo
+  craft.io.tclk := io.tclk
+
   // CLKRX
   craft.io.CLKRXVIN := io.CLKRXVIN
   craft.io.CLKRXVIP := io.CLKRXVIP

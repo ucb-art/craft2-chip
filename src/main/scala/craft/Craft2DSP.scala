@@ -64,19 +64,30 @@ trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
 
   implicit val p: Parameters
   val pBus: TileLinkRecursiveInterconnect
-  def io: Bundle with ADCTopLevelIO with HasDspOutputClock with HasDspReset
+  def io: Bundle with ADCTopLevelIO
+    with HasDspOutputClock with HasDspReset
+    with JTAGTopLevelIO
   val outer: PeripheryCraft2DSP
   val craftChain = outer.craftChain
   val control_port = pBus.port("craft2_control")
   val data_port    = pBus.port("craft2_data")
 
-  println(s"Set base addresses in the lazy chain module")
   val craftChainModule = craftChain.module
 
   val dsp_clock = craftChainModule.io.adc_clk_out
   val dsp_reset = ResetSync(io.dsp_reset, dsp_clock)
   craftChainModule.clock := dsp_clock
   craftChainModule.reset := dsp_reset
+
+  // JTAG (if it exists)
+  craftChainModule.io.jtag.map({ case jtag =>
+    jtag.TCK      := io.tclk
+    jtag.TMS      := io.tms
+    jtag.TDI      := io.tdi
+    io.tdo   := jtag.TDO.data
+    // jtag.TDO.driven?
+    // TRST doesn't exist yet
+  })
 
   // add width adapter because Hwacha needs 128-bit TL
   craftChainModule.io.control_axi <> AsyncNastiTo(to_clock=dsp_clock, to_reset=dsp_reset, source=PeripheryUtils.convertTLtoAXI(TileLinkWidthAdapter(control_port, craftChainModule.ctrlXbarParams)))
