@@ -9,13 +9,15 @@ import junctions._
 
 // import chisel3.core.ExplicitCompileOptions.NotStrict
 
-class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
-    with PeripheryBootROM with PeripheryCoreplexLocalInterrupter
+trait WithCraftP1CoreTop extends PeripheryBootROM
+    with PeripheryCoreplexLocalInterrupter
     with PeripherySerial
     with PeripheryCraft2DSP
     with PeripheryUART
-    with PeripherySRAM {
+    with PeripherySRAM
 
+class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
+    with WithCraftP1CoreTop {
   override lazy val module = Module(new CraftP1CoreTopModule(p, this, {new CraftP1CoreTopBundle(p)} ))
 }
 
@@ -27,12 +29,12 @@ trait WithCraftP1CoreBundle extends PeripheryBootROMBundle
   with PeripherySRAMBundle
   with PeripheryUARTBundle
   with HasDspReset
+  with JTAGTopLevelIO
 
 // excludes success and clk receiver output
 class CraftP1CoreBundle(val p: Parameters) extends Bundle
   with WithCraftP1CoreBundle
   with CoreResetBundle
-  with JTAGTopLevelIO
 
 // add success and clock receiver output pins
 class CraftP1CoreTopBundle(p: Parameters) extends BaseTopBundle(p)
@@ -41,7 +43,7 @@ class CraftP1CoreTopBundle(p: Parameters) extends BaseTopBundle(p)
   with HasDspOutputClock
 
 
-class CraftP1CoreTopModule(p: Parameters, l: CraftP1CoreTop, b: => CraftP1CoreTopBundle)
+class CraftP1CoreTopModule[L <: BaseTop with WithCraftP1CoreTop, B <: CraftP1CoreTopBundle](p: Parameters, l: L, b: =>B)
   extends BaseTopModule(p, l, b)
   with PeripheryBootROMModule
   with PeripheryCoreplexLocalInterrupterModule
