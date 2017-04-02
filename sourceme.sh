@@ -21,11 +21,12 @@ export PATH=$PATH:$MC2_INSTALL_DIR/bin
 # cadence incisive
 export PATH=/tools/cadence/INCISIV/INCISIVE152/tools/bin:$PATH
 
+# cadence tools
+export PATH=$PATH:/tools/cadence/GENUS/GENUS162/tools/bin:/tools/cadence/INNOVUS/INNOVUS162/tools/bin:/tools/cadence/INCISIV/INCISIVE152/tools/bin
+
 # get the right gcc 
 scl enable devtoolset-2 bash
 
 # layer props for calibre (currently not working?)
 # alias viewgds="calibredrv -dl /users/stevo.bailey/TSMC16.layerprops -s /users/bmzimmer/.calibrewb_workspace/wbinit.tcl -m "
 
-# cadence tools
-export PATH=$PATH:/tools/cadence/GENUS/GENUS162/tools/bin:/tools/cadence/INNOVUS/INNOVUS162/tools/bin:/tools/cadence/INCISIV/INCISIVE152/tools/bin
