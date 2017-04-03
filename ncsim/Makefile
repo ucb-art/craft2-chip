@@ -44,7 +44,8 @@ CUSTOM_FLAGS := \
   +define+SERIAL_CLOCK_PERIOD=$(serial_clock_period) \
   +define+DSP_CLOCK_PERIOD=$(dsp_clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
-	+define+TSMC_CM_NO_WARNING
+	+define+TSMC_CM_UNIT_DELAY \
+	+define+TSMC_INITIALIZE_MEM \
 
 IRUN = irun -64
 
@@ -95,6 +96,7 @@ $(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	@echo 'echo irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
 	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -nclibdirname $@.daidir' >> $@
 	chmod +x $@
+	cp $(build_dir)/*.cde .
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -linedebug -elaborate -nclibdirname $@.daidir
@@ -118,6 +120,7 @@ $(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	@echo 'echo irun -define "$$DEFINE" "$$VARS" -64 -R -input probe.tcl -nclibdirname $@.daidir' >> $@
 	@echo 'irun -define "$$DEFINE" "$$VARS" -64 -R -input probe.tcl -nclibdirname $@.daidir' >> $@
 	chmod +x $@
+	cp $(build_dir)/*.cde .
 
 clean:
 	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles $(sim_svsrcs)

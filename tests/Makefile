@@ -2,7 +2,7 @@ GCC=riscv64-unknown-elf-gcc
 CFLAGS=-mcmodel=medany -std=gnu99 -O2 -fno-common -fno-builtin-printf
 LDFLAGS=-static -nostdlib -nostartfiles -lgcc
 
-default: pwm.riscv noop.riscv fft.riscv
+default: pwm.riscv noop.riscv fft.riscv demo.riscv
 
 %.o: %.S
 	$(GCC) $(CFLAGS) -D__ASSEMBLY__=1 -c $< -o $@
