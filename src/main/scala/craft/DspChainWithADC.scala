@@ -23,28 +23,28 @@ trait ADCTopLevelIO {
 trait LazyADC {
   def scrbuilder: SCRBuilder
 
-  scrbuilder.addControl("OSP")
-  scrbuilder.addControl("OSM")
-  scrbuilder.addControl("ASCLKD")
-  scrbuilder.addControl("EXTSEL_CLK")
-  scrbuilder.addControl("VREF0")
-  scrbuilder.addControl("VREF1")
-  scrbuilder.addControl("VREF2")
+  scrbuilder.addControl("OSP", 0.U)
+  scrbuilder.addControl("OSM", 0.U)
+  scrbuilder.addControl("ASCLKD", 0.U)
+  scrbuilder.addControl("EXTSEL_CLK", 0.U)
+  scrbuilder.addControl("VREF0", 0.U)
+  scrbuilder.addControl("VREF1", 0.U)
+  scrbuilder.addControl("VREF2", 0.U)
   //scrbuilder.addControl("IREF")
-  scrbuilder.addControl("CLKGCAL")
-  scrbuilder.addControl("CLKGBIAS")
-  scrbuilder.addControl("ADC_VALID")
-  scrbuilder.addControl("ADC_SYNC")
+  scrbuilder.addControl("CLKGCAL", 0.U)
+  scrbuilder.addControl("CLKGBIAS", 0.U)
+  scrbuilder.addControl("ADC_VALID", 0.U)
+  scrbuilder.addControl("ADC_SYNC", 0.U)
 }
 
 trait LazyCAL {
   def scrbuilder: SCRBuilder
 
-  scrbuilder.addControl("MODE")
-  scrbuilder.addControl("ADDR")
-  scrbuilder.addControl("WEN")
+  scrbuilder.addControl("MODE", 0.U)
+  scrbuilder.addControl("ADDR", 0.U)
+  scrbuilder.addControl("WEN", 0.U)
   (0 until 32).foreach { i =>
-    scrbuilder.addControl(s"CALCOEFF$i")
+    scrbuilder.addControl(s"CALCOEFF$i", 0.U)
     scrbuilder.addStatus(s"CALOUT$i")
   }
 }

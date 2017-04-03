@@ -18,14 +18,14 @@ module TestDriver;
   reg adc_reset = 1'b1;
 
   import "DPI" function real sin(real x);     //using sin function in C
-  real adcinp = 0.5; 
-  real adcinm = 0.5;
+  real adcinp = 0.2; 
+  real adcinm = 0.2;
 
   // [stevo]: make sine wave
   `define ADCPERIOD 100
   always #(`ADCPERIOD/100) begin
-      adcinp = 0.5 + 0.5*sin(2*`PI/`ADCPERIOD*$realtime());
-      adcinm = 0.5 + 0.5*sin(2*`PI/`ADCPERIOD*$realtime()+`PI);
+      adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime());
+      adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI);
   end  
 
   // digital clocks
