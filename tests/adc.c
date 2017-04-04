@@ -12,13 +12,15 @@
 
 int main(void)
 {
-  printf("Configuring ADC");
-  //write_reg(craft_radar_ASCLKD, 2863311530, "ADC ASCLKD") ;// [stevo]: not used in SV model
+  // ADC
+  printf("\n\n\n");
+  printf("Configuring ADC\n");
   write_reg(craft_radar_VREF1, 48);
   write_reg(craft_radar_VREF2, 96);
-  printf("Configuring ADC Calibration");
+  printf("Configuring ADC Calibration\n");
   write_reg(craft_radar_MODE, 1);
-  printf("Done\n");
+  write_reg(craft_radar_ADC_VALID, 1);
+  printf("Done configuring ADC\n");
 
   return 0;
 }
