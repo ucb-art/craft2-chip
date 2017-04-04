@@ -177,6 +177,12 @@ module TestDriver;
     .io_ADCINM(adcinm),
     .io_ADCCLKP(dsp_clock),
     .io_ADCCLKM(~dsp_clock),
+    // JTAG
+    .io_trst(reset),
+    .io_tclk(1'b0),
+    .io_tms(1'b0),
+    .io_tdi(1'b0),
+    .io_tdo(),
     // test IO
     .io_success(success)
   );
