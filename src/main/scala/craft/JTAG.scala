@@ -14,4 +14,11 @@ trait JTAGTopLevelIO {
   val tdo_driven = Output(Bool())
 }
 
+trait JTAGTestLevelIO {
+  val trst       = Input(Bool())
+  val tms        = Input(Bool())
+  val tdi        = Input(Bool())
+  val tdo        = Output(Bool())
+  val tclk       = Input(Bool())
+}
 

@@ -12,7 +12,7 @@ import chisel3.experimental._
 import uart._
 import _root_.util._
 
-class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO with CoreResetBundle with HasDspReset {
+class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO with CoreResetBundle with HasDspReset with JTAGTestLevelIO {
   val success = Output(Bool())
 }
 
@@ -36,6 +36,13 @@ class TestHarness(implicit val p: Parameters) extends Module with RealAnalogAnno
   dut.io.ua_reset := io.ua_reset
   dut.io.core_reset := io.core_reset
   dut.io.dsp_reset := io.dsp_reset
+  dut.io.trst := io.trst
+  dut.io.tms  := io.tms
+  dut.io.tdi  := io.tdi
+  io.tdo        := dut.io.tdo
+  // [stevo]: shouldn't be included 
+  //io.tdo_driven := dut.io.tdo_driven
+  dut.io.tclk := io.tclk
 
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
