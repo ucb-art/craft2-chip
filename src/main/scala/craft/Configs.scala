@@ -266,7 +266,6 @@ class WithHwachaAndDma extends Config (
 
 class Craft2BaseConfig extends Config(
   new WithSerialAdapter ++
-  // new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new rocketchip.BaseConfig)
 
 class WithFullOptions extends Config(
@@ -279,6 +278,7 @@ class WithFullOptions extends Config(
   new WithHwachaAndDma ++
   new DefaultHwachaConfig ++
   new WithDspChainIncludeJtag ++
+  new Process28nmConfig ++  // uncomment if the critical path is in the FMA in Hwacha
   new WithDma)
 
 class WithSimpleOptions extends Config(

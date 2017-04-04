@@ -44,6 +44,7 @@ CUSTOM_FLAGS := \
   +define+SERIAL_CLOCK_PERIOD=$(serial_clock_period) \
   +define+DSP_CLOCK_PERIOD=$(dsp_clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
+	+define+TSMC_INITIALIZE_MEM \
 	+define+TSMC_CM_NO_WARNING
 
 VCS = vcs -full64
@@ -71,14 +72,16 @@ VCS_OPTS = -notice -line +lint=all,noVCDE,noONGS,noUI -error=PCWM-L -timescale=1
 $(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	-debug_pp
+	cp $(build_dir)/*.cde .
 
 $(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	mkdir -p $(output_dir)
 	rm -rf csrc && $(VCS) $(VCS_OPTS) -o $@ \
 	+define+DEBUG -debug_pp
+	cp $(build_dir)/*.cde .
 
 clean:
-	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles $(sim_svsrcs)
+	rm -rf csrc simv-* ucli.key vc_hdrs.h $(build_dir) output DVEfiles $(sim_svsrcs) *.cde
 
 .PHONY: clean
 
