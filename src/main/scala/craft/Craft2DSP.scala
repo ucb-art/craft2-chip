@@ -84,8 +84,8 @@ trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
     jtag.TCK      := io.tclk
     jtag.TMS      := io.tms
     jtag.TDI      := io.tdi
-    io.tdo   := jtag.TDO.data
-    // jtag.TDO.driven?
+    io.tdo        := jtag.TDO.data
+    io.tdo_driven := jtag.TDO.driven
     // TRST doesn't exist yet
   })
 

@@ -6,11 +6,12 @@ import cde._
 import chisel3.core.ExplicitCompileOptions.NotStrict
 
 trait JTAGTopLevelIO {
-  val trst = Input(Bool())
-  val tms  = Input(Bool())
-  val tdi  = Input(Bool())
-  val tdo  = Output(Bool())
-  val tclk = Input(Bool())
+  val trst       = Input(Bool())
+  val tms        = Input(Bool())
+  val tdi        = Input(Bool())
+  val tdo        = Output(Bool())
+  val tclk       = Input(Bool())
+  val tdo_driven = Output(Bool())
 }
 
 
