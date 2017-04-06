@@ -6,9 +6,10 @@ ROCKETCHIP_DIR=$(framework_dir)/rocket-chip
 TESTCHIPIP_DIR=$(framework_dir)/testchipip
 
 # define simulation things
-core_clock_period = 1.4
-serial_clock_period = 37
-dsp_clock_period = 0.208
+# unrealistic clock periods for faster simulation
+core_clock_period = 1
+serial_clock_period = 1
+dsp_clock_period = 0.104
 timeout_cycles = 100000000
 
 default: top
