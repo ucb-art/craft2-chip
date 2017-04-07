@@ -14,6 +14,7 @@ module TestDriver;
   reg core_clock = 1'b0;
   reg dsp_clock = 1'b0;
   reg serial_clock = 1'b0;
+  reg uart_clock = 1'b0;
   reg reset = 1'b1;
   reg adc_reset = 1'b1;
 
@@ -32,6 +33,7 @@ module TestDriver;
   always #(`SERIAL_CLOCK_PERIOD/2.0) serial_clock = ~serial_clock;
   always #(`CORE_CLOCK_PERIOD/2.0) core_clock = ~core_clock;
   always #(`DSP_CLOCK_PERIOD/2.0) dsp_clock = ~dsp_clock;
+  always #(`UART_CLOCK_PERIOD/2.0) uart_clock = ~uart_clock;
   initial #(`RESET_DELAY) reset = 0;
   initial #(`ADC_RESET_DELAY) adc_reset = 0;
 
@@ -164,7 +166,7 @@ module TestDriver;
     .io_CLKRXVIN(~core_clock),
     .io_core_reset(reset),
     // UART clock, reset, and signals
-    .io_ua_clock(1'b0),
+    .io_ua_clock(uart_clock),
     .io_ua_reset(reset),
     .io_ua_rxd(1'b0),
     .io_ua_int(),
