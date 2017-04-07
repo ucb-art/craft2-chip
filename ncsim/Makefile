@@ -25,8 +25,34 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/SimSerial.v \
 	$(base_dir)/vsrc/des72to288.v \
 	$(base_dir)/vsrc/CLKRX.v \
-	$(base_dir)/vsrc/UART.v \
 	$(base_dir)/vsrc/AsyncResetReg.v
+
+uart_vsrcs_orig = \ 
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/*.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdns_syncflop.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_apb_if.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_mode_switch.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_transmitter.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_baud_rate.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_int_ctrl.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_receiver.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_tx_fifo.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_control.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_modem_ctrl.v) \
+  $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart_rx_fifo.v)
+
+uart_vsrcs_ip = $(addprefix $(build_dir)/,$(notdir $(uart_vsrcs_orig)))
+$(uart_vsrcs_ip): $(uart_vsrcs_orig)
+	cp $(uart_vsrcs_orig) $(build_dir)
+	sed -e 's|include "\(.*\)"|include "$(build_dir)/\1"|' $(foreach src,$(uart_vsrcs_ip),$(addprefix -i ,$(src)))
+
+uart_vsrcs_bb = $(base_dir)/vsrc/UART.v 
+
+#host = $(shell hostname)
+#uart_vsrcs = $(if $(findstring "bwrc",$(host)),$(uart_vsrcs_bb),$(uart_vsrcs_ip))
+# change to uart_vsrcs_ip in the chamber
+uart_vsrcs = $(uart_vsrcs_bb)
 
 sim_csrcs = \
 	$(base_dir)/csrc/SimSerial.cc
@@ -43,9 +69,10 @@ CUSTOM_FLAGS := \
   +define+CORE_CLOCK_PERIOD=$(core_clock_period) \
   +define+SERIAL_CLOCK_PERIOD=$(serial_clock_period) \
   +define+DSP_CLOCK_PERIOD=$(dsp_clock_period) \
+  +define+UART_CLOCK_PERIOD=$(uart_clock_period) \
 	+define+TSMC_CM_UNIT_DELAY \
-	+define+TSMC_CM_UNIT_DELAY \
-	+define+TSMC_INITIALIZE_MEM \
+	+define+TSMC_CM_NO_WARNING \
+	+define+TSMC_INITIALIZE_MEM
 
 IRUN = irun -64
 
@@ -58,7 +85,7 @@ IRUN_OPTS = \
 	$(RISCV)/lib/libfesvr.so \
 	-sv \
 	+incdir+$(sim_dir)/generated-src \
-	$(sim_vsrcs) $(sim_csrcs) \
+	$(sim_vsrcs) $(sim_csrcs) $(uart_vsrcs) \
 	$(filter-out %.vh,$(sim_svsrcs)) \
 	+define+PRINTF_COND=$(TB).printf_cond \
 	+define+STOP_COND=!$(TB).reset \
@@ -74,7 +101,7 @@ IRUN_OPTS = \
 	-access +R \
 	$(CUSTOM_FLAGS)
 
-$(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
+$(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(uart_vsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@
@@ -98,7 +125,7 @@ $(simv): $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
 	chmod +x $@
 	cp $(build_dir)/*.cde .
 
-$(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(sim_dir)/Makefile
+$(simv_debug) : $(sim_vsrcs) $(sim_csrcs) $(sim_svsrcs) $(uart_vsrcs) $(sim_dir)/Makefile
 	rm -rf csrc && $(IRUN) $(IRUN_OPTS) +define+DEBUG -linedebug -elaborate -nclibdirname $@.daidir
 	rm -f $@
 	touch $@
