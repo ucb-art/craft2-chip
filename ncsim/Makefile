@@ -27,7 +27,7 @@ sim_vsrcs = \
 	$(base_dir)/vsrc/CLKRX.v \
 	$(base_dir)/vsrc/AsyncResetReg.v
 
-uart_vsrcs_orig = \ 
+uart_vsrcs_orig = \
   $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/*.v) \
   $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdnsuart.v) \
   $(wildcard /projects/craft_p1/craft_p1_rtl/rel_4.1/uart/uartip/cdns_syncflop.v) \
