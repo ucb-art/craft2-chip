@@ -156,6 +156,27 @@ module TestDriver;
     end
   end
 
+  reg trst = 1'b0;
+  reg tclk;
+  reg tms;
+  reg tdi;
+  reg tdo;
+  reg tdo_driven;
+
+  `ifdef JTAG_HARNESS
+    JtagTestHarness jtagHarness(
+        .io_jtag_TMS(tms),
+        .io_jtag_TCK(tclk),
+        .io_jtag_TDI(tdi),
+        .io_jtag_TDO_driven(tdo_driven),
+        .io_jtag_TDO_data(tdo)
+    );
+  `else
+      tms = 1'b0;
+      tdi = 1'b0;
+      tclk = 1'b0;
+  `endif
+
   wire [1:0] dummy;
   TestHarness testHarness(
     // TSI clock and reset
@@ -180,11 +201,12 @@ module TestDriver;
     .io_ADCCLKP(dsp_clock),
     .io_ADCCLKM(~dsp_clock),
     // JTAG
-    .io_trst(reset),
-    .io_tclk(1'b0),
-    .io_tms(1'b0),
-    .io_tdi(1'b0),
-    .io_tdo(),
+    .io_trst(trst),
+    .io_tclk(tclk),
+    .io_tms(tms),
+    .io_tdi(tdi),
+    .io_tdo(tdo),
+    .io_tdo_driven(tdo_driven),
     // test IO
     .io_success(success)
   );

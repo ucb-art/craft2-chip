@@ -2,6 +2,8 @@
 #define PWM_DUTY 0x2008
 #define PWM_ENABLE 0x2010
 
+#include <stdio.h>
+
 static inline void write_reg(unsigned long addr, unsigned long data)
 {
 	volatile unsigned long *ptr = (volatile unsigned long *) addr;
@@ -18,4 +20,5 @@ int main(void)
 {
     int i = 0;
     i++;
+    printf("Oh hai mark");
 }

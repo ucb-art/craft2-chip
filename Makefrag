@@ -55,6 +55,9 @@ $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 
+$(base_dir)/vsrc/JtagTestHarness.v: $(build_dir)/$(long_name).fir
+	cd $(base_dir) && $(SBT) "run-main craft.JtagTestHarnessApp"
+
 $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
 	cd $(base_dir) && $(SBT) "run-main barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\" --anno-file $(build_dir)/$(long_name).anno" 
 
