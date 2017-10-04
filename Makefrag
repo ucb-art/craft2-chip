@@ -8,7 +8,7 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 # define simulation things
 # unrealistic clock periods for faster simulation
 core_clock_period = 1
-serial_clock_period = 1
+serial_clock_period = 0.95
 dsp_clock_period = 0.104
 uart_clock_period = 2
 timeout_cycles = 100000000
