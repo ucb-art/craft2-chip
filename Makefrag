@@ -54,6 +54,7 @@ $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps) $(bootrom_img)
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
+	sed 's|<spirit:component.*$$|<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"\n    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n    xmlns:cadence="http://www.cadence.com/SPIRIT/1685-2009/vendorExtensions"\n    xsi:schemaLocation="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009\n        http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009/index.xsd">|' -i generated-src/*.xml
 
 $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
 	cd $(base_dir) && $(SBT) "run-main barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\" --anno-file $(build_dir)/$(long_name).anno" 
