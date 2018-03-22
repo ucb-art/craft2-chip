@@ -150,7 +150,7 @@ trait ADCModule {
     adc.io.adcout6,
     adc.io.adcout7)
 
-  val deser = Module(new des72to288)
+  lazy val deser = Module(new des72to288)
   deser.io.in := adcout
   deser.io.clk := adc.io.clkout_des
   // [stevo]: wouldn't do anything, since it's only used on reset
@@ -158,30 +158,41 @@ trait ADCModule {
   // unsynchronized ADC clock reset
   deser.io.rst := io.adcclkreset
   
-  val des_sync = Vec(deser.io.out.map(s => SyncCrossing(from_clock=deser.io.clkout_data, to_clock=deser.io.clkout_dsp, in=s, sync=1)))
+  lazy val des_sync = Vec(deser.io.out.map(s => SyncCrossing(from_clock=deser.io.clkout_data, to_clock=deser.io.clkout_dsp, in=s, sync=1)))
   
   io.adc_clk_out := deser.io.clkout_dsp
-
-  lazy val numInBits = 9
-  lazy val numOutBits = 9
-  lazy val numSlices = 8*4
-  lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
-  cal.io.adcdata := des_sync.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
-
-  cal.io.mode := scrfile.control("MODE")
-  cal.io.addr := scrfile.control("ADDR")
-  cal.io.wen := scrfile.control("WEN")
-  cal.io.calcoeff.zipWithIndex.foreach{ case(port, i) => port := scrfile.control(s"CALCOEFF$i") }
-  cal.io.calout.zipWithIndex.foreach{ case(port, i) => scrfile.status(s"CALOUT$i") := port }
 
   // this lazy weirdness is needed because other traits look at streamIn
   // before this code executes
 
-  lazy val streamIn = Wire(ValidWithSync(cal.io.calout.asTypeOf(UInt())))
-  streamIn.bits  := cal.io.calout.asTypeOf(UInt())
+  // no ADC calibration
+  lazy val numInBits = 9
+  lazy val numOutBits = 9
+  lazy val numSlices = 8*4
+  //lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
+  //cal.io.adcdata := des_sync.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
+
+  //cal.io.mode := scrfile.control("MODE")
+  //cal.io.addr := scrfile.control("ADDR")
+  //cal.io.wen := scrfile.control("WEN")
+  //cal.io.calcoeff.zipWithIndex.foreach{ case(port, i) => port := scrfile.control(s"CALCOEFF$i") }
+  //cal.io.calout.zipWithIndex.foreach{ case(port, i) => scrfile.status(s"CALOUT$i") := port }
+
+  // convert unsigned to signed
+  lazy val streamIn = Wire(ValidWithSync(des_sync.asTypeOf(UInt())))
+  val tempStreamIn = Wire(des_sync)
   streamIn.valid := scrfile.control("ADC_VALID")
   streamIn.sync  := scrfile.control("ADC_SYNC")
+  //streamIn.bits := des_sync.asTypeOf(UInt())
 
+  des_sync.zip(tempStreamIn).foreach { case (i, o) => {
+    when (i < math.pow(2, numInBits-1).toInt.U) {
+      o := (math.pow(2, numInBits-1)).toInt.U+i
+    } .otherwise {
+      o := i-math.pow(2, numInBits-1).toInt.U
+    }
+  }}
+  streamIn.bits := tempStreamIn.asTypeOf(UInt())
 }
 
 class DspChainWithADC(

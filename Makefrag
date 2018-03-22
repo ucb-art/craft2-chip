@@ -10,14 +10,13 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 core_clock_period = 1
 serial_clock_period = 0.95
 dsp_clock_period = 0.104
-uart_clock_period = 2
 timeout_cycles = 100000000
 
 default: top
 
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
-CRAFT_PACKAGES = fft pfb tuner filter rssi riscv-dma2 uart
+CRAFT_PACKAGES = fft pfb
 craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
 -include $(framework_dir)/Makefrag
 -include $(base_dir)/Makefrag.pkgs
@@ -36,7 +35,7 @@ build_dir ?= $(sim_dir)/generated-src
 PROJECT ?= craft
 MODEL ?= TestHarness
 CFG_PROJECT ?= $(PROJECT)
-CONFIG ?= Craft2Config
+CONFIG ?= AcmesConfig
 VLSICORE ?= CraftP1Core
 VLSITOP ?= CraftP1Top
 VLSIPADS ?= CraftP1Pads
@@ -51,16 +50,19 @@ HARNESS_MOD ?= $(base_dir)/vlsi/src/modify_harness.py
 $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
 
+test: $(top_all_stamps) $(call lookup_scala_srcs, $(base_dir)/src)
+	$(SBT) testOnly craft.AccumulatorSpec
+
 $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps) $(bootrom_img)
 	mkdir -p $(build_dir)
-	cd $(base_dir) && $(SBT) "run-main $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
+	cd $(base_dir) && $(SBT) "runMain $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 	sed 's|<spirit:component.*$$|<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"\n    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n    xmlns:cadence="http://www.cadence.com/SPIRIT/1685-2009/vendorExtensions"\n    xsi:schemaLocation="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009\n        http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009/index.xsd">|' -i generated-src/*.xml
 
 $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
-	cd $(base_dir) && $(SBT) "run-main barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\" --anno-file $(build_dir)/$(long_name).anno" 
+	cd $(base_dir) && $(SBT) "runMain barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\" --anno-file $(build_dir)/$(long_name).anno" 
 
 $(build_dir)/$(long_name).mems.v $(build_dir)/mems.behav.v: $(build_dir)/$(long_name).conf $(MEM_GEN)
-	cd $(build_dir) && $(MEM_GEN) --conf $(long_name).conf --v $(long_name).mems.v --generate --behav mems.behav.v --ipxact "$(wildcard $(build_dir)/*.xml)" --max_proc 8
+	cd $(build_dir) && $(MEM_GEN) --conf $(long_name).conf --v $(long_name).mems.v --generate --behav mems.behav.v --ipxact "$(wildcard $(build_dir)/*.xml)" --max_proc 8 --ff
 
 # [stevo]: temporary hack to rename dut from Core to Top so it includes the pad frame, and add rte
 $(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v $(build_dir)/pads.behav.v: $(build_dir)/$(long_name).mems.v $(PAD_GEN) $(HARNESS_MOD)

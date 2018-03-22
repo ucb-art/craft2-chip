@@ -4,7 +4,6 @@ import chisel3._
 import rocketchip._
 import cde.Parameters
 import testchipip._
-import uart._
 import junctions._
 
 // import chisel3.core.ExplicitCompileOptions.NotStrict
@@ -13,7 +12,6 @@ trait WithCraftP1CoreTop extends PeripheryBootROM
     with PeripheryCoreplexLocalInterrupter
     with PeripherySerial
     with PeripheryCraft2DSP
-    with PeripheryUART
     with PeripherySRAM
 
 class CraftP1CoreTop(q: Parameters) extends BaseTop(q)
@@ -27,9 +25,7 @@ trait WithCraftP1CoreBundle extends PeripheryBootROMBundle
   with ADCTopLevelIO
   with CLKRXTopLevelInIO
   with PeripherySRAMBundle
-  with PeripheryUARTBundle
   with HasDspReset
-  with JTAGTopLevelIO
 
 // excludes success and clk receiver output
 class CraftP1CoreBundle(val p: Parameters) extends Bundle
@@ -51,7 +47,6 @@ class CraftP1CoreTopModule[L <: BaseTop with WithCraftP1CoreTop, B <: CraftP1Cor
   with PeripheryCraft2DSPModule
   with PeripherySRAMModule
   with HardwiredResetVector with DirectConnection with NoDebug
-  with PeripheryUARTModule
   with RealAnalogAnnotator
   with CLKRXModule {
 

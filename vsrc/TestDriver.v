@@ -14,7 +14,6 @@ module TestDriver;
   reg core_clock = 1'b0;
   reg dsp_clock = 1'b0;
   reg serial_clock = 1'b0;
-  reg uart_clock = 1'b0;
   reg reset = 1'b1;
   reg adc_reset = 1'b1;
 
@@ -23,8 +22,10 @@ module TestDriver;
   real adcinm = 0.2;
 
   // [stevo]: make sine wave
-  `define ADCPERIOD 100
+  `define ADCPERIOD 5
   always #(`ADCPERIOD/100) begin
+      //adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()) + real'($random)/36'hfffffffff;
+      //adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI) + real'($random)/36'hfffffffff;
       adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime());
       adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI);
   end  
@@ -33,7 +34,6 @@ module TestDriver;
   always #(`SERIAL_CLOCK_PERIOD/2.0) serial_clock = ~serial_clock;
   always #(`CORE_CLOCK_PERIOD/2.0) core_clock = ~core_clock;
   always #(`DSP_CLOCK_PERIOD/2.0) dsp_clock = ~dsp_clock;
-  always #(`UART_CLOCK_PERIOD/2.0) uart_clock = ~uart_clock;
   initial #(`RESET_DELAY) reset = 0;
   initial #(`ADC_RESET_DELAY) adc_reset = 0;
 
@@ -165,12 +165,6 @@ module TestDriver;
     .io_CLKRXVIP(core_clock),
     .io_CLKRXVIN(~core_clock),
     .io_core_reset(reset),
-    // UART clock, reset, and signals
-    .io_ua_clock(uart_clock),
-    .io_ua_reset(reset),
-    .io_ua_rxd(1'b0),
-    .io_ua_int(),
-    .io_ua_txd(),
     // ADC signals and DSP clock and reset
     .io_adcclkreset(adc_reset),
     .io_dsp_reset(reset),
@@ -179,12 +173,6 @@ module TestDriver;
     .io_ADCINM(adcinm),
     .io_ADCCLKP(dsp_clock),
     .io_ADCCLKM(~dsp_clock),
-    // JTAG
-    .io_trst(reset),
-    .io_tclk(1'b0),
-    .io_tms(1'b0),
-    .io_tdi(1'b0),
-    .io_tdo(),
     // test IO
     .io_success(success)
   );

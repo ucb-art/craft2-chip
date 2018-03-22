@@ -1,5 +1,6 @@
 /Makefrag.pkgs
 target
+/project
 *.jar
 *.stamp
 /install

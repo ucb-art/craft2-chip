@@ -4,6 +4,7 @@ package craft
 
 import chisel3.util._
 import chisel3._
+import math._
 
 class ADCCalIO(numInBits: Int, numOutBits: Int, numSlices: Int) extends Bundle {
   val adcdata = Input(Vec(numSlices, UInt(numInBits.W)))
@@ -20,7 +21,7 @@ class SubADCCalIO(numInBits: Int, numOutBits: Int) extends Bundle {
   val calcoeff = Input(UInt(numOutBits.W))
   val calout = Output(UInt(numOutBits.W))
   val mode = Input(UInt(2.W))
-  val wen = Input(Bool())
+  val wen = Input(Bool()) 
   val addr = Input(UInt(numInBits.W))
   override def cloneType = (new SubADCCalIO(numInBits, numOutBits)).asInstanceOf[this.type]
 }

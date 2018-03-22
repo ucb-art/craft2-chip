@@ -9,10 +9,9 @@ import dspblocks._
 import dspjunctions._
 import testchipip._
 import chisel3.experimental._
-import uart._
 import _root_.util._
 
-class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with UARTIO with CoreResetBundle with HasDspReset with JTAGTestLevelIO {
+class TestHarnessIO extends Bundle with CLKRXTopLevelInIO with ADCTopLevelIO with CoreResetBundle with HasDspReset {
   val success = Output(Bool())
 }
 
@@ -29,20 +28,8 @@ class TestHarness(implicit val p: Parameters) extends Module with RealAnalogAnno
   dut.io.ADCCLKP := io.ADCCLKP
   dut.io.ADCCLKM := io.ADCCLKM
   dut.io.adcclkreset := io.adcclkreset
-  dut.io.ua_rxd := io.ua_rxd
-  io.ua_int := dut.io.ua_int
-  io.ua_txd := dut.io.ua_txd
-  dut.io.ua_clock := io.ua_clock
-  dut.io.ua_reset := io.ua_reset
   dut.io.core_reset := io.core_reset
   dut.io.dsp_reset := io.dsp_reset
-  dut.io.trst := io.trst
-  dut.io.tms  := io.tms
-  dut.io.tdi  := io.tdi
-  io.tdo        := dut.io.tdo
-  // [stevo]: shouldn't be included 
-  //io.tdo_driven := dut.io.tdo_driven
-  dut.io.tclk := io.tclk
 
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
@@ -72,24 +59,9 @@ class CraftP1Core(implicit val p: Parameters) extends Module with RealAnalogAnno
   craft.io.ADCCLKP := io.ADCCLKP
   craft.io.ADCCLKM := io.ADCCLKM
 
-  // JTAG
-  craft.io.trst := io.trst
-  craft.io.tms  := io.tms
-  craft.io.tdi  := io.tdi
-  io.tdo        := craft.io.tdo
-  io.tdo_driven := craft.io.tdo_driven
-  craft.io.tclk := io.tclk
-
   // CLKRX
   craft.io.CLKRXVIN := io.CLKRXVIN
   craft.io.CLKRXVIP := io.CLKRXVIP
-
-  // UART, with reset synchronizers
-  craft.io.ua_rxd := io.ua_rxd
-  io.ua_int := craft.io.ua_int
-  io.ua_txd := craft.io.ua_txd
-  craft.io.ua_clock := io.ua_clock
-  craft.io.ua_reset := ResetSync(io.ua_reset, io.ua_clock)
 
   // TSI, with reset synchronizers and Async FIFO
   // note: TSI uses the normal "clock" and "reset" to this module

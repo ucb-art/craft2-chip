@@ -7,21 +7,6 @@
 [submodule "dsp-framework"]
 	path = dsp-framework
 	url = https://github.com/ucb-art/dsp-framework.git
-[submodule "riscv-dma2"]
-	path = riscv-dma2
-	url = https://github.com/zhemao/riscv-dma2.git
-[submodule "tuner"]
-	path = tuner
-	url = https://github.com/ucb-art/tuner.git
-[submodule "filter"]
-	path = filter
-	url = https://github.com/ucb-art/filter.git
-[submodule "rssi"]
-	path = rssi
-	url = https://github.com/ucb-art/rssi.git
 [submodule "vlsi"]
 	path = vlsi
 	url = git@bwrcrepo.eecs.berkeley.edu:craft-chips/vlsi.git
-[submodule "uart"]
-	path = uart
-	url = git@bwrcrepo.eecs.berkeley.edu:craft-chips/uart.git
