@@ -41,42 +41,47 @@ object ChainBuilder {
   ////////////            Here be acmes configuration parameters
   ///////////////////////////////////////////////////////////////
 
-  val channels = 64
+  val channels = 8192
   val lanes = 32
+  val numTaps = 4
+
+  // Here be the bit manipulation 1 block, this is just to add a SAM to the ADC output, it does nothing to the bits
+  def bm1Config() = BitManipulationConfig(lanes = lanes)
+  def bm1Input():T = FixedPoint(9.W, 0.BP)
+  def bm1Output():T = FixedPoint(9.W, 0.BP)
+  def bm1Connect() = BlockConnectionParameters(connectPG = false, connectLA = false, addSAM = true)
+  def bm1SAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the filterbank
-  // processingDelay = outputWindowSize * numTaps ??
-  def pfbConfig() = PFBConfig(windowFunc = blackmanHarris.apply, processingDelay = 0, numTaps = 4, outputWindowSize = channels, lanes = lanes, multiplyPipelineDepth = 1, outputPipelineDepth = 1)
-  //def pfbInput():DspComplex[T] = DspComplex(FixedPoint(9.W, 8.BP), FixedPoint(9.W, 8.BP))
   def pfbInput():T = FixedPoint(9.W, 8.BP)
   // [stevo]: make sure pfbTap and pfbConvert use the same width and binary point
-  def pfbTap:T = FixedPoint(10.W, 12.BP)
-  def pfbConvert(x: Double):T = FixedPoint.fromDouble(x, 10.W, 12.BP)
-  def pfbOutput():T = FixedPoint(10.W, 12.BP)
-  def pfbConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = true)
+  def pfbTap:T = FixedPoint(10.W, 7.BP)
+  def pfbConvert(x: Double):T = FixedPoint.fromDouble(x, 10.W, 7.BP)
+  def pfbOutput():T = FixedPoint(11.W, 8.BP)
+  def pfbConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
   def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
+  def pfbConfig() = PFBConfig(windowFunc = sincHamming.apply, processingDelay = channels/lanes*(numTaps-1), numTaps = numTaps, outputWindowSize = channels, lanes = lanes, multiplyPipelineDepth = 1, outputPipelineDepth = 1, genTap = Some(pfbTap))
 
   // Here be the Fourier transform
   def fftConfig() = FFTConfig(n = channels, lanes = lanes, pipelineDepth = 13, real = true)
-  def fftInput():T = FixedPoint(10.W, 12.BP) // gets complexed automatically
-  //def fftInput():T = FixedPoint(9.W, 8.BP) // gets complexed automatically
-  def fftOutput():T = FixedPoint(13.W, 9.BP) // gets complexed automatically
+  def fftInput():T = FixedPoint(11.W, 8.BP) // gets complexed automatically
+  def fftOutput():T = FixedPoint(16.W, 4.BP) // gets complexed automatically
   def fftConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = true)
   def fftSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the power block
   def powerConfig() = PowerConfig(lanes = lanes, pipelineDepth = 1)
-  def powerInput():T = FixedPoint(13.W, 9.BP) // gets complexed automatically
-  def powerOutput():T = FixedPoint(16.W, 9.BP)
-  def powerConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = true)
+  def powerInput():T = FixedPoint(16.W, 4.BP) // gets complexed automatically
+  def powerOutput():T = FixedPoint(32.W, 4.BP)
+  def powerConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = false)
   def powerSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
 
   // Here be the accumulator block
   def accumConfig() = AccumulatorConfig(lanes = lanes, outputWindowSize = channels, maxSpectra = 1024)
-  def accumInput():T = FixedPoint(16.W, 9.BP)
-  def accumOutput():T = FixedPoint(64.W, 9.BP)
+  def accumInput():T = FixedPoint(32.W, 4.BP)
+  def accumOutput():T = FixedPoint(64.W, 4.BP)
   def accumConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = true)
-  def accumSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 4096))
+  def accumSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 512))
 
   ///////////////////////////////////////////////////////////////
   ////////////                                     Here be acmes 
@@ -90,6 +95,7 @@ object ChainBuilder {
         case DspChainKey(_id) if _id == id => DspChainParameters(
           blocks = Seq(
             // (parameter to block function, unique id, BlockConnectionParameters, SAM Config (optional))
+            (implicit p => new BitManipulationBlock[T], id + ":bm1", bm1Connect(), bm1SAMConfig()),
             (implicit p => new PFBBlock[T], id + ":pfb", pfbConnect(), pfbSAMConfig()),
             (implicit p => new FFTBlock[T], id + ":fft", fftConnect(), fftSAMConfig()),
             (implicit p => new PowerBlock[T], id + ":power", powerConnect(), powerSAMConfig()),
@@ -99,13 +105,14 @@ object ChainBuilder {
           logicAnalyzerUseCombinationalTrigger = true, // does nothing
           patternGeneratorSamples = 8192,
           patternGeneratorUseCombinationalTrigger = true,
-          biggestWidth = 2048 // TODO
+          biggestWidth = 2048
         )
         case _ => throw new CDEMatchError
       }
     ) ++
     ConfigBuilder.writeHeaders("./tests") ++
     ConfigBuilder.nastiTLParams(id) ++
+    BitManipulationConfigBuilder(id + ":bm1", bm1Config(), bm1Input, bm1Output) ++ 
     PFBConfigBuilder(id + ":pfb", pfbConfig(), pfbInput, pfbConvert, Some(() => pfbOutput), Some(pfbTap)) ++
     FFTConfigBuilder(id + ":fft", fftConfig(), fftInput, Some(() => fftOutput)) ++
     PowerConfigBuilder(id + ":power", powerConfig(), powerInput, Some(() => powerOutput)) ++
@@ -117,7 +124,7 @@ object ChainBuilder {
 class AcmesBaseConfig extends Config(
   new WithL2Capacity(128) ++
   new WithL2Cache ++
-  new WithExtMemSize(1L * 1024L * 1024L) ++
+  new WithExtMemSize(2L * 1024L * 1024L) ++
   new WithNMemoryChannels(8) ++
   new WithSRAM(4) ++
   new WithSerialAdapter ++

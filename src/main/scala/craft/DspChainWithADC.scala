@@ -37,18 +37,6 @@ trait LazyADC {
   scrbuilder.addControl("ADC_SYNC", 0.U)
 }
 
-trait LazyCAL {
-  def scrbuilder: SCRBuilder
-
-  scrbuilder.addControl("MODE", 0.U)
-  scrbuilder.addControl("ADDR", 0.U)
-  scrbuilder.addControl("WEN", 0.U)
-  (0 until 32).foreach { i =>
-    scrbuilder.addControl(s"CALCOEFF$i", 0.U)
-    scrbuilder.addStatus(s"CALOUT$i")
-  }
-}
-
 
 trait HasDspOutputClock {
   val adc_clk_out = Output(Clock())
@@ -169,21 +157,12 @@ trait ADCModule {
   lazy val numInBits = 9
   lazy val numOutBits = 9
   lazy val numSlices = 8*4
-  //lazy val cal = Module(new ADCCal(numInBits, numOutBits, numSlices))
-  //cal.io.adcdata := des_sync.asTypeOf(Vec(numSlices, UInt(numInBits.W)))
-
-  //cal.io.mode := scrfile.control("MODE")
-  //cal.io.addr := scrfile.control("ADDR")
-  //cal.io.wen := scrfile.control("WEN")
-  //cal.io.calcoeff.zipWithIndex.foreach{ case(port, i) => port := scrfile.control(s"CALCOEFF$i") }
-  //cal.io.calout.zipWithIndex.foreach{ case(port, i) => scrfile.status(s"CALOUT$i") := port }
 
   // convert unsigned to signed
   lazy val streamIn = Wire(ValidWithSync(des_sync.asTypeOf(UInt())))
   val tempStreamIn = Wire(des_sync)
   streamIn.valid := scrfile.control("ADC_VALID")
   streamIn.sync  := scrfile.control("ADC_SYNC")
-  //streamIn.bits := des_sync.asTypeOf(UInt())
 
   des_sync.zip(tempStreamIn).foreach { case (i, o) => {
     when (i < math.pow(2, numInBits-1).toInt.U) {
@@ -199,7 +178,7 @@ class DspChainWithADC(
   b: => Option[DspChainIO with DspChainADCIO] = None,
   override_clock: Option[Clock]=None,
   override_reset: Option[Bool]=None)(implicit p: Parameters) extends 
-    DspChain() with LazyADC with LazyCAL {
+    DspChain() with LazyADC {
   lazy val module: DspChainWithADCModule =
     new DspChainWithADCModule(this, b, override_clock, override_reset)
 }

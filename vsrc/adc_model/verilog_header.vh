@@ -1,5 +1,5 @@
 `timescale 1ps/1fs
-`default_nettype none
+//`default_nettype none
 
 `define PI 3.1415926535897932
 `define NS_TO_FS 1e6

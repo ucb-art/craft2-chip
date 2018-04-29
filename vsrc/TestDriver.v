@@ -22,10 +22,8 @@ module TestDriver;
   real adcinm = 0.2;
 
   // [stevo]: make sine wave
-  `define ADCPERIOD 5
-  always #(`ADCPERIOD/100) begin
-      //adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()) + real'($random)/36'hfffffffff;
-      //adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI) + real'($random)/36'hfffffffff;
+  `define ADCPERIOD 1.0
+  always #(`ADCPERIOD/100.0) begin
       adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime());
       adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI);
   end  
