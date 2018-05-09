@@ -8,11 +8,10 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 # define simulation things
 # unrealistic clock periods for faster simulation
 core_clock_period = 1
-serial_clock_period = 0.95
+#serial_clock_period = 0.95
+serial_clock_period = 1
 dsp_clock_period = 0.104
 timeout_cycles = 100000000
-
-default: top
 
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
@@ -36,16 +35,18 @@ PROJECT ?= craft
 MODEL ?= TestHarness
 CFG_PROJECT ?= $(PROJECT)
 CONFIG ?= AcmesConfig
-VLSICORE ?= CraftP1Core
+VLSICORE ?= CraftP1CoreTop
 VLSITOP ?= CraftP1Top
 VLSIPADS ?= CraftP1Pads
 TB ?= TestDriver
 
 long_name = $(PROJECT).$(MODEL).$(CONFIG)
 
-MEM_GEN ?= $(base_dir)/vlsi/src/vlsi_mem_gen
-PAD_GEN ?= $(base_dir)/vlsi/src/create_pads.py
-HARNESS_MOD ?= $(base_dir)/vlsi/src/modify_harness.py
+MEM_GEN ?= $(base_dir)/vlsi-bk/src/vlsi_mem_gen
+FLOP_GEN ?= $(base_dir)/vlsi-bk/src/flop-mem
+SRAMS ?= $(base_dir)/vlsi-bk/src/available.srams
+PAD_GEN ?= $(base_dir)/vlsi-bk/src/create_pads.py
+HARNESS_MOD ?= $(base_dir)/vlsi-bk/src/modify_harness.py
 
 $(base_dir)/Makefrag.pkgs: $(base_dir)/generate-pkg-mk.sh $(base_dir)/Makefrag
 	bash $(base_dir)/generate-pkg-mk.sh $(lib_dir) $(CRAFT_PACKAGES) > $@
@@ -56,23 +57,24 @@ test: $(top_all_stamps) $(call lookup_scala_srcs, $(base_dir)/src)
 $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps) $(bootrom_img)
 	mkdir -p $(build_dir)
 	cd $(base_dir) && $(SBT) "runMain $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
-	sed 's|<spirit:component.*$$|<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"\n    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n    xmlns:cadence="http://www.cadence.com/SPIRIT/1685-2009/vendorExtensions"\n    xsi:schemaLocation="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009\n        http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009/index.xsd">|' -i generated-src/*.xml
+	-sed 's|<spirit:component.*$$|<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"\n    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n    xmlns:cadence="http://www.cadence.com/SPIRIT/1685-2009/vendorExtensions"\n    xsi:schemaLocation="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009\n        http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009/index.xsd">|' -i generated-src/*.xml
+	-rm -rf $(build_dir)/*.xml
 
 $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf: $(build_dir)/$(long_name).fir $(FIRRTL_JAR)
 	cd $(base_dir) && $(SBT) "runMain barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\" --anno-file $(build_dir)/$(long_name).anno" 
 
-$(build_dir)/$(long_name).mems.v $(build_dir)/mems.behav.v: $(build_dir)/$(long_name).conf $(MEM_GEN)
-	cd $(build_dir) && $(MEM_GEN) --conf $(long_name).conf --v $(long_name).mems.v --generate --behav mems.behav.v --ipxact "$(wildcard $(build_dir)/*.xml)" --max_proc 8
+$(build_dir)/$(long_name).mems.v: $(build_dir)/$(long_name).conf $(MEM_GEN) $(FLOP_GEN) $(SRAMS)
+	cd $(build_dir) && $(MEM_GEN) -conf=$(build_dir)/$(long_name).conf -srams=$(SRAMS) -flop=$(FLOP_GEN) -v=$(build_dir)/$(long_name).mems.v -report=$(build_dir)/$(long_name).mems.rpt -ff True
 
-# [stevo]: temporary hack to rename dut from Core to Top so it includes the pad frame, and add rte
-$(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v $(build_dir)/pads.behav.v: $(build_dir)/$(long_name).mems.v $(PAD_GEN) $(HARNESS_MOD)
-	cd $(build_dir) && $(PAD_GEN) $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).top.v $(VLSIPADS) $(VLSICORE) $(VLSITOP) $(build_dir)/pads.behav.v
-	cd $(build_dir) && $(HARNESS_MOD) $(build_dir)/$(long_name).harness.v $(VLSITOP)
+## [stevo]: temporary hack to rename dut from Core to Top so it includes the pad frame, and add rte
+#$(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v $(build_dir)/pads.behav.v: $(build_dir)/$(long_name).mems.v $(PAD_GEN) $(HARNESS_MOD)
+#	cd $(build_dir) && $(PAD_GEN) $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).top.v $(VLSIPADS) $(VLSICORE) $(VLSITOP) $(build_dir)/pads.behav.v
+#	cd $(build_dir) && $(HARNESS_MOD) $(build_dir)/$(long_name).harness.v $(VLSITOP)
 
 firrtl: $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d
 verilog: $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf
-mems: $(build_dir)/$(long_name).mems.v $(build_dir)/mems.behav.v
-pads top: $(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/pads.behav.v
+mems: $(build_dir)/$(long_name).mems.v
+#pads top: $(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/pads.behav.v
 
 bootrom_img = $(base_dir)/bootrom/bootrom.img
 

@@ -1,5 +1,7 @@
 base_dir = $(abspath .)
 
+default: top
+
 include $(base_dir)/Makefrag
 
 clean:

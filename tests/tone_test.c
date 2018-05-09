@@ -76,7 +76,7 @@ void parse_sam_output(void *sam_output, uint64_t num_writes, uint64_t bitwidth, 
 int main(void) {
 
   // should be multiple of 256 to get full spectrum if 8192
-  int samples = 256;
+  int samples = 512;
 
   // TODO: get this from IP-XACT or somewhere 
   int lanes = 32;
@@ -87,6 +87,9 @@ int main(void) {
   write_reg(acmes_VREF2, 96);
   //printf("Configuring ADC Calibration\n");
   //printf("Done config ADC\nConfig SAM\n");
+
+  // put it in write mode, which passes the data through
+  write_reg(acmes_cc_Mode, 1);
 
   // // BM1 - initiate SAM
   // sam_capture* bm1_cap = &acmes_bm1_sam_capture;
@@ -120,7 +123,7 @@ int main(void) {
   // parse_sam_output(bm1_sam_output_buffer, bm1_cap->n_samps, bm1_total_bits, lanes, bm1_mul, bm1_result);
   // printf("Printing output\n");
   // for (int i = 0; i < bm1_samples; i++) {
-  //   printf("BM: %lld\n", bm1_result[i]);
+  //   printf("B: %lld\n", bm1_result[i]);
   // }
 
   // // PFB - initiate SAM
@@ -146,8 +149,6 @@ int main(void) {
   // while (write_count < pfb_cap->n_samps) {
   //   write_count  = read_reg(pfb_cap->ctrl_base + SAM_W_WRITE_COUNT_OFFSET);
   // }
-  // // write_count should be samples (4)
-  // //printf("write count = %llx, pfb_mul = %llx\n", write_count, pfb_mul);
   // memcpy(pfb_sam_output_buffer, (unsigned long*)(pfb_cap->data_base), write_count * pfb_mul * sizeof(unsigned long));
   // long pfb_samples = samples*lanes;
   // int64_t pfb_result[pfb_samples];
@@ -155,7 +156,7 @@ int main(void) {
   // parse_sam_output(pfb_sam_output_buffer, pfb_cap->n_samps, pfb_total_bits, lanes, pfb_mul, pfb_result);
   // printf("Printing output\n");
   // for (int i = 0; i < pfb_samples; i++) {
-  //   printf("PFB: %lld\n", pfb_result[i]);
+  //   printf("F: %lld\n", pfb_result[i]);
   // }
 
   // // power - initiate SAM
@@ -181,10 +182,6 @@ int main(void) {
   // while (write_count < power_cap->n_samps) {
   //   write_count  = read_reg(power_cap->ctrl_base + SAM_W_WRITE_COUNT_OFFSET);
   // }
-  // // write_count should be samples (4)
-  // // accum_mul should be 2048/64 = 32 
-  // //get_sam_output(accum_cap); 
-  // //printf("write count = %llx, power_mul = %llx\n", write_count, power_mul);
   // memcpy(power_sam_output_buffer, (unsigned long*)(power_cap->data_base), write_count * power_mul * sizeof(unsigned long));
   // long power_samples = samples*lanes;
   // int64_t power_result[power_samples];
@@ -192,11 +189,11 @@ int main(void) {
   // parse_sam_output(power_sam_output_buffer, power_cap->n_samps, power_total_bits, lanes, power_mul, power_result);
   // printf("Printing output\n");
   // for (int i = 0; i < power_samples; i++) {
-  //   printf("POW: %lld\n", power_result[i]);
+  //   printf("P: %lld\n", power_result[i]);
   // }
 
   // accum - initiate SAM
-  write_reg(acmes_accum_NumSpectraToAccumulate, 1);
+  write_reg(acmes_accum_NumSpectraToAccumulate, 10);
   sam_capture* accum_cap = &acmes_accum_sam_capture;
   unsigned long accum_mul = (accum_cap->pow2_width)/sizeof(uint64_t)/8;
   uint64_t accum_sam_output_buffer[accum_mul*samples];
@@ -226,6 +223,6 @@ int main(void) {
   parse_sam_output(accum_sam_output_buffer, accum_cap->n_samps, accum_total_bits, lanes, accum_mul, accum_result);
   printf("Printing output\n");
   for (int i = 0; i < accum_samples; i++) {
-    printf("ACCUM: %lld\n", accum_result[i]);
+    printf("A: %lld\n", accum_result[i]);
   }
 }

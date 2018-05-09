@@ -8,6 +8,7 @@ import chisel3._
 import dspblocks._
 import dspjunctions._
 import testchipip._
+import rocketchip.{SimAXIMem, ExtMemSize, PeripheryUtils}
 import chisel3.experimental._
 import _root_.util._
 
@@ -34,6 +35,7 @@ class TestHarness(implicit val p: Parameters) extends Module with RealAnalogAnno
   val ser = Module(new SimSerialWrapper(p(SerialInterfaceWidth)))
   ser.io.serial <> dut.io.serial
   io.success := ser.io.exit
+
 }
 
 class CraftP1Core(implicit val p: Parameters) extends Module with RealAnalogAnnotator {

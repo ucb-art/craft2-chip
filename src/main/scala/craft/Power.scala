@@ -14,9 +14,10 @@ import scala.collection.mutable.Map
 
 case class PowerKey(id: String) extends Field[PowerConfig]
 
-case class PowerConfig(val lanes: Int = 8, val pipelineDepth: Int = 0) {
+case class PowerConfig(val lanes: Int = 8, val pipelineDepth: Int = 0, quadrature: Boolean = true) {
   require(lanes > 0, "Power block must have more than 0 input lanes")
   require(pipelineDepth >= 0, "Power block must have positive pipelining")
+  // note quadrature does nothing since this is a lane-sliced function
 }
 
 class PowerBlock[T <: Data:Real]()(implicit p: Parameters) extends DspBlock()(p) {

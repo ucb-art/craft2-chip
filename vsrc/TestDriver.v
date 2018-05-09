@@ -22,10 +22,11 @@ module TestDriver;
   real adcinm = 0.2;
 
   // [stevo]: make sine wave
-  `define ADCPERIOD 1.0
+  `define ADCPERIOD 0.5
   always #(`ADCPERIOD/100.0) begin
-      adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime());
-      adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI);
+    //real noise = ($itor($urandom >> 1)/2147483647-0.5)*2;
+    adcinp = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()) + 0.3*($itor($urandom >> 1)/2147483647-0.5)*2;
+    adcinm = 0.2 + 0.15*sin(2*`PI/`ADCPERIOD*$realtime()+`PI) - 0.3*($itor($urandom >> 1)/2147483647-0.5)*2;
   end  
 
   // digital clocks

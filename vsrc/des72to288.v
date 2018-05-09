@@ -164,36 +164,36 @@ module des72to288(
 //------------------------------------------------------------------------------
 // clkout_dsp : divided-by-4 clock
 // out_0 = in_0 when phi==00
-// out_1 = in_1 when phi==00
-// out_2 = in_2 when phi==00
-// out_3 = in_3 when phi==00
-// out_4 = in_4 when phi==00
-// out_5 = in_5 when phi==00
-// out_6 = in_6 when phi==00
-// out_7 = in_7 when phi==00
-// out_8 = in_0 when phi==01
-// out_9 = in_1 when phi==01
-// out_10 = in_2 when phi==01
-// out_11 = in_3 when phi==01
-// out_12 = in_4 when phi==01
-// out_13 = in_5 when phi==01
-// out_14 = in_6 when phi==01
-// out_15 = in_7 when phi==01
-// out_16 = in_0 when phi==10
-// out_17 = in_1 when phi==10
-// out_18 = in_2 when phi==10
-// out_19 = in_3 when phi==10
-// out_20 = in_4 when phi==10
-// out_21 = in_5 when phi==10
-// out_22 = in_6 when phi==10
-// out_23 = in_7 when phi==10
-// out_24 = in_0 when phi==11
-// out_25 = in_1 when phi==11
-// out_26 = in_2 when phi==11
-// out_27 = in_3 when phi==11
-// out_28 = in_4 when phi==11
-// out_29 = in_5 when phi==11
-// out_30 = in_6 when phi==11
+// out_1 = in_2 when phi==00
+// out_2 = in_4 when phi==00
+// out_3 = in_6 when phi==00
+// out_4 = in_0 when phi==01
+// out_5 = in_2 when phi==01
+// out_6 = in_4 when phi==01
+// out_7 = in_6 when phi==01
+// out_8 = in_0 when phi==10
+// out_9 = in_2 when phi==10
+// out_10 = in_4 when phi==10
+// out_11 = in_6 when phi==10
+// out_12 = in_0 when phi==11
+// out_13 = in_2 when phi==11
+// out_14 = in_4 when phi==11
+// out_15 = in_6 when phi==11
+// out_16 = in_1 when phi==00
+// out_17 = in_3 when phi==00
+// out_18 = in_5 when phi==00
+// out_19 = in_7 when phi==00
+// out_20 = in_1 when phi==01
+// out_21 = in_3 when phi==01
+// out_22 = in_5 when phi==01
+// out_23 = in_7 when phi==01
+// out_24 = in_1 when phi==10
+// out_25 = in_3 when phi==10
+// out_26 = in_5 when phi==10
+// out_27 = in_7 when phi==10
+// out_28 = in_1 when phi==11
+// out_29 = in_3 when phi==11
+// out_30 = in_5 when phi==11
 // out_31 = in_7 when phi==11
 
 wire                [1:0]       phi_next;
@@ -222,71 +222,71 @@ des9to36 des0(
     .in                         (in_0                                   ),
     .phi                        (phi                                    ),
     .out0                       (out_0                                  ),
-    .out1                       (out_8                                  ),
-    .out2                       (out_16                                 ),
-    .out3                       (out_24                                 )
+    .out1                       (out_4                                  ),
+    .out2                       (out_8                                  ),
+    .out3                       (out_12                                 )
 );
 des9to36 des1(
     .clk                        (clk                                    ),
     .in                         (in_1                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_1                                  ),
-    .out1                       (out_9                                  ),
-    .out2                       (out_17                                 ),
-    .out3                       (out_25                                 )
+    .out0                       (out_16                                 ),
+    .out1                       (out_20                                 ),
+    .out2                       (out_24                                 ),
+    .out3                       (out_28                                 )
 );
 des9to36 des2(
     .clk                        (clk                                    ),
     .in                         (in_2                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_2                                  ),
-    .out1                       (out_10                                 ),
-    .out2                       (out_18                                 ),
-    .out3                       (out_26                                 )
+    .out0                       (out_1                                  ),
+    .out1                       (out_5                                  ),
+    .out2                       (out_9                                  ),
+    .out3                       (out_13                                 )
 );
 des9to36 des3(
     .clk                        (clk                                    ),
     .in                         (in_3                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_3                                  ),
-    .out1                       (out_11                                 ),
-    .out2                       (out_19                                 ),
-    .out3                       (out_27                                 )
+    .out0                       (out_17                                 ),
+    .out1                       (out_21                                 ),
+    .out2                       (out_25                                 ),
+    .out3                       (out_29                                 )
 );
 des9to36 des4(
     .clk                        (clk                                    ),
     .in                         (in_4                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_4                                  ),
-    .out1                       (out_12                                 ),
-    .out2                       (out_20                                 ),
-    .out3                       (out_28                                 )
+    .out0                       (out_2                                  ),
+    .out1                       (out_6                                  ),
+    .out2                       (out_10                                 ),
+    .out3                       (out_14                                 )
 );
 des9to36 des5(
     .clk                        (clk                                    ),
     .in                         (in_5                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_5                                  ),
-    .out1                       (out_13                                 ),
-    .out2                       (out_21                                 ),
-    .out3                       (out_29                                 )
+    .out0                       (out_18                                 ),
+    .out1                       (out_22                                 ),
+    .out2                       (out_26                                 ),
+    .out3                       (out_30                                 )
 );
 des9to36 des6(
     .clk                        (clk                                    ),
     .in                         (in_6                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_6                                  ),
-    .out1                       (out_14                                 ),
-    .out2                       (out_22                                 ),
-    .out3                       (out_30                                 )
+    .out0                       (out_3                                  ),
+    .out1                       (out_7                                  ),
+    .out2                       (out_11                                 ),
+    .out3                       (out_15                                 )
 );
 des9to36 des7(
     .clk                        (clk                                    ),
     .in                         (in_7                                   ),
     .phi                        (phi                                    ),
-    .out0                       (out_7                                  ),
-    .out1                       (out_15                                 ),
-    .out2                       (out_23                                 ),
+    .out0                       (out_19                                 ),
+    .out1                       (out_23                                 ),
+    .out2                       (out_27                                 ),
     .out3                       (out_31                                 )
 );
 endmodule

@@ -17,21 +17,21 @@ trait CLKRXTopLevelOutIO {
 }
 
 class CLKRXIO extends Bundle {
-  val VIN = Input(Bool())
-  val VIP = Input(Bool())
-  val VOBUF = Output(Clock())
+  val inp = Input(Bool())
+  val inn = Input(Bool())
+  val out = Output(Clock())
 }
 
-class CLK_RX_amp_buf extends BlackBox {
+class lvds_csda_dcc extends BlackBox {
   val io = IO(new CLKRXIO)
 }
 
 trait CLKRXModule {
   implicit val p: Parameters
   def io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO
-  val clkrx = Module(new CLK_RX_amp_buf)
-  clkrx.io.VIN := io.CLKRXVIN
-  clkrx.io.VIP := io.CLKRXVIP
-  io.clkrxvobuf := clkrx.io.VOBUF
+  val clkrx = Module(new lvds_csda_dcc)
+  clkrx.io.inn := io.CLKRXVIN
+  clkrx.io.inp := io.CLKRXVIP
+  io.clkrxvobuf := clkrx.io.out
 }
 
