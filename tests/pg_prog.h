@@ -83,13 +83,11 @@ static void pg_create_data(unsigned long *arr, unsigned long *test, int sz) {
   }
 }
 
-static void pg_load_data(unsigned long start_addr, int cnt) {
+static void pg_load_data(unsigned long start_addr, int cnt, unsigned long *arr) {
   int i, j;
   unsigned int sample_cnt    = 0;
   unsigned int idx           = 0;  //test data
   unsigned int WriteFinished = 0;
-
-  unsigned long *arr = pg_mem;//vector file from fft_input_vector.h
 
   //Calculate the sample count. Count is multiple 8 words of 64 bits each = 512
   //sample_count = cnt/8

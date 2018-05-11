@@ -8,14 +8,13 @@ TESTCHIPIP_DIR=$(framework_dir)/testchipip
 # define simulation things
 # unrealistic clock periods for faster simulation
 core_clock_period = 1
-#serial_clock_period = 0.95
-serial_clock_period = 1
+serial_clock_period = 0.95
 dsp_clock_period = 0.104
-timeout_cycles = 100000000
+timeout_cycles = 100000
 
 SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
-CRAFT_PACKAGES = fft pfb
+CRAFT_PACKAGES = fft pfb riscv-dma2
 craft_stamps := $(addprefix $(lib_dir)/,$(addsuffix .stamp, $(notdir $(CRAFT_PACKAGES)))) $(extra_stamps)
 -include $(framework_dir)/Makefrag
 -include $(base_dir)/Makefrag.pkgs

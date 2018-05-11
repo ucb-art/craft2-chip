@@ -76,7 +76,7 @@ void parse_sam_output(void *sam_output, uint64_t num_writes, uint64_t bitwidth, 
 int main(void) {
 
   // should be multiple of 256 to get full spectrum if 8192
-  int samples = 512;
+  int samples = 4;
 
   // TODO: get this from IP-XACT or somewhere 
   int lanes = 32;
@@ -193,7 +193,7 @@ int main(void) {
   // }
 
   // accum - initiate SAM
-  write_reg(acmes_accum_NumSpectraToAccumulate, 10);
+  write_reg(acmes_accum_NumSpectraToAccumulate, 1);
   sam_capture* accum_cap = &acmes_accum_sam_capture;
   unsigned long accum_mul = (accum_cap->pow2_width)/sizeof(uint64_t)/8;
   uint64_t accum_sam_output_buffer[accum_mul*samples];

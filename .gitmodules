@@ -16,3 +16,6 @@
 [submodule "raven3_lvss"]
 	path = raven3_lvss
 	url = git@bwrcrepo.eecs.berkeley.edu:raven/raven3_lvss.git
+[submodule "riscv-dma2"]
+	path = riscv-dma2
+	url = https://github.com/zhemao/riscv-dma2.git

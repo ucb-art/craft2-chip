@@ -19,10 +19,11 @@ val defaultVersions = Map(
   "fft" -> "1.0",
   "pfb" -> "1.0",
   "builtin-debugger" -> "0",
+  "riscv-dma" -> "2.0",
   // barstools is called tapeout for now
   "tapeout" -> "0.1-SNAPSHOT"
   )
 
-libraryDependencies ++= Seq("rocket-dsp-utils", "chisel3", "chisel-iotesters", "builtin-debugger", "pfb", "fft", "tapeout").map {
+libraryDependencies ++= Seq("rocket-dsp-utils", "chisel3", "chisel-iotesters", "builtin-debugger", "riscv-dma", "pfb", "fft", "tapeout").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) }
 
