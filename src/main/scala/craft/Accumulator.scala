@@ -193,8 +193,8 @@ class Accumulator[T <: Data:Real]()(implicit val p: Parameters) extends Module w
   val accum_in = Vec(in.zip(io.out.bits).map { case (i, o) => Mux(sState != sAccum, i, DspContext.withOverflowType(dsptools.Wrap) {o+i} ) })
   // TODO : undo this when real SRAMs are available 
   // [stevo]: large SRAMs have max width of 64; there is a 512x128 though, so if the depth is 512, this should be combined
-  io.out.bits.zip(accum_in).foreach { case (out,in) =>
-    out := ShiftRegisterMem(in, config.outputWindowSize/lanes_new, accum)
+  io.out.bits.zip(accum_in).foreach { case (o,i) =>
+    o := ShiftRegisterMem(i, config.outputWindowSize/lanes_new, accum)
   }
   //io.out.bits := ShiftRegisterMem(accum_in, config.outputWindowSize/lanes_new, accum)
 }

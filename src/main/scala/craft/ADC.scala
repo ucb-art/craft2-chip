@@ -74,7 +74,7 @@ class TISARADC extends BlackBox {
 
 class DeserIO extends Bundle {
   val in           = Input(Vec(8, UInt(9.W)))
-  val out          = Output(Vec(32, UInt(9.W)))
+  val out          = Output(Vec(64, UInt(9.W)))
   val clk          = Input(Clock())
   val rst          = Input(Bool())
   // clock that follows data to fifo
@@ -82,9 +82,9 @@ class DeserIO extends Bundle {
   // clock that goes to rest of the dsp chain
   val clkout_dsp = Output(Clock())
   // set the phase during reset
-  val phi_init = Input(UInt(2.W))
+  val phi_init = Input(UInt(3.W))
 }
 
-class des72to288 extends BlackBox {
+class des72to576 extends BlackBox {
   val io = IO(new DeserIO)
 }

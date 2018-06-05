@@ -138,7 +138,7 @@ trait ADCModule {
     adc.io.adcout6,
     adc.io.adcout7)
 
-  lazy val deser = Module(new des72to288)
+  lazy val deser = Module(new des72to576)
   deser.io.in := adcout
   deser.io.clk := adc.io.clkout_des
   // [stevo]: wouldn't do anything, since it's only used on reset
@@ -153,10 +153,7 @@ trait ADCModule {
   // this lazy weirdness is needed because other traits look at streamIn
   // before this code executes
 
-  // no ADC calibration
   lazy val numInBits = 9
-  lazy val numOutBits = 9
-  lazy val numSlices = 8*4
 
   // convert unsigned to signed
   lazy val streamIn = Wire(ValidWithSync(des_sync.asTypeOf(UInt())))

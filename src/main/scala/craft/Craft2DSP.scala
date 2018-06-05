@@ -73,7 +73,8 @@ trait PeripheryCraft2DSPModule extends HasPeripheryParameters {
 
   val craftChainModule = craftChain.module
 
-  val dsp_clock = craftChainModule.io.adc_clk_out
+  //val dsp_clock = craftChainModule.io.adc_clk_out
+  val dsp_clock = io.ADCCLKP.asClock
   val dsp_reset = ResetSync(io.dsp_reset, dsp_clock)
   craftChainModule.clock := dsp_clock
   craftChainModule.reset := dsp_reset

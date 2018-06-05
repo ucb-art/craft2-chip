@@ -34,7 +34,7 @@ PROJECT ?= craft
 MODEL ?= TestHarness
 CFG_PROJECT ?= $(PROJECT)
 CONFIG ?= AcmesConfig
-VLSICORE ?= CraftP1CoreTop
+VLSICORE ?= CraftP1Core
 VLSITOP ?= CraftP1Top
 VLSIPADS ?= CraftP1Pads
 TB ?= TestDriver
@@ -63,7 +63,7 @@ $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(l
 	cd $(base_dir) && $(SBT) "runMain barstools.tapeout.transforms.GenerateTopAndHarness -i $< --top-o $(build_dir)/$(long_name).v --harness-o $(build_dir)/$(long_name).harness.v --syn-top $(VLSICORE) --harness-top $(MODEL) --seq-mem-flags \"-o:$(build_dir)/$(long_name).conf\" --list-clocks \"-o:$(build_dir)/$(long_name).domains\" --anno-file $(build_dir)/$(long_name).anno" 
 
 $(build_dir)/$(long_name).mems.v: $(build_dir)/$(long_name).conf $(MEM_GEN) $(FLOP_GEN) $(SRAMS)
-	cd $(build_dir) && $(MEM_GEN) -conf=$(build_dir)/$(long_name).conf -srams=$(SRAMS) -flop=$(FLOP_GEN) -v=$(build_dir)/$(long_name).mems.v -report=$(build_dir)/$(long_name).mems.rpt -ff True
+	cd $(build_dir) && $(MEM_GEN) -conf=$(build_dir)/$(long_name).conf -srams=$(SRAMS) -flop=$(FLOP_GEN) -v=$(build_dir)/$(long_name).mems.v -report=$(build_dir)/$(long_name).mems.rpt
 
 ## [stevo]: temporary hack to rename dut from Core to Top so it includes the pad frame, and add rte
 #$(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v $(build_dir)/pads.behav.v: $(build_dir)/$(long_name).mems.v $(PAD_GEN) $(HARNESS_MOD)

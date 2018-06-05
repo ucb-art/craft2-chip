@@ -45,7 +45,7 @@ object ChainBuilder {
 
   def acmes(id: String = "acmes", channels: Int = 64): Config = {
 
-    val lanes = 32
+    val lanes = 64
     val numTaps = 4
     val quadrature = true
 
@@ -54,7 +54,7 @@ object ChainBuilder {
     def bm1Input():T = FixedPoint(9.W, 0.BP)
     def bm1Output():T = FixedPoint(9.W, 0.BP)
     def bm1Connect() = BlockConnectionParameters(connectPG = true, connectLA = true, addSAM = false)
-    def bm1SAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // TODO was 4096
+    def bm1SAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // not used
 
     // Here be the filterbank
     // notes on windows: the sincHamming doesn't go to zero on the edges, so Hanning is preferred
@@ -62,40 +62,40 @@ object ChainBuilder {
     def pfbConfig() = PFBConfig(windowFunc = sincHanning.apply, processingDelay = pd, numTaps = numTaps, outputWindowSize = channels, lanes = lanes, multiplyPipelineDepth = 1, outputPipelineDepth = 1, genTap = Some(pfbTap), quadrature = quadrature)
     def pfbInput():T = FixedPoint(9.W, 8.BP)
     // [stevo]: make sure pfbTap and pfbConvert use the same width and binary point
-    def pfbTap:T = FixedPoint(10.W, 7.BP)
-    def pfbConvert(x: Double):T = FixedPoint.fromDouble(x, 10.W, 7.BP)
-    def pfbOutput():T = FixedPoint(12.W, 8.BP)
+    def pfbTap:T = FixedPoint(9.W, 8.BP)
+    def pfbConvert(x: Double):T = FixedPoint.fromDouble(x, 9.W, 8.BP)
+    def pfbOutput():T = FixedPoint(12.W, 7.BP) // loss of 1 LSB precision
     def pfbConnect() = BlockConnectionParameters(connectPG = true, connectLA = true, addSAM = false)
-    def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // TODO was 4096
+    def pfbSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // not used
 
     // Here be the Fourier transform
     def fftConfig() = FFTConfig(n = channels, lanes = lanes, pipelineDepth = 13, real = true, quadrature = quadrature)
-    def fftInput():T = FixedPoint(12.W, 8.BP) // gets complexed automatically
-    def fftOutput():T = FixedPoint(18.W, 8.BP) // gets complexed automatically
+    def fftInput():T = FixedPoint(12.W, 7.BP) // gets complexed automatically
+    def fftOutput():T = FixedPoint(18.W, 6.BP) // gets complexed automatically // loss of 1 LSB precision, plus only 1 bit growth every other stage
     def fftConnect() = BlockConnectionParameters(connectPG = true, connectLA = true, addSAM = false)
-    def fftSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // TODO was 4096
+    def fftSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // not used
 
     // Here be the cross calibration block
     def ccConfig() = CrossCalibrateConfig(channels = channels, lanes = lanes, pipelineDepth = 1)
-    def ccInput():T = FixedPoint(18.W, 8.BP) // gets complexed automatically
+    def ccInput():T = FixedPoint(18.W, 6.BP) // gets complexed automatically
     // note: as a hack, the calibration coefficient bitwidth is set in the CrossCalibrate file as 2 total bits less than the input bitwidth (same fractional width)
-    def ccOutput():T = FixedPoint(18.W, 8.BP) // gets complexed automatically
+    def ccOutput():T = FixedPoint(18.W, 6.BP) // gets complexed automatically
     def ccConnect() = BlockConnectionParameters(connectPG = true, connectLA = true, addSAM = false)
-    def ccSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // TODO was 4096
+    def ccSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // not used
 
     // Here be the power block
     def powerConfig() = PowerConfig(lanes = lanes, pipelineDepth = 1, quadrature = quadrature)
-    def powerInput():T = FixedPoint(18.W, 8.BP) // gets complexed automatically
-    def powerOutput():T = FixedPoint(36.W, 8.BP)
+    def powerInput():T = FixedPoint(18.W, 6.BP) // gets complexed automatically
+    def powerOutput():T = FixedPoint(34.W, 10.BP) // loss of 3 LSB precision?
     def powerConnect() = BlockConnectionParameters(connectPG = true, connectLA = true, addSAM = false)
-    def powerSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // TODO was 4096
+    def powerSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 1024)) // not used
 
     // Here be the accumulator block
     def accumConfig() = AccumulatorConfig(lanes = lanes, outputWindowSize = channels, maxSpectra = 2048, quadrature = quadrature)
-    def accumInput():T = FixedPoint(36.W, 8.BP)
-    def accumOutput():T = FixedPoint(64.W, 8.BP)
+    def accumInput():T = FixedPoint(34.W, 10.BP)
+    def accumOutput():T = FixedPoint(64.W, 10.BP)
     def accumConnect() = BlockConnectionParameters(connectPG = true, connectLA = false, addSAM = true)
-    def accumSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 512)) // TODO was 4096 then 512
+    def accumSAMConfig() = Some(SAMConfig(subpackets = 1, bufferDepth = 256)) // one spectrum
 
   ///////////////////////////////////////////////////////////////
   ////////////                                     Here be acmes 
@@ -115,11 +115,11 @@ object ChainBuilder {
             (implicit p => new PowerBlock[T], id + ":power", powerConnect(), powerSAMConfig()),
             (implicit p => new AccumulatorBlock[T], id + ":accum", accumConnect(), accumSAMConfig())
           ),
-          logicAnalyzerSamples = 8192, 
-          logicAnalyzerUseCombinationalTrigger = true, 
-          patternGeneratorSamples = 8192, // TODO what should it be? was 8192
+          logicAnalyzerSamples = 256, // one spectrum...hopefully it's enough?
+          logicAnalyzerUseCombinationalTrigger = true,
+          patternGeneratorSamples = 256, // one spectrum...hopefully it's enough?
           patternGeneratorUseCombinationalTrigger = true,
-          biggestWidth = 2048
+          biggestWidth = 4096
         )
         case _ => throw new CDEMatchError
       }
@@ -151,25 +151,28 @@ class WithMiniSerialAdapter extends Config(
 //)
 
 class AcmesBaseConfig extends Config(
+  new WithDma ++
   new WithL2Capacity(512) ++
   new WithL2Cache ++
-  new WithExtMemSize(8L * 1024L * 1024L) ++
+  new WithExtMemSize(1L * 1024L * 1024L) ++
+  new WithNL2AcquireXacts(4) ++ 
   new WithNMemoryChannels(8) ++
   new WithSRAM(4) ++
-  new WithDma ++
+  //new WithSRAM(1) ++
   new WithMiniSerialAdapter ++
   new rocketchip.BaseConfig)
 
 class AcmesTinyBaseConfig extends Config(
+  new WithDma ++
   new WithL2Capacity(8) ++
   new WithL2Cache ++
   new WithExtMemSize(256L * 1024L) ++
+  new WithNL2AcquireXacts(4) ++ 
   new WithNMemoryChannels(8) ++
   new WithSRAM(4) ++
-  new WithDma ++
   new WithMiniSerialAdapter ++
   new rocketchip.BaseConfig)
 
-class AcmesConfig extends Config(ChainBuilder.acmes(channels=64) ++ new AcmesBaseConfig)
+class AcmesConfig extends Config(ChainBuilder.acmes(channels=8192) ++ new AcmesBaseConfig)
 class AcmesTinyConfig extends Config(ChainBuilder.acmes(channels=64) ++ new AcmesTinyBaseConfig)
-class AcmesFPGAConfig extends Config(ChainBuilder.acmes(channels=64) ++ new AcmesTinyBaseConfig)
+class AcmesFPGAConfig extends Config(ChainBuilder.acmes(channels=256) ++ new AcmesTinyBaseConfig)
