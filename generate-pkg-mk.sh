@@ -12,7 +12,7 @@ ${lib_dir}/$(basename ${pkg}).stamp: \$(call lookup_scala_srcs, ${pkg_dir}) \$(r
 	mkdir -p ${lib_dir}
 	rm -rf ${pkg_dir}/lib
 	ln -s ${base_dir}/lib ${pkg_dir}/lib
-	cd ${pkg_dir} && \$(SBT) publish-local
+	cd ${pkg_dir} && \$(SBT) publishLocal
 	touch \$@
 MAKE
 done
