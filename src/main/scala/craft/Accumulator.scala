@@ -1,60 +1,61 @@
 package craft
 
-import cde.{Parameters, Field, Config, CDEMatchError}
 import chisel3._
 import chisel3.util._
 import dsptools._
 import dsptools.numbers._
-import dsptools.numbers.implicits._
 import dspjunctions._
 import dspblocks._
-import ipxact._
-import craft._
+import freechips.rocketchip.amba.axi4stream._
+import freechips.rocketchip.config.Parameters
+import freechips.rocketchip.diplomacy._
 import scala.collection.mutable.Map
 
-case class AccumulatorKey(id: String) extends Field[AccumulatorConfig]
-
-case class AccumulatorConfig(val lanes: Int = 8, outputWindowSize: Int = 8, maxSpectra: Int = 128, quadrature: Boolean = true) {
+case class AccumulatorConfig[T <: Data](
+  genIn: T,
+  genOut: T,
+  lanes: Int = 8,
+  outputWindowSize: Int = 8,
+  maxSpectra: Int = 128,
+  quadrature: Boolean = true
+) {
   val lanes_new = if (quadrature) lanes/2 else lanes
   require(lanes_new > 0, "Accumulator block must have more than 0 input lanes")
   require(maxSpectra > 1, "Accumulating only 1 spectrum is trivial")
   require(outputWindowSize >= lanes_new, "Must have bigger or equally sized window than number of lanes")
 }
 
-class AccumulatorBlock[T <: Data:Real]()(implicit p: Parameters) extends DspBlock()(p) {
-  def controls = Seq()
-  def statuses = Seq()
-
+class AccumulatorBlock[T <: Data:Real](val config: AccumulatorConfig[T])(implicit p: Parameters) extends TLDspBlock /*with TLHasCSR*/ {
+  override val streamNode = AXI4StreamIdentityNode()
+  override val mem = None
   lazy val module = new AccumulatorModule(this)
 
-  addStatus("Data_Set_End_Status")
-  addControl("Data_Set_End_Clear", 0.U)
+  // addStatus("Data_Set_End_Status")
+  // addControl("Data_Set_End_Clear", 0.U)
 
-  addControl("NumSpectraToAccumulate", 0.U)
-  addStatus("NumSpectraAccumulated")
-  addControl("ResetAccumulations", 0.U)
+  // addControl("NumSpectraToAccumulate", 0.U)
+  // addStatus("NumSpectraAccumulated")
+  // addControl("ResetAccumulations", 0.U)
 }
 
-class AccumulatorModule[T <: Data:Real](outer: AccumulatorBlock[T])(implicit p: Parameters) extends GenDspBlockModule[T, T](outer)(p) {
-  val config = p(AccumulatorKey(p(DspBlockId)))
-  val module = Module(new Accumulator[T])
-  module.io.in <> unpackInput(lanesIn, genIn())
-  unpackOutput(lanesOut, genOut()) <> module.io.out
+class AccumulatorModule[T <: Data:Real](outer: AccumulatorBlock[T])(implicit p: Parameters) extends LazyModuleImp(outer) {
+  val config = outer.config
+  val module = Module(new Accumulator[T](config))
+  // module.io.in <> unpackInput(lanesIn, genIn())
+  // unpackOutput(lanesOut, genOut()) <> module.io.out
 
-  status("Data_Set_End_Status") := module.io.data_set_end_status
-  module.io.data_set_end_clear := control("Data_Set_End_Clear")
+  // status("Data_Set_End_Status") := module.io.data_set_end_status
+  // module.io.data_set_end_clear := control("Data_Set_End_Clear")
 
-  module.io.num_spectra_to_accumulate := control("NumSpectraToAccumulate")
-  status("NumSpectraAccumulated") := module.io.num_spectra_accumulated
-  module.io.reset_accumulations := control("ResetAccumulations")
+  // module.io.num_spectra_to_accumulate := control("NumSpectraToAccumulate")
+  // status("NumSpectraAccumulated") := module.io.num_spectra_accumulated
+  // module.io.reset_accumulations := control("ResetAccumulations")
 }
 
-class Accumulator[T <: Data:Real]()(implicit val p: Parameters) extends Module with HasGenParameters[T, T] {
-  val config: AccumulatorConfig = p(AccumulatorKey(p(DspBlockId)))
-
+class Accumulator[T <: Data:Real](val config: AccumulatorConfig[T])(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
-    val in = Input(ValidWithSync(Vec(config.lanes, genIn())))
-    val out = Output(ValidWithSync(Vec(config.lanes, genOut())))
+    val in = Input(ValidWithSync(Vec(config.lanes, config.genIn)))
+    val out = Output(ValidWithSync(Vec(config.lanes, config.genOut)))
 
     val data_set_end_status = Output(Bool())
     val data_set_end_clear = Input(Bool())
@@ -63,10 +64,10 @@ class Accumulator[T <: Data:Real]()(implicit val p: Parameters) extends Module w
     val num_spectra_accumulated = Output(UInt(64.W))
     val reset_accumulations = Input(Bool())
   })
-  val lanes_new = if (config.quadrature) lanesIn/2 else lanesIn
+  val lanes_new = config.lanes_new
 
   // feed in zeros when invalid
-  val in = Wire(Vec(config.lanes, genIn()))
+  val in = Wire(Vec(config.lanes, config.genIn))
   when (io.in.valid) {
     in := io.in.bits
   } .otherwise {
@@ -197,20 +198,4 @@ class Accumulator[T <: Data:Real]()(implicit val p: Parameters) extends Module w
     o := ShiftRegisterMem(i, config.outputWindowSize/lanes_new, accum)
   }
   //io.out.bits := ShiftRegisterMem(accum_in, config.outputWindowSize/lanes_new, accum)
-}
-
-object AccumulatorConfigBuilder {
-  def apply[T <: Data:Real] (
-    id: String, accumulatorConfig: AccumulatorConfig, genIn: () => T, genOut: Option[() => T]): Config = new Config(
-      (pname, site, here) => pname match {
-        case AccumulatorKey(_id) if _id == id => accumulatorConfig
-        case IPXactParameters(_id) if _id == id => Map[String, String]()
-        case _ => throw new CDEMatchError
-      }
-    ) ++
-    ConfigBuilder.genParams(id, accumulatorConfig.lanes, genIn, genOutFunc = genOut)
-
-  def standalone[T <: Data : Real](id: String, accumulatorConfig: AccumulatorConfig, genIn: () => T, genOut: Option[() => T] = None): Config =
-    apply(id, accumulatorConfig, genIn, genOut) ++
-    ConfigBuilder.buildDSP(id, {implicit p: Parameters => new AccumulatorBlock[T]})
 }

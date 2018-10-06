@@ -21,9 +21,11 @@ val defaultVersions = Map(
   "builtin-debugger" -> "0",
   "riscv-dma" -> "2.0",
   // barstools is called tapeout for now
-  "tapeout" -> "0.1-SNAPSHOT"
+  "tapeout" -> "0.1-SNAPSHOT",
+  "testchipip" -> "1.0",
   )
 
-libraryDependencies ++= Seq("rocket-dsptools", /*"riscv-dma", "pfb",*/ "fft"/*, "tapeout"*/).map {
+libraryDependencies ++= Seq("testchipip", "rocket-dsptools", /*"riscv-dma", "pfb",*/ "fft"/*, "tapeout"*/).map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) }
 
+scalacOptions += "-Xsource:2.11"

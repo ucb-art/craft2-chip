@@ -1,51 +1,52 @@
 package craft
 
-import cde.{Parameters, Field, Config, CDEMatchError}
 import chisel3._
 import chisel3.util._
 import dsptools._
 import dsptools.numbers._
-import dsptools.numbers.implicits._
 import dspjunctions._
 import dspblocks._
-import ipxact._
+import freechips.rocketchip.amba.axi4stream._
+import freechips.rocketchip.config._
+import freechips.rocketchip.diplomacy._
 import craft._
 import scala.collection.mutable.Map
 
-case class PowerKey(id: String) extends Field[PowerConfig]
-
-case class PowerConfig(val lanes: Int = 8, val pipelineDepth: Int = 0, quadrature: Boolean = true) {
+case class PowerConfig[T <: Data](
+  genIn: T,
+  genOut: T,
+  lanes: Int = 8,
+  pipelineDepth: Int = 0,
+  quadrature: Boolean = true
+) {
   require(lanes > 0, "Power block must have more than 0 input lanes")
   require(pipelineDepth >= 0, "Power block must have positive pipelining")
   // note quadrature does nothing since this is a lane-sliced function
 }
 
-class PowerBlock[T <: Data:Real]()(implicit p: Parameters) extends DspBlock()(p) {
-  def controls = Seq()
-  def statuses = Seq()
+class PowerBlock[T <: Data:Real](val config: PowerConfig[T])(implicit p: Parameters) extends TLDspBlock /*with TLHasCSR*/ {
+  val streamNode = AXI4StreamIdentityNode()
+  val mem = None
 
   lazy val module = new PowerModule(this)
 
-  addStatus("Data_Set_End_Status")
-  addControl("Data_Set_End_Clear", 0.U)
-
+  // addStatus("Data_Set_End_Status")
+  // addControl("Data_Set_End_Clear", 0.U)
 }
 
-class PowerModule[T <: Data:Real](outer: PowerBlock[T])(implicit p: Parameters) extends GenDspBlockModule[T, T](outer)(p) {
-  val config = p(PowerKey(p(DspBlockId)))
-  val module = Module(new Power[T])
-  module.io.in <> unpackInput(lanesIn, genIn())
-  unpackOutput(lanesOut, genOut()) <> module.io.out
-  status("Data_Set_End_Status") := module.io.data_set_end_status
-  module.io.data_set_end_clear := control("Data_Set_End_Clear")
+class PowerModule[T <: Data:Real](outer: PowerBlock[T])(implicit p: Parameters) extends LazyModuleImp(outer) {
+  val config = outer.config
+  val module = Module(new Power[T](config))
+  // module.io.in <> unpackInput(lanesIn, genIn())
+  // unpackOutput(lanesOut, genOut()) <> module.io.out
+  // status("Data_Set_End_Status") := module.io.data_set_end_status
+  // module.io.data_set_end_clear := control("Data_Set_End_Clear")
 }
 
-class Power[T <: Data:Real]()(implicit val p: Parameters) extends Module with HasGenParameters[T, T] {
-  val config: PowerConfig = p(PowerKey(p(DspBlockId)))
-
+class Power[T <: Data:Real](val config: PowerConfig[T])(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
-    val in = Input(ValidWithSync(Vec(config.lanes, genIn())))
-    val out = Output(ValidWithSync(Vec(config.lanes, genOut())))
+    val in = Input(ValidWithSync(Vec(config.lanes, config.genIn)))
+    val out = Output(ValidWithSync(Vec(config.lanes, config.genOut)))
     val data_set_end_status = Output(Bool())
     val data_set_end_clear = Input(Bool())
   })
@@ -56,7 +57,7 @@ class Power[T <: Data:Real]()(implicit val p: Parameters) extends Module with Ha
   io.out.valid := ShiftRegisterWithReset(io.in.valid, latency, 0.U)
 
   // feed in zeros when invalid
-  val in = Wire(Vec(config.lanes, genIn()))
+  val in = Wire(Vec(config.lanes, config.genIn))
   when (io.in.valid) {
     in := io.in.bits
   } .otherwise {
@@ -80,20 +81,4 @@ class Power[T <: Data:Real]()(implicit val p: Parameters) extends Module with Ha
     //o := ShiftRegister(iReal * iReal + iImag * iImag, config.pipelineDepth)
     o := ShiftRegister(iReal * iReal + iImag * iImag, config.pipelineDepth)
   }}
-}
-
-object PowerConfigBuilder {
-  def apply[T <: Data:Real] (
-    id: String, powerConfig: PowerConfig, genIn: () => T, genOut: Option[() => T]): Config = new Config(
-      (pname, site, here) => pname match {
-        case PowerKey(_id) if _id == id => powerConfig
-        case IPXactParameters(_id) if _id == id => Map[String, String]()
-        case _ => throw new CDEMatchError
-      }
-    ) ++
-    ConfigBuilder.genParams(id, powerConfig.lanes, () => DspComplex(genIn(), genIn()), genOutFunc = genOut)
-
-  def standalone[T <: Data : Real](id: String, powerConfig: PowerConfig, genIn: () => T, genOut: Option[() => T] = None): Config =
-    apply(id, powerConfig, genIn, genOut) ++
-    ConfigBuilder.buildDSP(id, {implicit p: Parameters => new PowerBlock[T]})
 }

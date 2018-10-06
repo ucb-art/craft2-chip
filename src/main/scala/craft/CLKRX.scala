@@ -4,16 +4,14 @@ package craft
 
 import chisel3._
 import chisel3.experimental._
-import cde._
-import chisel3.core.ExplicitCompileOptions.NotStrict
 
 trait CLKRXTopLevelInIO {
-  val CLKRXVIN = Input(Bool())
-  val CLKRXVIP = Input(Bool())
+  val CLKRXVIN = IO(Input(Bool()))
+  val CLKRXVIP = IO(Input(Bool()))
 }
 
 trait CLKRXTopLevelOutIO {
-  val clkrxvobuf = Output(Clock())
+  val clkrxvobuf = IO(Output(Clock()))
 }
 
 class CLKRXIO extends Bundle {
@@ -26,12 +24,11 @@ class lvds_csda_dcc extends BlackBox {
   val io = IO(new CLKRXIO)
 }
 
-trait CLKRXModule {
-  implicit val p: Parameters
-  def io: Bundle with CLKRXTopLevelInIO with CLKRXTopLevelOutIO
+trait CLKRX extends CLKRXTopLevelInIO with CLKRXTopLevelOutIO {
+  val clkrxio = IO(new CLKRXIO)
   val clkrx = Module(new lvds_csda_dcc)
-  clkrx.io.inn := io.CLKRXVIN
-  clkrx.io.inp := io.CLKRXVIP
-  io.clkrxvobuf := clkrx.io.out
+  clkrx.io.inn := CLKRXVIN
+  clkrx.io.inp := CLKRXVIP
+  clkrxvobuf := clkrx.io.out
 }
 
