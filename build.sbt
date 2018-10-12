@@ -25,7 +25,7 @@ val defaultVersions = Map(
   "testchipip" -> "1.0",
   )
 
-libraryDependencies ++= Seq("testchipip", "rocket-dsptools", /*"riscv-dma", "pfb",*/ "fft"/*, "tapeout"*/).map {
+libraryDependencies ++= Seq("testchipip", "rocket-dsptools", /*"riscv-dma", "pfb",*/ "fft", "tapeout").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) }
 
 scalacOptions += "-Xsource:2.11"
