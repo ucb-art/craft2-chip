@@ -27,8 +27,18 @@ class BitManipulationBlock[T <: Data:Ring](val config: BitManipulationConfig[T])
 
 class BitManipulationModule[T <: Data:Ring](val outer: BitManipulationBlock[T])(implicit p: Parameters) extends LazyModuleImp(outer) {
   val module = Module(new BitManipulation[T](outer.config))
-  // module.io.in <> unpackInput(lanesIn, genIn())
-  // unpackOutput(lanesOut, genOut()) <> module.io.out
+  val (in, inP) = outer.streamNode.in.head
+  val (out, outP) = outer.streamNode.out.head
+
+  in.ready := out.ready
+
+  module.io.in.valid := in.valid
+  module.io.in.bits := in.bits.data.asTypeOf(Vec(outer.config.lanes, outer.config.genIn))
+  module.io.in.sync := in.bits.last
+
+  out.valid := module.io.out.valid
+  out.bits.data := module.io.out.bits.asUInt
+  out.bits.last := module.io.out.sync
 }
 
 class BitManipulation[T <: Data:Ring](config: BitManipulationConfig[T])(implicit val p: Parameters) extends Module {
