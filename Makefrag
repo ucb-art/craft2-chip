@@ -12,7 +12,7 @@ serial_clock_period = 0.95
 dsp_clock_period = 0.104
 timeout_cycles = 100000
 
-SBT ?= java -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256m -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
+SBT ?= java -XX:+CMSClassUnloadingEnabled -Xmx8G -Xss128M -jar $(ROCKETCHIP_DIR)/sbt-launch.jar -Dsbt.ivy.home="${ivy_dir}"
 
 CRAFT_PACKAGES = fft
 #pfb riscv-dma2
@@ -33,14 +33,14 @@ CHISEL_ARGS ?=
 build_dir ?= $(sim_dir)/generated-src
 PROJECT ?= craft
 MODEL ?= TestHarness
-CFG_PROJECT ?= $(PROJECT)
-CONFIG ?= AcmesConfig
+CFG_PROJECT ?= craft
+CONFIG ?= AcmesBaseConfig
 VLSICORE ?= CraftP1Core
 VLSITOP ?= CraftP1Top
 VLSIPADS ?= CraftP1Pads
 TB ?= TestDriver
 
-long_name = $(PROJECT).$(MODEL).$(CONFIG)
+long_name = $(CFG_PROJECT).$(CONFIG)
 
 MEM_GEN ?= $(base_dir)/vlsi-bk/src/vlsi_mem_gen
 FLOP_GEN ?= $(base_dir)/vlsi-bk/src/flop-mem
@@ -56,7 +56,7 @@ test: $(top_all_stamps) $(call lookup_scala_srcs, $(base_dir)/src)
 
 $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d: $(call lookup_scala_srcs, $(base_dir)/src) $(top_all_stamps) $(bootrom_img)
 	mkdir -p $(build_dir)
-	cd $(base_dir) && $(SBT) "runMain $(PROJECT).Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
+	cd $(base_dir) && $(SBT) "runMain freechips.rocketchip.system.Generator $(CHISEL_ARGS) $(build_dir) $(PROJECT) $(MODEL) $(CFG_PROJECT) $(CONFIG)"
 	-sed 's|<spirit:component.*$$|<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"\n    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n    xmlns:cadence="http://www.cadence.com/SPIRIT/1685-2009/vendorExtensions"\n    xsi:schemaLocation="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009\n        http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009/index.xsd">|' -i generated-src/*.xml
 	-rm -rf $(build_dir)/*.xml
 
