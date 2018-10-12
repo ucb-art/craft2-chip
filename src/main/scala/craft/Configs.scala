@@ -2,30 +2,45 @@
 
 package craft
 
-// import chisel3._
-// import chisel3.experimental._
-// import scala.collection.mutable.Map
-// import dsptools._
-// import dsptools.numbers._
-// import dsptools.numbers.implicits._
-// import dspblocks._
-// import dspjunctions._
-// import _root_.junctions._
-// import rocketchip._
-// import testchipip._
-// import uncore.tilelink._
-// import uncore.converters._
-// import uncore.agents._
-// import uncore.devices._
-// import uncore.coherence._
-// import coreplex._
-// import scala.math.max
-// import util._
-// 
-// import fft._
-// 
-// import chisel3.core.ExplicitCompileOptions.NotStrict
-// 
+import chisel3._
+import chisel3.experimental.FixedPoint
+import dspblocks._
+import dsptools.numbers._
+import fft._
+import freechips.rocketchip.amba.axi4stream._
+import freechips.rocketchip.config._
+import freechips.rocketchip.diplomacy._
+import freechips.rocketchip.system._
+
+class FFTChainConfig extends Config((site, here, up) => {
+    case ChainKey => Seq(
+    { implicit p: Parameters => {
+      val bitmanip = LazyModule(new BitManipulationBlock(BitManipulationConfig(UInt(8.W), UInt(8.W), 8)))
+      bitmanip 
+    }},
+    { implicit p: Parameters => {
+      val fft = LazyModule(new FFTBlock(FFTConfig(
+        genIn = DspComplex(FixedPoint(9.W, 8.BP), FixedPoint(9.W, 8.BP)),
+        genOut = DspComplex(FixedPoint(16.W, 12.BP), FixedPoint(9.W, 8.BP)),
+    ))) 
+      fft
+    }},
+    { implicit p: Parameters => {
+      val end = LazyModule(new TLDspBlock {
+        val streamNode = AXI4StreamSlaveNode(AXI4StreamSlaveParameters())
+        val mem = None
+        override lazy val module = new LazyModuleImp(this) {
+          val (in, _) = streamNode.in.head
+          in.ready := true.B
+        }
+      })
+    end
+    }},
+    )
+})
+
+class AcmesBaseConfig extends Config(new DefaultConfig ++ new FFTChainConfig)
+
 // object ChainBuilder {
 //   type T = FixedPoint
 // 
