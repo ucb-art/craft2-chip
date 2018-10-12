@@ -25,7 +25,6 @@ class lvds_csda_dcc extends BlackBox {
 }
 
 trait CLKRX extends CLKRXTopLevelInIO with CLKRXTopLevelOutIO {
-  val clkrxio = IO(new CLKRXIO)
   val clkrx = Module(new lvds_csda_dcc)
   clkrx.io.inn := CLKRXVIN
   clkrx.io.inp := CLKRXVIP
