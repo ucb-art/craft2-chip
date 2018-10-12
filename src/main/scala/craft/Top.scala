@@ -12,8 +12,9 @@ class CraftP1Core(implicit p: Parameters) extends RocketSubsystem
     with HasPeripheryBootROM
     with HasSyncExtInterrupts
     with HasNoDebug
+    with HasPeripheryCraft2DSP
     with HasPeripherySerial {
-  override lazy val module = Module(new CraftP1CoreTopModule(this))
+  override lazy val module = new CraftP1CoreTopModule(this)
 }
 
 class CraftP1CoreTopModule[+L <: CraftP1Core](l: L) extends RocketSubsystemModuleImp(l)
@@ -30,12 +31,15 @@ class CraftP1CoreTopModule[+L <: CraftP1Core](l: L) extends RocketSubsystemModul
     with HasADCTopLevelIO
     with HasCoreReset
     with HasDspReset
-    // with PeripheryCraft2DSPModule
+    with HasPeripheryCraft2DSPModule
     // with HardwiredResetVector with DirectConnection
     // with RealAnalogAnnotator
     with CLKRX {
 
-  val deserio = IO(new DeserIO)
+  // val deserio = IO(new DeserIO)
+
+
+
   // var string = ""
   // for (entry <- p(GlobalAddrMap).flatten) {
   //   val name = entry.name
