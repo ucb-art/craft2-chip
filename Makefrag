@@ -67,9 +67,9 @@ $(build_dir)/$(long_name).mems.v: $(build_dir)/$(long_name).conf $(MEM_GEN) $(FL
 	cd $(build_dir) && $(MEM_GEN) -conf=$(build_dir)/$(long_name).conf -srams=$(SRAMS) -flop=$(FLOP_GEN) -v=$(build_dir)/$(long_name).mems.v -report=$(build_dir)/$(long_name).mems.rpt
 
 ## [stevo]: temporary hack to rename dut from Core to Top so it includes the pad frame, and add rte
-$(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v $(build_dir)/pads.behav.v: $(build_dir)/$(long_name).mems.v $(PAD_GEN) $(HARNESS_MOD)
-	cd $(build_dir) && $(PAD_GEN) $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).top.v $(VLSIPADS) $(VLSICORE) $(VLSITOP) $(build_dir)/pads.behav.v
-	cd $(build_dir) && $(HARNESS_MOD) $(build_dir)/$(long_name).harness.v $(VLSITOP)
+# $(build_dir)/$(long_name).top.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).pads.v $(build_dir)/pads.behav.v: $(build_dir)/$(long_name).mems.v $(PAD_GEN) $(HARNESS_MOD)
+# 	cd $(build_dir) && $(PAD_GEN) $(build_dir)/$(long_name).pads.v $(build_dir)/$(long_name).io $(build_dir)/$(long_name).top.v $(VLSIPADS) $(VLSICORE) $(VLSITOP) $(build_dir)/pads.behav.v
+# 	cd $(build_dir) && $(HARNESS_MOD) $(build_dir)/$(long_name).harness.v $(VLSITOP)
 
 firrtl: $(build_dir)/$(long_name).fir $(build_dir)/$(long_name).prm $(build_dir)/$(long_name).d
 verilog: $(build_dir)/$(long_name).v $(build_dir)/$(long_name).harness.v $(build_dir)/$(long_name).conf

@@ -19,7 +19,7 @@ case class BitManipulationConfig[T](
   require(lanes > 0, "Bit manipulation block must have more than 0 input lanes")
 }
 
-class BitManipulationBlock[T <: Data:Ring](val config: BitManipulationConfig[T])(implicit p: Parameters) extends TLDspBlock /*with TLHasCSR*/ {
+class BitManipulationBlock[T <: Data:Ring](val config: BitManipulationConfig[T])(implicit p: Parameters) extends TLDspBlock {
   override val streamNode = AXI4StreamIdentityNode()
   override val mem = None
   lazy val module = new BitManipulationModule(this)

@@ -9,6 +9,8 @@ import dspblocks._
 import freechips.rocketchip.amba.axi4stream._
 import freechips.rocketchip.config.Parameters
 import freechips.rocketchip.diplomacy._
+import freechips.rocketchip.regmapper._
+import freechips.rocketchip.tilelink._
 import scala.collection.mutable.Map
 
 case class AccumulatorConfig[T <: Data](
@@ -25,31 +27,57 @@ case class AccumulatorConfig[T <: Data](
   require(outputWindowSize >= lanes_new, "Must have bigger or equally sized window than number of lanes")
 }
 
-class AccumulatorBlock[T <: Data:Real](val config: AccumulatorConfig[T])(implicit p: Parameters) extends TLDspBlock /*with TLHasCSR*/ {
+class AccumulatorBlock[T <: Data:Real](val config: AccumulatorConfig[T])(implicit p: Parameters) extends TLDspBlock with TLHasCSR {
   override val streamNode = AXI4StreamIdentityNode()
-  override val mem = None
+
+  val csrAddress = AddressSet(0x3000, 0x0fff)
+  val beatBytes = 8
+  val devname = "tlaccum"
+  val devcompat = Seq("ucb-art", "accum")
+  val device = new SimpleDevice(devname, devcompat) {
+    override def describe(resources: ResourceBindings): Description = {
+      val Description(name, mapping) = super.describe(resources)
+      Description(name, mapping)
+    }
+  }
+
+  override val mem = Some(TLRegisterNode(address = Seq(csrAddress), device = device, beatBytes = beatBytes))
+
   lazy val module = new AccumulatorModule(this)
-
-  // addStatus("Data_Set_End_Status")
-  // addControl("Data_Set_End_Clear", 0.U)
-
-  // addControl("NumSpectraToAccumulate", 0.U)
-  // addStatus("NumSpectraAccumulated")
-  // addControl("ResetAccumulations", 0.U)
 }
 
 class AccumulatorModule[T <: Data:Real](outer: AccumulatorBlock[T])(implicit p: Parameters) extends LazyModuleImp(outer) {
+  val (in, inP) = outer.streamNode.in.head
+  val (out, outP) = outer.streamNode.out.head
+
   val config = outer.config
   val module = Module(new Accumulator[T](config))
-  // module.io.in <> unpackInput(lanesIn, genIn())
-  // unpackOutput(lanesOut, genOut()) <> module.io.out
 
-  // status("Data_Set_End_Status") := module.io.data_set_end_status
-  // module.io.data_set_end_clear := control("Data_Set_End_Clear")
+  module.io.in.valid := in.valid
+  module.io.in.sync := in.bits.last
+  module.io.in.bits := in.bits.data.asTypeOf(module.io.in.bits.cloneType)
 
-  // module.io.num_spectra_to_accumulate := control("NumSpectraToAccumulate")
-  // status("NumSpectraAccumulated") := module.io.num_spectra_accumulated
-  // module.io.reset_accumulations := control("ResetAccumulations")
+  out.valid := module.io.out.valid
+  out.bits.last := module.io.out.sync
+  out.bits.data := module.io.out.bits.asUInt
+
+  in.ready := out.ready
+
+  val dataSetEndClear = RegInit(false.B)
+  val numSpectraToAccumulate = RegInit(0.U(64.W))
+  val resetAccumulations = RegInit(false.B)
+
+  module.io.data_set_end_clear := dataSetEndClear
+  module.io.num_spectra_to_accumulate := numSpectraToAccumulate
+  module.io.reset_accumulations := resetAccumulations
+
+  outer.regmap(
+    0x00 -> Seq(RegField.r(64, module.io.num_spectra_accumulated)),
+    0x08 -> Seq(RegField(1, dataSetEndClear)),
+    0x10 -> Seq(RegField(64, numSpectraToAccumulate)),
+    0x18 -> Seq(RegField(1, resetAccumulations)),
+    0x20 -> Seq(RegField.r(1, module.io.data_set_end_status)),
+  )
 }
 
 class Accumulator[T <: Data:Real](val config: AccumulatorConfig[T])(implicit val p: Parameters) extends Module {

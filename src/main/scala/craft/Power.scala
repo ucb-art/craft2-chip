@@ -9,11 +9,12 @@ import dspblocks._
 import freechips.rocketchip.amba.axi4stream._
 import freechips.rocketchip.config._
 import freechips.rocketchip.diplomacy._
-import craft._
+import freechips.rocketchip.regmapper._
+import freechips.rocketchip.tilelink._
 import scala.collection.mutable.Map
 
 case class PowerConfig[T <: Data](
-  genIn: T,
+  genIn: DspComplex[T],
   genOut: T,
   lanes: Int = 8,
   pipelineDepth: Int = 0,
@@ -24,23 +25,49 @@ case class PowerConfig[T <: Data](
   // note quadrature does nothing since this is a lane-sliced function
 }
 
-class PowerBlock[T <: Data:Real](val config: PowerConfig[T])(implicit p: Parameters) extends TLDspBlock /*with TLHasCSR*/ {
+class PowerBlock[T <: Data:Real](val config: PowerConfig[T])(implicit p: Parameters) extends TLDspBlock with TLHasCSR {
   val streamNode = AXI4StreamIdentityNode()
-  val mem = None
+
+  val csrAddress = AddressSet(0x5000, 0x0fff)
+  val beatBytes = 8
+  val devname = "tlaccum"
+  val devcompat = Seq("ucb-art", "accum")
+  val device = new SimpleDevice(devname, devcompat) {
+    override def describe(resources: ResourceBindings): Description = {
+      val Description(name, mapping) = super.describe(resources)
+      Description(name, mapping)
+    }
+  }
+
+  override val mem = Some(TLRegisterNode(address = Seq(csrAddress), device = device, beatBytes = beatBytes))
 
   lazy val module = new PowerModule(this)
-
-  // addStatus("Data_Set_End_Status")
-  // addControl("Data_Set_End_Clear", 0.U)
 }
 
 class PowerModule[T <: Data:Real](outer: PowerBlock[T])(implicit p: Parameters) extends LazyModuleImp(outer) {
+  val (in, inP) = outer.streamNode.in.head
+  val (out, outP) = outer.streamNode.out.head
+
   val config = outer.config
   val module = Module(new Power[T](config))
-  // module.io.in <> unpackInput(lanesIn, genIn())
-  // unpackOutput(lanesOut, genOut()) <> module.io.out
-  // status("Data_Set_End_Status") := module.io.data_set_end_status
-  // module.io.data_set_end_clear := control("Data_Set_End_Clear")
+
+  module.io.in.valid := in.valid
+  module.io.in.sync := in.bits.last
+  module.io.in.bits := in.bits.data.asTypeOf(module.io.in.bits.cloneType)
+
+  out.valid := module.io.out.valid
+  out.bits.last := module.io.out.sync
+  out.bits.data := module.io.out.bits.asUInt
+
+  in.ready := out.ready
+
+  val dataSetEndClear = RegInit(false.B)
+  module.io.data_set_end_clear := dataSetEndClear
+
+  outer.regmap(
+    0x0 -> Seq(RegField.r(1, module.io.data_set_end_status)),
+    0x8 -> Seq(RegField(1, dataSetEndClear)),
+  )
 }
 
 class Power[T <: Data:Real](val config: PowerConfig[T])(implicit val p: Parameters) extends Module {
@@ -61,7 +88,8 @@ class Power[T <: Data:Real](val config: PowerConfig[T])(implicit val p: Paramete
   when (io.in.valid) {
     in := io.in.bits
   } .otherwise {
-    in := Vec.fill(config.lanes)(DspComplex(Real[T].zero, Real[T].zero))
+    in.foreach { _.real := Real[T].zero }
+    in.foreach { _.imag := Real[T].zero }
   }
 
   // data set end flag

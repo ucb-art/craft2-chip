@@ -161,17 +161,17 @@ module TestDriver;
     .clock(serial_clock),
     .reset(reset),
     // core clock and reset
-    .io_CLKRXVIP(core_clock),
-    .io_CLKRXVIN(~core_clock),
-    .io_core_reset(reset),
+    .CLKRXVIP(core_clock),
+    .CLKRXVIN(~core_clock),
+    .core_reset(reset),
     // ADC signals and DSP clock and reset
-    .io_adcclkreset(adc_reset),
-    .io_dsp_reset(reset),
-    .io_ADCBIAS(),
-    .io_ADCINP(adcinp),
-    .io_ADCINM(adcinm),
-    .io_ADCCLKP(dsp_clock),
-    .io_ADCCLKM(~dsp_clock),
+    .adcclkreset(adc_reset),
+    .dsp_reset(reset),
+    .ADCBIAS(),
+    .ADCINP(adcinp),
+    .ADCINM(adcinm),
+    .ADCCLKP(dsp_clock),
+    .ADCCLKM(~dsp_clock),
     // test IO
     .io_success(success)
   );

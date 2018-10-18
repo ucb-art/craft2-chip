@@ -6,12 +6,13 @@ import chisel3.internal.firrtl.KnownBinaryPoint
 import chisel3.util._
 import dsptools._
 import dsptools.numbers._
-import dsptools.numbers.implicits._
 import dspjunctions._
 import dspblocks._
 import freechips.rocketchip.amba.axi4stream._
 import freechips.rocketchip.config.Parameters
 import freechips.rocketchip.diplomacy._
+import freechips.rocketchip.regmapper._
+import freechips.rocketchip.tilelink._
 // import ipxact._
 import scala.collection.mutable.Map
 
@@ -32,37 +33,67 @@ case class CrossCalibrateConfig[T <: Data](
   val genOut = gen
 }
 
-class CrossCalibrateBlock[T <: Data:Real](val config: CrossCalibrateConfig[T])(implicit p: Parameters) extends TLDspBlock /*with TLHasCSR*/ {
+class CrossCalibrateBlock[T <: Data:Real](val config: CrossCalibrateConfig[T])(implicit p: Parameters) extends TLDspBlock with TLHasCSR {
   override val streamNode = AXI4StreamIdentityNode()
-  override val mem = None
+  val csrAddress = AddressSet(0x4000, 0x0fff)
+  val beatBytes = 8
+  val devname = "tlcc"
+  val devcompat = Seq("ucb-art", "cc")
+  val device = new SimpleDevice(devname, devcompat) {
+    override def describe(resources: ResourceBindings): Description = {
+      val Description(name, mapping) = super.describe(resources)
+      Description(name, mapping)
+    }
+  }
+  override val mem = Some(TLRegisterNode(address = Seq(csrAddress), device = device, beatBytes = beatBytes))
 
   lazy val module = new CrossCalibrateModule(this)
-
-  // addStatus("Data_Set_End_Status")
-  // addControl("Data_Set_End_Clear", 0.U)
-
-  // addControl("Mode", 0.U)
-  // addControl("Addr", 0.U)
-  // addControl("Write_En", 0.U)
-  // (0 until config.lanes/2).map(i => {
-  //   //addControl(s"C0_Lane${i}_Write_Data")
-  //   addControl(s"C1_Lane${i}_Write_Data")
-  //   addControl(s"C2_Lane${i}_Write_Data")
-  //   //addControl(s"C3_Lane${i}_Write_Data")
-  // })
 }
 
 class CrossCalibrateModule[T <: Data:Real](outer: CrossCalibrateBlock[T])(implicit p: Parameters) extends LazyModuleImp(outer) {
   val config = outer.config
   val module = Module(new CrossCalibrate[T](config))
-  // module.io.in <> unpackInput(lanesIn, genIn())
-  // unpackOutput(lanesOut, genOut()) <> module.io.out
-  // status("Data_Set_End_Status") := module.io.data_set_end_status
-  // module.io.data_set_end_clear := control("Data_Set_End_Clear")
 
-  // module.io.mode := control("Mode")
-  // module.io.addr := control("Addr")
-  // module.io.wen := control("Write_En")
+  val (in, inP) = outer.streamNode.in.head
+  val (out, outP) = outer.streamNode.out.head
+  module.io.in.valid := in.valid
+  module.io.in.sync := in.bits.last
+  module.io.in.bits := in.bits.data.asTypeOf(module.io.in.bits.cloneType)
+
+  out.valid := module.io.out.valid
+  out.bits.last := module.io.out.sync
+  out.bits.data := module.io.out.bits.asUInt
+
+  in.ready := out.ready
+
+  val mode = RegInit(false.B)
+  val addr = RegInit(0.U(64.W))
+  val wen = RegInit(false.B)
+  val dataSetEndClear = RegInit(false.B)
+
+  val c1LaneWriteData = Seq.fill(config.lanes/2)(RegInit(0.U(64.W)))
+  val c2LaneWriteData = Seq.fill(config.lanes/2)(RegInit(0.U(64.W)))
+
+  outer.regmap(
+    0x00 -> Seq(RegField(1, mode)),
+    0x08 -> Seq(RegField(64, addr)),
+    0x10 -> Seq(RegField(1, wen)),
+    0x18 -> Seq(RegField(1, dataSetEndClear)),
+    0x20 -> Seq(RegField.r(1, module.io.data_set_end_status)),
+    0x28 -> c1LaneWriteData.map(RegField(64, _)),
+    0x28 + config.lanes/2*8 -> c2LaneWriteData.map(RegField(64, _)),
+  )
+  module.io.data_set_end_clear := dataSetEndClear
+  module.io.mode := mode
+  module.io.addr := addr
+  module.io.wen := wen
+
+  module.io.c1_wdata.zip(c1LaneWriteData).foreach { case (x, i) =>
+    x := i.asTypeOf(config.genIn)
+  }
+  module.io.c2_wdata.zip(c2LaneWriteData).foreach { case (x, i) =>
+    x := i.asTypeOf(config.genIn)
+  }
 
   // TODO will need to figure out how "fromBits" maps a 64-bit UInt into an n-bit DspComplex when writing c code
 
@@ -110,7 +141,8 @@ class CrossCalibrate[T <: Data:Real](val config: CrossCalibrateConfig[T])(implic
   when (io.in.valid) {
     in := io.in.bits
   } .otherwise {
-    in := Vec.fill(config.lanes)(DspComplex(Real[T].zero, Real[T].zero))
+    in.foreach { _.real := Real[T].zero }
+    in.foreach { _.imag := Real[T].zero }
   }
 
   // data set end flag
@@ -152,8 +184,10 @@ class CrossCalibrate[T <: Data:Real](val config: CrossCalibrateConfig[T])(implic
   val c2 = Wire(Vec(config.lanes/2, genCoeff))
   val c3 = Wire(Vec(config.lanes/2, genCoeff))
   // these are always 1+0j
-  c0 := Vec.fill(config.lanes/2)(DspComplex(Real[T].one, Real[T].zero))
-  c3 := Vec.fill(config.lanes/2)(DspComplex(Real[T].one, Real[T].zero))
+  c0.foreach { _.real := Real[T].one }
+  c0.foreach { _.imag := Real[T].zero }
+  c3.foreach { _.real := Real[T].one }
+  c3.foreach { _.imag := Real[T].zero }
   when (io.mode) {
     when (io.wen) {
       //cross_calibrate0.write(io.addr, io.c0_wdata)
@@ -162,8 +196,10 @@ class CrossCalibrate[T <: Data:Real](val config: CrossCalibrateConfig[T])(implic
       //cross_calibrate3.write(io.addr, io.c3_wdata)
     }
     // "passthrough" during write, which does no calibration, just acts like no modifier
-    c1 := Vec.fill(config.lanes/2)(DspComplex(Real[T].zero, Real[T].zero))
-    c2 := Vec.fill(config.lanes/2)(DspComplex(Real[T].zero, Real[T].zero))
+    c1.foreach { _.real := Real[T].zero }
+    c1.foreach { _.imag := Real[T].zero }
+    c2.foreach { _.real := Real[T].zero }
+    c2.foreach { _.imag := Real[T].zero }
   } .otherwise {
     c1 := cross_calibrate1.read(read_addr)
     c2 := cross_calibrate2.read(read_addr)
@@ -172,9 +208,9 @@ class CrossCalibrate[T <: Data:Real](val config: CrossCalibrateConfig[T])(implic
   // take the cross calibrate of the input
   val in_grouped = in.grouped(config.lanes/2).toList
   in_grouped(0).zip(in_grouped(1)).zip(c0).zip(c1).zip(io.out.bits.take(config.lanes/2)).foreach { case ((((ix0, ix1), cx0), cx1), ox) =>
-    // ox := ShiftRegister(ix0 * cx0 + ix1 * cx1, config.pipelineDepth)
+    ox := ShiftRegister(ix0 * cx0 + ix1 * cx1, config.pipelineDepth)
   }
   in_grouped(0).zip(in_grouped(1)).zip(c2).zip(c3).zip(io.out.bits.drop(config.lanes/2)).foreach { case ((((ix0, ix1), cx0), cx1), ox) =>
-    // ox := ShiftRegister(ix0 * cx0 + ix1 * cx1, config.pipelineDepth)
+    ox := ShiftRegister(ix0 * cx0 + ix1 * cx1, config.pipelineDepth)
   }
 }

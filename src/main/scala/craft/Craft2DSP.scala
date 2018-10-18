@@ -7,6 +7,7 @@ import dsptools._
 import freechips.rocketchip.config.{Parameters, Field}
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.subsystem.BaseSubsystem
+import freechips.rocketchip.tilelink._
 import dsptools.numbers._
 import dspjunctions._
 import dspblocks._
@@ -20,7 +21,11 @@ trait HasPeripheryCraft2DSP { this: BaseSubsystem =>
   val portName = "dspchain"
 
   val craftChain = LazyModule(new DspChainWithADC(p(ChainKey)))
-  craftChain.mem.foreach { m => pbus.toVariableWidthSlave(Some(portName)) { m } }
+  craftChain.mem.foreach { case m =>
+    val fixer = TLFIFOFixer()
+    m := fixer
+    pbus.toVariableWidthSlave(Some(portName)) { fixer }
+  }
 }
 
 
@@ -41,5 +46,9 @@ with HasDspOutputClock with HasDspReset {
   val dsp_reset_sync = ResetSync(dsp_reset, dsp_clock)
   craftChainModule.clock := dsp_clock
   craftChainModule.reset := dsp_reset_sync
+
+  attach(craftChainModule.ADCBIAS, ADCBIAS)
+  attach(craftChainModule.ADCINP, ADCINP)
+  attach(craftChainModule.ADCINM, ADCINM)
 }
 
