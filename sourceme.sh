@@ -10,14 +10,7 @@ export VCS_HOME=/tools/synopsys/vcs/J-2014.12-SP1/
 export VCS_64=1
 
 # memory compiler
-export INTERRAD_LICENSE_FILE=/tools/commercial/interra/flexlm/license_N28.dat
-export TSMCHOME=/tools/tstech16/CLN16FFC/TSMCHOME
-#export TSMCHOME=/tools/tstech16/TSMCHOME
-
-# temporary, hopefully
-export MC2_INSTALL_DIR=~stevo.bailey/mc2/MC2_2013.12.00.f
-
-export PATH=$PATH:$MC2_INSTALL_DIR/bin
+# Add memory compiler setup variables here
 
 # cadence incisive
 export PATH=/tools/cadence/INCISIV/INCISIVE152/tools/bin:$PATH
